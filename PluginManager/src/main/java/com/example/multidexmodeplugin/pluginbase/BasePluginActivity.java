@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.multidexmodeplugin.AssetsManager;
+import com.example.multidexmodeplugin.DexClassLoaderPluginManager;
 import com.example.multidexmodeplugin.ResourcesManager;
 
 /**
@@ -55,7 +56,17 @@ public class BasePluginActivity extends Activity{
         return super.getResources();
     }
 
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode, Bundle bundle) {
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(
+                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        if(pluginIntent != null) {
+            super.startActivityForResult(pluginIntent, requestCode, bundle);
+        } else {
+            super.startActivityForResult(intent, requestCode, bundle);
+        }
 
+    }
 
 
 }

@@ -14,6 +14,8 @@ public class HostClassLoader extends ClassLoader {
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
     public HostClassLoader(DexClassLoaderPluginManager dexClassLoaderPluginManager, ClassLoader oldClassLoader) {
+        Log.d(TAG, "mOldClassLoader = " + oldClassLoader);
+        Log.d(TAG, "HostClassLoader = " + this);
         mOldClassLoader = oldClassLoader;
         mDexClassLoaderPluginManager = dexClassLoaderPluginManager;
     }
@@ -21,7 +23,7 @@ public class HostClassLoader extends ClassLoader {
     @Override
     public Class<?> loadClass(String className) throws ClassNotFoundException {
 
-        Log.d(TAG, "loadClass() " + className);
+        Log.d(TAG, "loadClass() className = " + className);
 
         try {
             return mOldClassLoader.loadClass(className);
@@ -31,4 +33,18 @@ public class HostClassLoader extends ClassLoader {
 
         return mDexClassLoaderPluginManager.findPluginClass(className);
     }
+
+    @Override
+    protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+
+        Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve);
+
+        try {
+            return mOldClassLoader.loadClass(className);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
 }

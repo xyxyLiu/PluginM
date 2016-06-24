@@ -35,11 +35,12 @@ public class DexClassLoaderPluginManager {
 
     private String mPendingLoadActivity;
 
-    private static Object sClassLoaderProxy;
-
     private static volatile DexClassLoaderPluginManager sInstance;
 
     private Context mContext;
+
+    private ClassLoader mOriginalClassLoader;
+    private ClassLoader mHostClassLoader;
 
     public static synchronized DexClassLoaderPluginManager getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -50,6 +51,8 @@ public class DexClassLoaderPluginManager {
     }
 
     private DexClassLoaderPluginManager(Context hostContext) {
+        Log.d(TAG, "DexClassLoaderPluginManager() classLoader = " + this.getClass().getClassLoader());
+        Log.d(TAG, "DexClassLoaderPluginManager() parent classLoader = " + this.getClass().getClassLoader().getParent());
         mContext = hostContext;
     }
 
@@ -67,10 +70,11 @@ public class DexClassLoaderPluginManager {
             Field mClassLoaderField = FieldUtils.getField(mPackageInfoObj.getClass(), "mClassLoader");
             ClassLoader loader = (ClassLoader) mClassLoaderField.get(mPackageInfoObj);
             ClassLoader newLoader = new HostClassLoader(this, loader);
-
+            mOriginalClassLoader = loader;
+            mHostClassLoader = newLoader;
             FieldUtils.writeField(mClassLoaderField, mPackageInfoObj, newLoader);
 
-            Log.d(TAG, "onAttachBaseContext() replace classloader success!");
+            Log.d(TAG, "onAttachBaseContext() replace classloader success! classload = " + newLoader);
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "onAttachBaseContext() replace classloader error!");
@@ -90,13 +94,18 @@ public class DexClassLoaderPluginManager {
             File pluginDexPath = mContext.getDir(PLUGIN_DEX_FOLDER_NAME, Context.MODE_PRIVATE);
             File pluginLibPath = mContext.getDir(PLUGIN_LIB_FOLDER_NAME, Context.MODE_PRIVATE);
             ClassLoader parentClassLoader;
+
+            Log.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
+
             if (isStandAlone) {
                 parentClassLoader = mContext.getClassLoader().getParent();
             } else {
-                parentClassLoader = mContext.getClassLoader();
+                parentClassLoader = mContext.getClassLoader();//mOriginalClassLoader;
             }
-            DexClassLoader dexClassLoader = new DexClassLoader(apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginLibPath.getAbsolutePath(), parentClassLoader);
-
+            DexClassLoader dexClassLoader = new PluginDexClassLoader(
+                    apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginLibPath.getAbsolutePath(), parentClassLoader);
+            Log.d(TAG, "install() dexClassLoader = " + dexClassLoader);
+            Log.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
 
             PluginInfo pluginInfo = ApkParser.parsePackage(mContext, apkFile.getAbsolutePath());
             pluginInfo.classLoader = dexClassLoader;
@@ -143,35 +152,26 @@ public class DexClassLoaderPluginManager {
         }
     }
 
-
-    public void startPluginActivity(String pluginPkg, String clazz, Intent originalIntent) {
-        if (originalIntent == null) {
-            originalIntent = new Intent();
-        }
-        originalIntent.setClassName(pluginPkg, clazz);
-        startPluginActivity(originalIntent);
-    }
-
-    public void startPluginActivity(Intent originalIntent) {
-        Log.d(TAG, String.format("startPluginActivity() intent = %s", originalIntent));
-        if (originalIntent == null) {
-            return;
-        }
+    public Intent getPluginActivityIntent(String pluginPkg, String clazz) {
+        Log.d(TAG, "getPluginActivityIntent() classloader = " + this.getClass().getClassLoader());
+        Log.d(TAG, String.format("getPluginActivityIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
 
         // resolve plugin activity:
-        String pluginPackageName = originalIntent.getComponent().getPackageName();
-        String className = originalIntent.getComponent().getClassName();
-        ActivityInfo activityInfo = getActivityInfo(pluginPackageName, className);
-        Log.d(TAG, String.format("startPluginActivity() resolve ok! activityInfo = %s", activityInfo));
+        ActivityInfo activityInfo = getActivityInfo(pluginPkg, clazz);
+        Log.d(TAG, String.format("getPluginActivityIntent() resolved activityInfo = %s", activityInfo));
+
+        if (activityInfo == null) {
+            return null;
+        }
 
         // make a proxy activity for it:
-        originalIntent.setClassName(mContext, PluginHostProxy.PROXY_ACTIVITY);
+        Intent intent = new Intent();
+        intent.setClassName(mContext, PluginHostProxy.PROXY_ACTIVITY);
 
         // register class for it:
         registerActivity(activityInfo);
 
-        Log.d(TAG, String.format("startPluginActivity() new intent = %s", originalIntent));
-        mContext.startActivity(originalIntent);
+        return intent;
     }
 
     public void registerActivity(ActivityInfo activityInfo) {
@@ -179,26 +179,27 @@ public class DexClassLoaderPluginManager {
     }
 
 
-
     public Class<?> findPluginClass(String className) throws ClassNotFoundException {
-        Log.d(TAG,"findPluginClass() className = " + className);
+        Log.d(TAG, "findPluginClass() className = " + className);
+        String targetClass = className;
+
+        // replace target class
         if (className.startsWith(PluginHostProxy.PROXY_PREFIX)) {
-            String targetClass = mPendingLoadActivity;
-            return loadPluginClass(targetClass);
+            targetClass = mPendingLoadActivity;
         }
 
-        throw new ClassNotFoundException(className);
+        return loadPluginClass(targetClass);
     }
 
     public Class<?> loadPluginClass(String className) throws ClassNotFoundException {
-        Log.d(TAG,"loadPluginClass() className = " + className);
+        Log.d(TAG, "loadPluginClass() className = " + className);
 
         synchronized (sClassLoaderList) {
             for (ClassLoader classLoader : sClassLoaderList) {
                 try {
                     Class<?> clazz = classLoader.loadClass(className);
                     if (clazz != null) {
-                        Log.d(TAG,"findPluginClass() success!");
+                        Log.d(TAG, "findPluginClass() success!");
                         return clazz;
                     }
                 } catch (Exception e) {
@@ -212,24 +213,17 @@ public class DexClassLoaderPluginManager {
     }
 
 
-
-
-
-
-
-
-
-
-
-
     // packages:
 
     public static ActivityInfo getActivityInfo(String packageName, String clazz) {
-
+        Log.d(TAG, "getActivityInfo() packageName = " + packageName + " , clazz = " + clazz);
         PluginInfo pluginInfo = getPluginInfo(packageName);
         if (pluginInfo == null) {
             return null;
         }
+
+        Log.d(TAG, "getActivityInfo() pluginInfo = " + pluginInfo);
+
         PackageInfo packageInfo = pluginInfo.pkgInfo;
         if (packageInfo == null || packageInfo.activities == null) {
             return null;
@@ -238,6 +232,7 @@ public class DexClassLoaderPluginManager {
         ActivityInfo[] activityInfos = packageInfo.activities;
 
         for (ActivityInfo info : activityInfos) {
+            Log.d(TAG, "getActivityInfo() check = " + info.name);
             if (info.name.equals(clazz)) {
                 return info;
             }
@@ -245,7 +240,6 @@ public class DexClassLoaderPluginManager {
 
         return null;
     }
-
 
 
 }

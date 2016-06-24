@@ -41,7 +41,7 @@ import dalvik.system.DexFile;
  */
 public final class MultiDexPluginManager {
 
-    static final String TAG = "MultiDexPluginManager";
+    private static final String TAG = "MultiDexPluginManager";
 
     private static final String OLD_SECONDARY_FOLDER_NAME = "secondary-dexes";
 

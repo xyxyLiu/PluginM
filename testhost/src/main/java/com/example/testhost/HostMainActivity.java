@@ -32,7 +32,7 @@ public class HostMainActivity extends AppCompatActivity {
         initViews();
 
 //        testMultiDexModePlugin();
-        testDexCLassLoaderModePlugin(true);
+        testDexCLassLoaderModePlugin(false);
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.cancel();
@@ -91,10 +91,10 @@ public class HostMainActivity extends AppCompatActivity {
 //                    Intent pluginIntent = new Intent();
 //                    pluginIntent.setClassName(HostMainActivity.this, "com.example.testplugin.PluginMainActivity");
 //                    startActivity(pluginIntent);
-                    Intent intent = new Intent();
-                    intent.setClassName("com.example.testplugin", "com.example.testplugin.PluginMainActivity");
+                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(
+                            "com.example.testplugin", "com.example.testplugin.PluginMainActivity");
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    mDexClassLoaderPluginManager.startPluginActivity(intent);
+                    HostMainActivity.this.startActivity(intent);
                 }
             });
 

@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2012 Tapas Mobile Ltd.  All Rights Reserved.
- */
-
 package com.android.common;
 
 import android.content.ComponentName;

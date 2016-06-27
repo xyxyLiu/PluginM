@@ -1,13 +1,11 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import android.app.Application;
 import android.content.Context;
 import android.content.IContentProvider;
 import android.content.pm.PackageInfo;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**

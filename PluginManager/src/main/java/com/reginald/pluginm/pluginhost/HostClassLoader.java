@@ -1,9 +1,8 @@
-package com.example.multidexmodeplugin.pluginhost;
+package com.reginald.pluginm.pluginhost;
 
-import android.content.Context;
 import android.util.Log;
 
-import com.example.multidexmodeplugin.DexClassLoaderPluginManager;
+import com.reginald.pluginm.DexClassLoaderPluginManager;
 
 /**
  * Created by lxy on 16-6-22.
@@ -14,6 +13,7 @@ public class HostClassLoader extends ClassLoader {
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
     public HostClassLoader(DexClassLoaderPluginManager dexClassLoaderPluginManager, ClassLoader oldClassLoader) {
+        super(oldClassLoader);
         Log.d(TAG, "mOldClassLoader = " + oldClassLoader);
         Log.d(TAG, "HostClassLoader = " + this);
         mOldClassLoader = oldClassLoader;
@@ -26,7 +26,7 @@ public class HostClassLoader extends ClassLoader {
         Log.d(TAG, "loadClass() className = " + className);
 
         try {
-            return mOldClassLoader.loadClass(className);
+            return super.loadClass(className);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -34,17 +34,17 @@ public class HostClassLoader extends ClassLoader {
         return mDexClassLoaderPluginManager.findPluginClass(className);
     }
 
-    @Override
-    protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
-
-        Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve);
-
-        try {
-            return mOldClassLoader.loadClass(className);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
+//    @Override
+//    protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+//
+//        Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve);
+//
+//        try {
+//            return mOldClassLoader.loadClass(className);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            throw e;
+//        }
+//    }
 
 }

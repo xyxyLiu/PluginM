@@ -20,7 +20,7 @@
 **
 **/
 
-package com.example.multidexmodeplugin.reflect;
+package com.reginald.pluginm.reflect;
 
 /**
  * Created by Andy Zhang(zhangyong232@gmail.com)ClassUtils on 2015/3/26.

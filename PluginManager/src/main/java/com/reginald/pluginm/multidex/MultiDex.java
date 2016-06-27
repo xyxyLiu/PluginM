@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.multidexmodeplugin.multidex;
+package com.reginald.pluginm.multidex;
 
 import android.app.Application;
 import android.content.Context;
@@ -23,8 +23,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.util.Log;
-
-import com.example.multidexmodeplugin.AssetsManager;
 
 import dalvik.system.DexFile;
 

@@ -1,4 +1,4 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import android.app.Application;
 import android.content.Context;
@@ -6,13 +6,15 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.util.Log;
 
-import com.example.multidexmodeplugin.packages.ApkParser;
-import com.example.multidexmodeplugin.pluginhost.HostClassLoader;
-import com.example.multidexmodeplugin.pluginhost.PluginHostProxy;
-import com.example.multidexmodeplugin.reflect.FieldUtils;
+import com.reginald.pluginm.packages.ApkParser;
+import com.reginald.pluginm.pluginhost.HostClassLoader;
+import com.reginald.pluginm.pluginhost.HostHCallback;
+import com.reginald.pluginm.pluginhost.PluginHostProxy;
+import com.reginald.pluginm.reflect.FieldUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -33,13 +35,18 @@ public class DexClassLoaderPluginManager {
     private static List<ClassLoader> sClassLoaderList = new ArrayList<>();
     private static HashMap<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
 
+    public static final String EXTRA_INTENT_TARGET_PACKAGE = "extra.plugin.target.package";
+    public static final String EXTRA_INTENT_TARGET_CLASS = "extra.plugin.target.class";
+
     private String mPendingLoadActivity;
+    private String mPendingLoadService;
 
     private static volatile DexClassLoaderPluginManager sInstance;
 
     private Context mContext;
 
     private ClassLoader mOriginalClassLoader;
+    ;
     private ClassLoader mHostClassLoader;
 
     public static synchronized DexClassLoaderPluginManager getInstance(Context hostContext) {
@@ -75,6 +82,9 @@ public class DexClassLoaderPluginManager {
             FieldUtils.writeField(mClassLoaderField, mPackageInfoObj, newLoader);
 
             Log.d(TAG, "onAttachBaseContext() replace classloader success! classload = " + newLoader);
+
+            HostHCallback.onInstall(app);
+
         } catch (Exception e) {
             e.printStackTrace();
             Log.e(TAG, "onAttachBaseContext() replace classloader error!");
@@ -100,7 +110,7 @@ public class DexClassLoaderPluginManager {
             if (isStandAlone) {
                 parentClassLoader = mContext.getClassLoader().getParent();
             } else {
-                parentClassLoader = mContext.getClassLoader();//mOriginalClassLoader;
+                parentClassLoader = mContext.getClassLoader();
             }
             DexClassLoader dexClassLoader = new PluginDexClassLoader(
                     apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginLibPath.getAbsolutePath(), parentClassLoader);
@@ -167,6 +177,8 @@ public class DexClassLoaderPluginManager {
         // make a proxy activity for it:
         Intent intent = new Intent();
         intent.setClassName(mContext, PluginHostProxy.PROXY_ACTIVITY);
+        intent.putExtra(EXTRA_INTENT_TARGET_PACKAGE, pluginPkg);
+        intent.putExtra(EXTRA_INTENT_TARGET_CLASS, clazz);
 
         // register class for it:
         registerActivity(activityInfo);
@@ -178,17 +190,61 @@ public class DexClassLoaderPluginManager {
         mPendingLoadActivity = activityInfo.name;
     }
 
+    public Intent getPluginServiceIntent(String pluginPkg, String clazz) {
+        Log.d(TAG, "getPluginServiceIntent() classloader = " + this.getClass().getClassLoader());
+        Log.d(TAG, String.format("getPluginServiceIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
+
+        // resolve plugin activity:
+        ServiceInfo serviceInfo = getServiceInfo(pluginPkg, clazz);
+        Log.d(TAG, String.format("getPluginServiceIntent() resolved activityInfo = %s", serviceInfo));
+
+        if (serviceInfo == null) {
+            return null;
+        }
+
+        // make a proxy activity for it:
+        Intent intent = new Intent();
+        intent.setClassName(mContext, PluginHostProxy.PROXY_SERVICE);
+        intent.putExtra(EXTRA_INTENT_TARGET_PACKAGE, pluginPkg);
+        intent.putExtra(EXTRA_INTENT_TARGET_CLASS, clazz);
+
+        // register class for it:
+        registerService(serviceInfo);
+
+        return intent;
+    }
+
+    /**
+     * //TODO modify here!
+     * @param serviceInfo
+     */
+    public void registerService(ServiceInfo serviceInfo) {
+        mPendingLoadService = serviceInfo.name;
+    }
+
 
     public Class<?> findPluginClass(String className) throws ClassNotFoundException {
         Log.d(TAG, "findPluginClass() className = " + className);
         String targetClass = className;
 
         // replace target class
-        if (className.startsWith(PluginHostProxy.PROXY_PREFIX)) {
+        if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
             targetClass = mPendingLoadActivity;
+        } else if (className.startsWith(PluginHostProxy.PROXY_SERVICE)) {
+            targetClass = mPendingLoadService;
         }
+        Log.d(TAG, "findPluginClass() targetClass = " + className);
 
-        return loadPluginClass(targetClass);
+//        try {
+            return loadPluginClass(targetClass);
+//        } catch (ClassNotFoundException e) {
+//            if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
+//                Log.d(TAG, "findPluginClass() return " + VoidStubPluginActivity.class);
+//                return VoidStubPluginActivity.class;
+//            } else {
+//                throw e;
+//            }
+//        }
     }
 
     public Class<?> loadPluginClass(String className) throws ClassNotFoundException {
@@ -233,6 +289,32 @@ public class DexClassLoaderPluginManager {
 
         for (ActivityInfo info : activityInfos) {
             Log.d(TAG, "getActivityInfo() check = " + info.name);
+            if (info.name.equals(clazz)) {
+                return info;
+            }
+        }
+
+        return null;
+    }
+
+    public static ServiceInfo getServiceInfo(String packageName, String clazz) {
+        Log.d(TAG, "getServiceInfo() packageName = " + packageName + " , clazz = " + clazz);
+        PluginInfo pluginInfo = getPluginInfo(packageName);
+        if (pluginInfo == null) {
+            return null;
+        }
+
+        Log.d(TAG, "getServiceInfo() pluginInfo = " + pluginInfo);
+
+        PackageInfo packageInfo = pluginInfo.pkgInfo;
+        if (packageInfo == null || packageInfo.services == null) {
+            return null;
+        }
+
+        ServiceInfo[] serviceInfos = packageInfo.services;
+
+        for (ServiceInfo info : serviceInfos) {
+            Log.d(TAG, "getServiceInfo() check = " + info.name);
             if (info.name.equals(clazz)) {
                 return info;
             }

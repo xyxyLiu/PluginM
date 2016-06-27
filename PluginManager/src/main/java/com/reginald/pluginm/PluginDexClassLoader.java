@@ -1,4 +1,4 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import android.util.Log;
 
@@ -17,11 +17,11 @@ public class PluginDexClassLoader extends DexClassLoader {
         super(dexPath, optimizedDirectory, libraryPath, parent);
         Log.d(TAG, "PluginDexClassLoader() " + this);
         Log.d(TAG, "PluginDexClassLoader() parent = " + parent);
-        try {
-            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager = " + parent.loadClass("com.example.multidexmodeplugin.DexClassLoaderPluginManager"));
-        } catch (Exception e) {
-            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
-        }
+//        try {
+//            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager = " + parent.loadClass("com.example.multidexmodeplugin.DexClassLoaderPluginManager"));
+//        } catch (Exception e) {
+//            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
+//        }
         testparent = parent;
     }
 

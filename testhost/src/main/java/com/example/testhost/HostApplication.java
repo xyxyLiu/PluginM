@@ -3,7 +3,7 @@ package com.example.testhost;
 import android.app.Application;
 import android.content.Context;
 
-import com.example.multidexmodeplugin.DexClassLoaderPluginManager;
+import com.reginald.pluginm.DexClassLoaderPluginManager;
 
 /**
  * Created by lxy on 16-6-22.

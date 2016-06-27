@@ -1,4 +1,4 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import android.app.Application;
 import android.content.Context;
@@ -7,7 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 
-import com.example.multidexmodeplugin.multidex.MultiDexApplication;
+import com.reginald.pluginm.multidex.MultiDexApplication;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,8 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
 import dalvik.system.DexFile;

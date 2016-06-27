@@ -20,7 +20,7 @@
 **
 **/
 
-package com.example.multidexmodeplugin.reflect;
+package com.reginald.pluginm.reflect;
 
 import java.util.ArrayList;
 import java.util.HashSet;

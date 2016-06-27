@@ -1,4 +1,4 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import java.io.File;
 import java.io.FileOutputStream;

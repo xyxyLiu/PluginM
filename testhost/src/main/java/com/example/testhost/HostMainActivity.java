@@ -1,6 +1,5 @@
 package com.example.testhost;
 
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,9 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.multidexmodeplugin.DexClassLoaderPluginManager;
-import com.example.multidexmodeplugin.MultiDexPluginManager;
-import com.nineoldandroids.animation.Animator;
+import com.reginald.pluginm.DexClassLoaderPluginManager;
+import com.reginald.pluginm.MultiDexPluginManager;
 import com.nineoldandroids.animation.AnimatorSet;
 
 import java.lang.reflect.Method;
@@ -21,7 +19,8 @@ public class HostMainActivity extends AppCompatActivity {
     static final String TAG = "HostMainActivity";
 
     private TextView mLoadModeText;
-    private Button mBtn;
+    private Button mBtn1;
+    private Button mBtn2;
 
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
@@ -42,7 +41,8 @@ public class HostMainActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        mBtn = (Button) findViewById(R.id.btn_start_act);
+        mBtn1 = (Button) findViewById(R.id.btn1);
+        mBtn2 = (Button) findViewById(R.id.btn2);
         mLoadModeText = (TextView) findViewById(R.id.plugin_load_mode);
     }
 
@@ -57,7 +57,7 @@ public class HostMainActivity extends AppCompatActivity {
             Log.d(TAG, "testPlugin success! \n testUtilsObj.test() = " + method.invoke(testUtilsObj));
 
 
-            mBtn.setOnClickListener(new View.OnClickListener() {
+            mBtn1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     // Plugin activity must be declared in manifest
@@ -85,7 +85,7 @@ public class HostMainActivity extends AppCompatActivity {
             Method method = clazz.getDeclaredMethod("test");
             Log.d(TAG, "testPlugin success! \n testUtilsObj.test() = " + method.invoke(testUtilsObj));
 
-            mBtn.setOnClickListener(new View.OnClickListener() {
+            mBtn1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 //                    Intent pluginIntent = new Intent();
@@ -95,6 +95,15 @@ public class HostMainActivity extends AppCompatActivity {
                             "com.example.testplugin", "com.example.testplugin.PluginMainActivity");
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     HostMainActivity.this.startActivity(intent);
+                }
+            });
+
+            mBtn2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent();
+                    intent.setClassName(HostMainActivity.this, "com.example.testhost.HostActivityA");
+                    startActivity(intent);
                 }
             });
 

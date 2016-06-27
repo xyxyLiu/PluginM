@@ -17,8 +17,15 @@
             </intent-filter>
         </activity>
 
-        <!--<activity android:name="com.example.testplugin.PluginMainActivity">-->
-        <!--</activity>-->
+        <!-- <activity android:name="com.example.testplugin.PluginMainActivity"> -->
+        <!-- </activity> -->
+        <activity android:name=".HostActivityA">
+        </activity>
+
+        <service
+            android:name=".HostService"
+            android:process=":background">
+        </service>
     </application>
 
 </manifest>

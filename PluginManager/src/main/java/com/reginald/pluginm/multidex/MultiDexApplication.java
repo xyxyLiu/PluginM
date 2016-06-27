@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.multidexmodeplugin.multidex;
+package com.reginald.pluginm.multidex;
 
 import android.app.Application;
 import android.content.Context;

@@ -1,15 +1,16 @@
-package com.example.multidexmodeplugin.pluginbase;
+package com.reginald.pluginm.pluginbase;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.example.multidexmodeplugin.AssetsManager;
-import com.example.multidexmodeplugin.DexClassLoaderPluginManager;
-import com.example.multidexmodeplugin.ResourcesManager;
+import com.reginald.pluginm.AssetsManager;
+import com.reginald.pluginm.DexClassLoaderPluginManager;
+import com.reginald.pluginm.ResourcesManager;
 
 /**
  * Created by lxy on 16-6-6.
@@ -23,7 +24,13 @@ public class BasePluginActivity extends Activity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate()");
         replaceResources();
+    }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy()");
     }
 
     @Override
@@ -65,8 +72,20 @@ public class BasePluginActivity extends Activity{
         } else {
             super.startActivityForResult(intent, requestCode, bundle);
         }
-
     }
+
+    @Override
+    public ComponentName startService(Intent intent) {
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(
+                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        if(pluginIntent != null) {
+            return super.startService(pluginIntent);
+        } else {
+            return super.startService(intent);
+        }
+    }
+
+
 
 
 }

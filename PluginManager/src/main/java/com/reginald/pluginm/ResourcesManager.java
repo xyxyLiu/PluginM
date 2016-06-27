@@ -1,4 +1,4 @@
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm;
 
 import android.content.Context;
 import android.content.res.AssetManager;

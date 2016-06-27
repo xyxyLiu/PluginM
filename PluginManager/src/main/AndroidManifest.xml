@@ -7,10 +7,15 @@
         android:supportsRtl="true"
         >
 
+        <activity android:name="com.reginald.pluginm.pluginbase.VoidStubPluginActivity" />
 
-        <activity android:name="com.example.multidexmodeplugin.pluginhost.PluginProxy.Activity">
+        <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
 
         </activity>
+
+        <service android:name="com.reginald.pluginm.pluginhost.PluginProxy.Service">
+
+        </service>
 
     </application>
 

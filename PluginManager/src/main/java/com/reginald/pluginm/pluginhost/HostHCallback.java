@@ -383,9 +383,10 @@ public class HostHCallback {
             String targetClass = stubIntent.getStringExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_CLASS);
 
             Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetPackage = %s, targetClass = %s", proxyClassName, targetPackage, targetClass));
-            if (targetPackage != null && mDexClassLoaderPluginManager.getPluginInfo(targetPackage) == null) {
+
+
+            if (mDexClassLoaderPluginManager.getPluginInfo(targetPackage) == null) {
                 // test here!
-                Log.w(TAG, String.format("handleLaunchActivity() " + targetPackage + " is not installed! install it!"));
                 mDexClassLoaderPluginManager.install(targetPackage, false);
             }
 

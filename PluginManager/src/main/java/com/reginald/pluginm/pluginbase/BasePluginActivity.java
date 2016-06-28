@@ -2,14 +2,15 @@ package com.reginald.pluginm.pluginbase;
 
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.reginald.pluginm.AssetsManager;
 import com.reginald.pluginm.DexClassLoaderPluginManager;
-import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.ResourcesManager;
 
 /**
  * Created by lxy on 16-6-6.
@@ -17,30 +18,49 @@ import com.reginald.pluginm.PluginInfo;
 public class BasePluginActivity extends Activity{
     private static final String TAG = "BasePluginActivity";
 
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        Log.d(TAG, "attachBaseContext() classloader = " + getClass().getClassLoader());
-        PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(getClass().getClassLoader());
-        if (pluginInfo == null) {
-            Log.e(TAG, "attachBaseContext() error! No pluginInfo found!");
-            super.attachBaseContext(newBase);
-            return;
-        }
-
-        Context pluginContext = DexClassLoaderPluginManager.createPluginContext(pluginInfo, newBase);
-        Log.d(TAG, "attachBaseContext() plugin activity context = " + pluginContext);
-        super.attachBaseContext(pluginContext);
-    }
+    private Resources mOldResources;
+    private Resources mPluginResources;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
+        replaceResources();
     }
 
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy()");
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private void replaceResources() {
+        mOldResources = getResources();
+        String apkPath = AssetsManager.getApkPath(this, "testplugin-debug.apk");
+        Log.d(TAG, "replaceResources() apkPath = " + apkPath);
+        mPluginResources = ResourcesManager.getPluginResources(this, apkPath);
+//        try {
+//            Log.d(TAG, "replaceResources() mPluginResources.getLayout(0x7f040019) = " + mPluginResources.getLayout(0x7f040019));
+//        } catch (Resources.NotFoundException e) {
+//            Log.d(TAG, "replaceResources() mOldResources error!");
+//            e.printStackTrace();
+//        }
+
+        Log.d(TAG, "replaceResources() mOldResources = " + mOldResources);
+        Log.d(TAG, "replaceResources() mPluginResources = " + mPluginResources);
+    }
+
+    @Override
+    public Resources getResources() {
+        if (mPluginResources != null) {
+            return mPluginResources;
+        }
+        return super.getResources();
     }
 
     @Override

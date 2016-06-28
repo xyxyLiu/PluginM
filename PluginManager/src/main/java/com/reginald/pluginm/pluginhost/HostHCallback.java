@@ -396,6 +396,7 @@ public class HostHCallback {
         }
 
 
+        //test
         private void handleCreateService(Message msg){
             Log.d(TAG, "handleCreateService() msg = " + msg);
 

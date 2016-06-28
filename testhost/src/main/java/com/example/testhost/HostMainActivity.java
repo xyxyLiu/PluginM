@@ -79,7 +79,7 @@ public class HostMainActivity extends AppCompatActivity {
         mLoadModeText.setText("loadmode = DexCLassLoader");
         mDexClassLoaderPluginManager.install("com.example.testplugin", isStandAlone);
         try {
-            Class<?> clazz = mDexClassLoaderPluginManager.loadPluginClass("com.example.testplugin.TestUtils");
+            Class<?> clazz = mDexClassLoaderPluginManager.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
 
             Object testUtilsObj = clazz.newInstance();
             Method method = clazz.getDeclaredMethod("test");

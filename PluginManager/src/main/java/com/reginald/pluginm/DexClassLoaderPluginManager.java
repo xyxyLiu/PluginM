@@ -6,6 +6,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
@@ -23,7 +24,6 @@ import com.reginald.pluginm.reflect.FieldUtils;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,14 +39,14 @@ public class DexClassLoaderPluginManager {
     private static final String PLUGIN_LIB_FOLDER_NAME = "plugin_lib_2";
 
     private static Map<String, PluginConfig> sPluginConfigs = new HashMap<>();
-    private static List<ClassLoader> sClassLoaderList = new ArrayList<>();
+    private static Map<String, ClassLoader> sClassLoaderMap = new HashMap<>();
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
 
     public static final String EXTRA_INTENT_TARGET_PACKAGE = "extra.plugin.target.package";
     public static final String EXTRA_INTENT_TARGET_CLASS = "extra.plugin.target.class";
 
-    private String mPendingLoadActivity;
-    private String mPendingLoadService;
+    private ComponentInfo mPendingLoadActivity;
+    private ComponentInfo mPendingLoadService;
 
     private static volatile DexClassLoaderPluginManager sInstance;
 
@@ -174,9 +174,6 @@ public class DexClassLoaderPluginManager {
                 return false;
             }
 
-            synchronized (sClassLoaderList) {
-                sClassLoaderList.add(dexClassLoader);
-            }
             synchronized (sInstalledPluginMap) {
                 sInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
@@ -232,13 +229,13 @@ public class DexClassLoaderPluginManager {
         intent.putExtra(EXTRA_INTENT_TARGET_CLASS, clazz);
 
         // register class for it:
-        registerActivity(activityInfo);
+//        registerActivity(activityInfo);
 
         return intent;
     }
 
     public void registerActivity(ActivityInfo activityInfo) {
-        mPendingLoadActivity = activityInfo.name;
+        mPendingLoadActivity = activityInfo;
     }
 
     public Intent getPluginServiceIntent(String pluginPkg, String clazz) {
@@ -270,24 +267,27 @@ public class DexClassLoaderPluginManager {
      * @param serviceInfo
      */
     public void registerService(ServiceInfo serviceInfo) {
-        mPendingLoadService = serviceInfo.name;
+        mPendingLoadService = serviceInfo;
     }
 
 
     public Class<?> findPluginClass(String className) throws ClassNotFoundException {
         Log.d(TAG, "findPluginClass() className = " + className);
+        String targetPackage = null;
         String targetClass = className;
 
         // replace target class
         if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
-            targetClass = mPendingLoadActivity;
+            targetPackage = mPendingLoadActivity.packageName;
+            targetClass = mPendingLoadActivity.name;
         } else if (className.startsWith(PluginHostProxy.PROXY_SERVICE)) {
-            targetClass = mPendingLoadService;
+            targetPackage = mPendingLoadService.packageName;
+            targetClass = mPendingLoadService.name;
         }
-        Log.d(TAG, "findPluginClass() targetClass = " + className);
+        Log.d(TAG, "findPluginClass() targetPackage = " + targetPackage + " ,targetClass = " + className);
 
 //        try {
-            return loadPluginClass(targetClass);
+        return loadPluginClass(targetPackage, targetClass);
 //        } catch (ClassNotFoundException e) {
 //            if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
 //                Log.d(TAG, "findPluginClass() return " + VoidStubPluginActivity.class);
@@ -298,24 +298,25 @@ public class DexClassLoaderPluginManager {
 //        }
     }
 
-    public Class<?> loadPluginClass(String className) throws ClassNotFoundException {
+    public Class<?> loadPluginClass(String packageName, String className) throws ClassNotFoundException {
         Log.d(TAG, "loadPluginClass() className = " + className);
-
-        synchronized (sClassLoaderList) {
-            for (ClassLoader classLoader : sClassLoaderList) {
-                try {
-                    Class<?> clazz = classLoader.loadClass(className);
-                    if (clazz != null) {
-                        Log.d(TAG, "findPluginClass() success!");
-                        return clazz;
-                    }
-                } catch (Exception e) {
-//                    e.printStackTrace();
-                }
-
-            }
+        PluginInfo pluginInfo;
+        synchronized (sInstalledPluginMap) {
+            pluginInfo = sInstalledPluginMap.get(packageName);
         }
 
+        if (pluginInfo != null) {
+            ClassLoader pluginClassLoader = pluginInfo.classLoader;
+            try {
+                Class<?> clazz = pluginClassLoader.loadClass(className);
+                if (clazz != null) {
+                    Log.d(TAG, "loadPluginClass() success!");
+                    return clazz;
+                }
+            } catch (Exception e) {
+//                    e.printStackTrace();
+            }
+        }
         throw new ClassNotFoundException(className);
     }
 
@@ -328,7 +329,7 @@ public class DexClassLoaderPluginManager {
         Log.d(TAG, "initPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
         try {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
-            pluginInfo.baseContext =  new PluginContext(pluginInfo, hostBaseContext);
+            pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
 
             ApplicationInfo applicationInfo = pluginInfo.pkgInfo.applicationInfo;
             Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);

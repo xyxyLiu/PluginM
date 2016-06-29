@@ -5,7 +5,7 @@ package com.reginald.pluginm.pluginhost;
  */
 public class PluginHostProxy {
 
-    public static final String PROXY_ACTIVITY = "com.reginald.pluginm.pluginhost.PluginProxy.Activity";
+    public static final String STUB_ACTIVITY = "com.reginald.pluginm.pluginhost.PluginProxy.Activity";
 
-    public static final String PROXY_SERVICE = "com.reginald.pluginm.pluginhost.PluginProxy.Service";
+    public static final String STUB_SERVICE = PluginStubMainService.class.getName();
 }

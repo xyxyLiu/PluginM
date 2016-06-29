@@ -1,5 +1,6 @@
 package com.reginald.pluginm.pluginhost;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
@@ -379,19 +380,21 @@ public class HostHCallback {
 
             Log.d(TAG, "handleLaunchActivity() stubIntent = " + stubIntent);
             String proxyClassName = stubIntent.getComponent().getClassName();
-            String targetPackage = stubIntent.getStringExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_PACKAGE);
-            String targetClass = stubIntent.getStringExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_CLASS);
+            ComponentName targetComponent = stubIntent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
 
-            Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetPackage = %s, targetClass = %s", proxyClassName, targetPackage, targetClass));
+            Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetComponent = %s", proxyClassName, targetComponent));
 
-
-            if (mDexClassLoaderPluginManager.getPluginInfo(targetPackage) == null) {
-                // test here!
-                mDexClassLoaderPluginManager.install(targetPackage, false);
+            if (targetComponent == null) {
+                return;
             }
 
-            if (proxyClassName.equals(PluginHostProxy.PROXY_ACTIVITY)) {
-                mDexClassLoaderPluginManager.registerActivity(DexClassLoaderPluginManager.getActivityInfo(targetPackage, targetClass));
+            if (mDexClassLoaderPluginManager.getPluginInfo(targetComponent.getPackageName()) == null) {
+                // test here!
+                mDexClassLoaderPluginManager.install(targetComponent.getPackageName(), false);
+            }
+
+            if (proxyClassName.equals(PluginHostProxy.STUB_ACTIVITY)) {
+                mDexClassLoaderPluginManager.registerActivity(DexClassLoaderPluginManager.getActivityInfo(targetComponent.getPackageName(), targetComponent.getClassName()));
             }
         }
 

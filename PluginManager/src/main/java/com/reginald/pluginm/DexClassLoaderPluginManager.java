@@ -1,6 +1,7 @@
 package com.reginald.pluginm;
 
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -39,14 +40,11 @@ public class DexClassLoaderPluginManager {
     private static final String PLUGIN_LIB_FOLDER_NAME = "plugin_lib_2";
 
     private static Map<String, PluginConfig> sPluginConfigs = new HashMap<>();
-    private static Map<String, ClassLoader> sClassLoaderMap = new HashMap<>();
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
 
-    public static final String EXTRA_INTENT_TARGET_PACKAGE = "extra.plugin.target.package";
-    public static final String EXTRA_INTENT_TARGET_CLASS = "extra.plugin.target.class";
+    public static final String EXTRA_INTENT_TARGET_COMPONENT = "extra.plugin.target.component";
 
     private ComponentInfo mPendingLoadActivity;
-    private ComponentInfo mPendingLoadService;
 
     private static volatile DexClassLoaderPluginManager sInstance;
 
@@ -210,7 +208,7 @@ public class DexClassLoaderPluginManager {
         return null;
     }
 
-    public Intent getPluginActivityIntent(String pluginPkg, String clazz) {
+    public Intent getPluginActivityIntent(Intent originIntent, String pluginPkg, String clazz) {
         Log.d(TAG, "getPluginActivityIntent() classloader = " + this.getClass().getClassLoader());
         Log.d(TAG, String.format("getPluginActivityIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
 
@@ -223,10 +221,9 @@ public class DexClassLoaderPluginManager {
         }
 
         // make a proxy activity for it:
-        Intent intent = new Intent();
-        intent.setClassName(mContext, PluginHostProxy.PROXY_ACTIVITY);
-        intent.putExtra(EXTRA_INTENT_TARGET_PACKAGE, pluginPkg);
-        intent.putExtra(EXTRA_INTENT_TARGET_CLASS, clazz);
+        Intent intent = new Intent(originIntent);
+        intent.setClassName(mContext, PluginHostProxy.STUB_ACTIVITY);
+        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(pluginPkg, clazz));
 
         // register class for it:
 //        registerActivity(activityInfo);
@@ -238,7 +235,7 @@ public class DexClassLoaderPluginManager {
         mPendingLoadActivity = activityInfo;
     }
 
-    public Intent getPluginServiceIntent(String pluginPkg, String clazz) {
+    public Intent getPluginServiceIntent(Intent originIntent, String pluginPkg, String clazz) {
         Log.d(TAG, "getPluginServiceIntent() classloader = " + this.getClass().getClassLoader());
         Log.d(TAG, String.format("getPluginServiceIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
 
@@ -251,24 +248,13 @@ public class DexClassLoaderPluginManager {
         }
 
         // make a proxy activity for it:
-        Intent intent = new Intent();
-        intent.setClassName(mContext, PluginHostProxy.PROXY_SERVICE);
-        intent.putExtra(EXTRA_INTENT_TARGET_PACKAGE, pluginPkg);
-        intent.putExtra(EXTRA_INTENT_TARGET_CLASS, clazz);
-
-        // register class for it:
-        registerService(serviceInfo);
+        Intent intent = new Intent(originIntent);
+        intent.setClassName(mContext, PluginHostProxy.STUB_SERVICE);
+        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(pluginPkg, clazz));
 
         return intent;
     }
 
-    /**
-     * //TODO modify here!
-     * @param serviceInfo
-     */
-    public void registerService(ServiceInfo serviceInfo) {
-        mPendingLoadService = serviceInfo;
-    }
 
 
     public Class<?> findPluginClass(String className) throws ClassNotFoundException {
@@ -277,19 +263,16 @@ public class DexClassLoaderPluginManager {
         String targetClass = className;
 
         // replace target class
-        if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
+        if (className.startsWith(PluginHostProxy.STUB_ACTIVITY)) {
             targetPackage = mPendingLoadActivity.packageName;
             targetClass = mPendingLoadActivity.name;
-        } else if (className.startsWith(PluginHostProxy.PROXY_SERVICE)) {
-            targetPackage = mPendingLoadService.packageName;
-            targetClass = mPendingLoadService.name;
         }
         Log.d(TAG, "findPluginClass() targetPackage = " + targetPackage + " ,targetClass = " + className);
 
 //        try {
         return loadPluginClass(targetPackage, targetClass);
 //        } catch (ClassNotFoundException e) {
-//            if (className.startsWith(PluginHostProxy.PROXY_ACTIVITY)) {
+//            if (className.startsWith(PluginHostProxy.STUB_ACTIVITY)) {
 //                Log.d(TAG, "findPluginClass() return " + VoidStubPluginActivity.class);
 //                return VoidStubPluginActivity.class;
 //            } else {

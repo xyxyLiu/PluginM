@@ -225,5 +225,24 @@ public class FieldUtils {
         writeField(field, target, value, false);
     }
 
+    public static boolean copyAllFields(Class<?> clsBase, Object src, Object target) throws IllegalAccessException{
+        if (src == null || target == null) {
+            return false;
+        }
+
+        Class<?> clsType = clsBase;
+        while (clsType != null) {
+            Field[] fields = clsType.getDeclaredFields();
+            for (Field field : fields) {
+                writeField(field, target, readField(field, src));
+            }
+            clsType = clsType.getSuperclass();
+            if (Object.class.equals(clsType)) {
+                break;
+            }
+        }
+
+        return true;
+    }
 
 }

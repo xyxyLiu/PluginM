@@ -36,6 +36,7 @@ public class BasePluginActivity extends Activity{
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
+        test();
     }
 
     protected void onDestroy() {
@@ -45,7 +46,7 @@ public class BasePluginActivity extends Activity{
 
     @Override
     public void startActivityForResult(Intent intent, int requestCode, Bundle bundle) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
                 intent.getComponent().getPackageName(), intent.getComponent().getClassName());
         if(pluginIntent != null) {
             super.startActivityForResult(pluginIntent, requestCode, bundle);
@@ -54,18 +55,12 @@ public class BasePluginActivity extends Activity{
         }
     }
 
-    @Override
-    public ComponentName startService(Intent intent) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
-        if(pluginIntent != null) {
-            return super.startService(pluginIntent);
-        } else {
-            return super.startService(intent);
-        }
+    private void test() {
+        Log.d(TAG, "getFilesDir() = " + getFilesDir());
+        Log.d(TAG, "getCacheDir() = " + getCacheDir());
+        Log.d(TAG, "getApplication() = " + getApplication());
+        Log.d(TAG, "getApplicationContext() = " + getApplicationContext());
     }
-
-
 
 
 }

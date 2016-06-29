@@ -52,6 +52,10 @@ public class ActivityThreadCompat {
         return sMtd_currentActivityThread != null;
     }
 
+    public static Class<?> getActivityThreadClass(){
+        return sClass_ActivityThread;
+    }
+
     @Nullable
     public static Object currentActivityThread() {
         if (DEBUG && Looper.myLooper() != Looper.getMainLooper()

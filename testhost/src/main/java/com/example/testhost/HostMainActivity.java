@@ -1,6 +1,9 @@
 package com.example.testhost;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +24,7 @@ public class HostMainActivity extends AppCompatActivity {
     private TextView mLoadModeText;
     private Button mBtn1;
     private Button mBtn2;
+    private Button mBtn3;
 
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
@@ -43,6 +47,7 @@ public class HostMainActivity extends AppCompatActivity {
     private void initViews() {
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn2 = (Button) findViewById(R.id.btn2);
+        mBtn3 = (Button) findViewById(R.id.btn3);
         mLoadModeText = (TextView) findViewById(R.id.plugin_load_mode);
     }
 
@@ -91,7 +96,7 @@ public class HostMainActivity extends AppCompatActivity {
 //                    Intent pluginIntent = new Intent();
 //                    pluginIntent.setClassName(HostMainActivity.this, "com.example.testplugin.PluginMainActivity");
 //                    startActivity(pluginIntent);
-                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(
+                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(new Intent(),
                             "com.example.testplugin", "com.example.testplugin.PluginMainActivity");
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     HostMainActivity.this.startActivity(intent);
@@ -104,6 +109,25 @@ public class HostMainActivity extends AppCompatActivity {
                     Intent intent = new Intent();
                     intent.setClassName(HostMainActivity.this, "com.example.testhost.HostActivityA");
                     startActivity(intent);
+                }
+            });
+
+            mBtn3.setText("bind host service");
+            mBtn3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(HostMainActivity.this, HostService.class);
+                    bindService(intent, new ServiceConnection() {
+                        @Override
+                        public void onServiceConnected(ComponentName name, IBinder service) {
+                            Log.d(TAG,"onServiceConnected() " + this);
+                        }
+
+                        @Override
+                        public void onServiceDisconnected(ComponentName name) {
+                            Log.d(TAG,"onServiceDisconnected()" + this);
+                        }
+                    }, BIND_AUTO_CREATE);
                 }
             });
 

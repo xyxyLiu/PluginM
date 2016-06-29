@@ -24,8 +24,8 @@ public class HostService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG,"onStartCommand()");
-        if (intent.getAction() != null && intent.getAction().equals("kill")) {
-            android.os.Process.killProcess(Process.myPid());
+        if (intent.getAction() != null && intent.getAction().equals("stopself")) {
+            stopSelf();
         }
 
         return super.onStartCommand(intent,flags,startId);
@@ -39,6 +39,25 @@ public class HostService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG,"onBind()");
+        showAction(intent);
         return new Binder();
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        boolean res = false;
+        Log.d(TAG,"onUnbind() return " + res);
+        showAction(intent);
+        return res;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.d(TAG,"onRebind()");
+        showAction(intent);
+    }
+
+    public void showAction(Intent intent) {
+        Log.d(TAG, "ACTION = " + intent.getAction());
     }
 }

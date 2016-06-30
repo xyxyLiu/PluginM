@@ -25,6 +25,7 @@ public class HostMainActivity extends AppCompatActivity {
     private Button mBtn1;
     private Button mBtn2;
     private Button mBtn3;
+    private Button mBtn4;
 
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
@@ -48,6 +49,7 @@ public class HostMainActivity extends AppCompatActivity {
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn2 = (Button) findViewById(R.id.btn2);
         mBtn3 = (Button) findViewById(R.id.btn3);
+        mBtn4 = (Button) findViewById(R.id.btn4);
         mLoadModeText = (TextView) findViewById(R.id.plugin_load_mode);
     }
 
@@ -112,8 +114,17 @@ public class HostMainActivity extends AppCompatActivity {
                 }
             });
 
-            mBtn3.setText("bind host service");
             mBtn3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent();
+                    intent.setClassName(HostMainActivity.this, "com.example.testhost.HostActivityB");
+                    startActivity(intent);
+                }
+            });
+
+            mBtn4.setText("bind host service");
+            mBtn4.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(HostMainActivity.this, HostService.class);

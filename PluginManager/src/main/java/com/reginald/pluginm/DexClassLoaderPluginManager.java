@@ -212,13 +212,13 @@ public class DexClassLoaderPluginManager {
         Log.d(TAG, "getPluginActivityIntent() classloader = " + this.getClass().getClassLoader());
         Log.d(TAG, String.format("getPluginActivityIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
 
-        // resolve plugin activity:
+        // test resolve plugin activity:
         ActivityInfo activityInfo = getActivityInfo(pluginPkg, clazz);
         Log.d(TAG, String.format("getPluginActivityIntent() resolved activityInfo = %s", activityInfo));
 
-        if (activityInfo == null) {
-            return null;
-        }
+//        if (activityInfo == null) {
+//            return null;
+//        }
 
         // make a proxy activity for it:
         Intent intent = new Intent(originIntent);
@@ -239,13 +239,13 @@ public class DexClassLoaderPluginManager {
         Log.d(TAG, "getPluginServiceIntent() classloader = " + this.getClass().getClassLoader());
         Log.d(TAG, String.format("getPluginServiceIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
 
-        // resolve plugin activity:
+        // test resolve plugin activity:
         ServiceInfo serviceInfo = getServiceInfo(pluginPkg, clazz);
         Log.d(TAG, String.format("getPluginServiceIntent() resolved activityInfo = %s", serviceInfo));
 
-        if (serviceInfo == null) {
-            return null;
-        }
+//        if (serviceInfo == null) {
+//            return null;
+//        }
 
         // make a proxy activity for it:
         Intent intent = new Intent(originIntent);

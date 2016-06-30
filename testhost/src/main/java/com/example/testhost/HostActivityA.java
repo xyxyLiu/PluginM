@@ -27,24 +27,24 @@ public class HostActivityA extends Activity {
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG,"onServiceConnected() mConn1" + this);
+            Log.d(TAG,"onServiceConnected() mConn1 ComponentName = " + name);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG,"onServiceDisconnected() mConn1 " + this);
+            Log.d(TAG,"onServiceDisconnected() mConn1 ComponentName = " + name);
         }
     };
 
     private ServiceConnection mConn2 = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG,"onServiceConnected() mConn2 " + this);
+            Log.d(TAG,"onServiceConnected() mConn2 ComponentName = " + name);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG,"onServiceDisconnected() mConn2 " + this);
+            Log.d(TAG,"onServiceDisconnected() mConn2 ComponentName = " + name);
         }
     };
 

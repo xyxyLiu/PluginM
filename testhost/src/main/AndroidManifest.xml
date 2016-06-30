@@ -21,6 +21,10 @@
         <!-- </activity> -->
         <activity android:name=".HostActivityA">
         </activity>
+        <activity
+            android:name=".HostActivityB"
+            android:process=":b">
+        </activity>
 
         <service
             android:name=".HostService"

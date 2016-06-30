@@ -12,6 +12,9 @@ public class HostService extends Service {
 
     private static final String TAG = "HostService";
 
+    private Binder myBinder = new Binder();
+
+
     public HostService() {
         Log.d(TAG,"HostService()");
     }
@@ -40,7 +43,7 @@ public class HostService extends Service {
     public IBinder onBind(Intent intent) {
         Log.d(TAG,"onBind()");
         showAction(intent);
-        return new Binder();
+        return myBinder;//new Binder();
     }
 
     @Override

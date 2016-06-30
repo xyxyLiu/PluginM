@@ -108,8 +108,8 @@ public class PluginContext extends ContextThemeWrapper {
                 intent.getComponent().getPackageName(), intent.getComponent().getClassName());
         if (pluginIntent != null) {
             String action = pluginIntent.getAction();
-            String pluginAppendedAction = PluginStubMainService.INTENT_EXTRA_BIND_ACTION_PREFIX +
-                    intent.getComponent().getPackageName() + "#" + intent.getComponent().getClassName();
+            String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(
+                    intent.getComponent().getPackageName(), intent.getComponent().getClassName());
             String finalAction = (action != null ? action : "") + pluginAppendedAction;
             pluginIntent.setAction(finalAction);
             Log.d(TAG, "plugin bindService() intent = " + intent);

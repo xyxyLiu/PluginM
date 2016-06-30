@@ -23,6 +23,11 @@
             android:name=".PluginService"
             android:exported="false">
         </service>
+
+        <service
+            android:name=".PluginServiceA"
+            android:exported="false">
+        </service>
     </application>
 
 </manifest>

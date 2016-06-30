@@ -25,6 +25,8 @@ public class PluginActivityA extends BasePluginActivity {
     private Button mBtn6;
     private Button mBtn7;
     private Button mBtn8;
+    private Button mBtn9;
+    private Button mBtn10;
 
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
@@ -143,6 +145,30 @@ public class PluginActivityA extends BasePluginActivity {
                 android.os.Process.killProcess(Process.myPid());
             }
         });
+
+        mBtn9 = (Button) findViewById(R.id.btn9);
+        mBtn9.setText("start plugin serviceA");
+        mBtn9.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                startService(intent);
+            }
+        });
+
+        mBtn10 = (Button) findViewById(R.id.btn10);
+        mBtn10.setText("stop plugin serviceA");
+        mBtn10.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                stopService(intent);
+            }
+        });
+
+
 
         showClassloader();
     }

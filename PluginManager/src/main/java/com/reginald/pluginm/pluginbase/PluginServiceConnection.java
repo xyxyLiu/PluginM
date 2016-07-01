@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.example.multidexmodeplugin.IPluginServiceStubBinder;
 
+import java.util.HashMap;
 import java.util.WeakHashMap;
 
 /**
@@ -17,6 +18,7 @@ public class PluginServiceConnection implements ServiceConnection {
     private static final String TAG = "PluginServiceConnection";
 
     private static WeakHashMap<ServiceConnection, PluginServiceConnection> sConnectionMap = new WeakHashMap<>();
+    private HashMap<ComponentName, ConnectionInfo> mBinderMap = new HashMap<>();
     private ServiceConnection mBase;
 
     public PluginServiceConnection(ServiceConnection serviceConnection) {
@@ -43,6 +45,13 @@ public class PluginServiceConnection implements ServiceConnection {
         }
     }
 
+    public void unbind() {
+        for (ConnectionInfo connectionInfo : mBinderMap.values()) {
+            connectionInfo.binder.unlinkToDeath(connectionInfo.deathMonitor, 0);
+        }
+        mBinderMap.clear();
+    }
+
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
         Log.d(TAG, String.format("onServiceConnected(%s, %s)", name, service));
@@ -52,9 +61,21 @@ public class PluginServiceConnection implements ServiceConnection {
                 ComponentName componentName = stubBinder.getComponentName();
                 IBinder iBinder = stubBinder.getBinder();
                 if (mBase != null && componentName != null) {
+                    ConnectionInfo connectionInfo = mBinderMap.get(componentName);
+                    if (connectionInfo != null && connectionInfo.binder != null && connectionInfo.binder == iBinder) {
+                        Log.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!" , componentName, iBinder));
+                        return;
+                    }
+
+                    ConnectionInfo newConnectionInfo = new ConnectionInfo();
+                    newConnectionInfo.binder = iBinder;
+                    newConnectionInfo.deathMonitor = new DeathMonitor(componentName, iBinder);
+                    mBinderMap.put(componentName, newConnectionInfo);
+                    newConnectionInfo.binder.linkToDeath(newConnectionInfo.deathMonitor, 0);
+
                     Log.d(TAG, String.format("call %s onServiceConnected(%s , %s)", mBase, componentName, iBinder));
                     mBase.onServiceConnected(componentName, iBinder);
-                    iBinder.linkToDeath(new DeathMonitor(componentName, iBinder), 0);
+
                 }
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -71,11 +92,11 @@ public class PluginServiceConnection implements ServiceConnection {
         if (mBase != null && name != null) {
             Log.d(TAG, String.format("call %s onServiceDisconnected(%s , %s)", mBase, name));
             mBase.onServiceDisconnected(name);
+            mBinderMap.remove(name);
         }
     }
 
-    private final class DeathMonitor implements IBinder.DeathRecipient
-    {
+    private final class DeathMonitor implements IBinder.DeathRecipient {
         DeathMonitor(ComponentName name, IBinder service) {
             mName = name;
             mService = service;
@@ -89,5 +110,10 @@ public class PluginServiceConnection implements ServiceConnection {
 
         final ComponentName mName;
         final IBinder mService;
+    }
+
+    private static class ConnectionInfo {
+        IBinder binder;
+        IBinder.DeathRecipient deathMonitor;
     }
 }

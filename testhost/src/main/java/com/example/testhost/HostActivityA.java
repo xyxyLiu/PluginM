@@ -27,7 +27,7 @@ public class HostActivityA extends Activity {
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG,"onServiceConnected() mConn1 ComponentName = " + name);
+            Log.d(TAG,"onServiceConnected() mConn1 ComponentName = " + name + " , service = " + service);
         }
 
         @Override
@@ -39,7 +39,7 @@ public class HostActivityA extends Activity {
     private ServiceConnection mConn2 = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG,"onServiceConnected() mConn2 ComponentName = " + name);
+            Log.d(TAG,"onServiceConnected() mConn2 ComponentName = " + name + " , service = " + service);
         }
 
         @Override
@@ -111,8 +111,8 @@ public class HostActivityA extends Activity {
             public void onClick(View v) {
                 Intent intent = new Intent(HostActivityA.this, HostService.class);
 //                intent.putExtra("asdas", "asd");
-                intent.setAction("random action " + SystemClock.currentThreadTimeMillis());
-                bindService(intent, mConn2, BIND_AUTO_CREATE);
+//                intent.setAction("random action " + SystemClock.currentThreadTimeMillis());
+                bindService(intent, mConn1, BIND_AUTO_CREATE);
             }
         });
 
@@ -121,7 +121,7 @@ public class HostActivityA extends Activity {
         mBtn7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                unbindService(mConn2);
+                unbindService(mConn1);
             }
         });
 

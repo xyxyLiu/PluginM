@@ -8,6 +8,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -112,6 +113,7 @@ public class PluginContext extends ContextThemeWrapper {
                     intent.getComponent().getPackageName(), intent.getComponent().getClassName());
             String finalAction = (action != null ? action : "") + pluginAppendedAction;
             pluginIntent.setAction(finalAction);
+            pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_BIND_CONN_KEY, conn.hashCode());
             Log.d(TAG, "plugin bindService() intent = " + intent);
             return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
         } else {
@@ -123,10 +125,45 @@ public class PluginContext extends ContextThemeWrapper {
     public void unbindService(ServiceConnection conn) {
         PluginServiceConnection pluginServiceConnection = PluginServiceConnection.getConnection(conn);
         if (pluginServiceConnection != null) {
+            pluginServiceConnection.unbind();
             super.unbindService(pluginServiceConnection);
         } else {
             super.unbindService(conn);
         }
+    }
+
+    @Override
+    public void startActivity(Intent intent) {
+        startActivity(intent, null);
+    }
+
+    @Override
+    public void startActivity(Intent intent, Bundle options) {
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
+                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        if(pluginIntent != null) {
+            super.startActivity(pluginIntent, options);
+        } else {
+            super.startActivity(intent, options);
+        }
+    }
+
+    @Override
+    public void startActivities(Intent[] intents) {
+        startActivities(intents, null);
+    }
+
+    @Override
+    public void startActivities(Intent[] intents, Bundle options) {
+        for (int i = 0; i < intents.length; i++) {
+            Intent intent = intents[i];
+            Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
+                    intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+            if(pluginIntent != null) {
+                intents[i] = pluginIntent;
+            }
+        }
+        startActivities(intents, options);
     }
 
 }

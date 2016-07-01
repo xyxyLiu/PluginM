@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.android.common.ActivityThreadCompat;
@@ -21,6 +20,7 @@ import com.reginald.pluginm.reflect.FieldUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class PluginStubMainService extends Service {
@@ -28,7 +28,9 @@ public class PluginStubMainService extends Service {
     public static final String INTENT_EXTRA_START_TYPE_KEY = "extra.plugin.stubservice.start.type";
     public static final String INTENT_EXTRA_START_TYPE_START = "extra.plugin.stubservice.start.type.start";
     public static final String INTENT_EXTRA_START_TYPE_STOP = "extra.plugin.stubservice.start.type.stop";
-    public static final String INTENT_EXTRA_BIND_ACTION_PREFIX = "action.plugin.stubservice.bind";
+    public static final String INTENT_ACTION_BIND_PREFIX = "action.plugin.stubservice.bind";
+    public static final String INTENT_EXTRA_BIND_CONN_KEY = "extra.plugin.stubservice.bind.conn";
+
 
     private static final String TAG = "PluginStubMainService";
 
@@ -97,19 +99,31 @@ public class PluginStubMainService extends Service {
         showAction(intent);
 
         ComponentName targetComponent = intent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
+        int conn = intent.getIntExtra(INTENT_EXTRA_BIND_CONN_KEY, -1);
         Intent pluginIntent = getPluginIntent(intent);
         if (targetComponent != null) {
             ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(targetComponent);
             Log.d(TAG, "onBind() before pluginServiceRecord = " + pluginServiceRecord);
             if (pluginServiceRecord != null) {
-                BindRecord bindRecord = new BindRecord(pluginServiceRecord,new Intent(intent));
-                bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
-                bindRecord.needOnbind = false;
-                bindRecord.needUnbind = true;
-                pluginServiceRecord.addBindRecord(pluginIntent, bindRecord);
+                BindRecord bindRecord = pluginServiceRecord.getBindRecord(pluginIntent);
+                if (bindRecord == null) {
+                    bindRecord = new BindRecord(pluginServiceRecord, new Intent(intent));
+                    bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
+                    bindRecord.needOnbind = false;
+                    bindRecord.needUnbind = true;
+                    pluginServiceRecord.addBindRecord(pluginIntent, bindRecord);
 //                pluginServiceRecord.bindCount++;
-                Log.d(TAG, "onBind() return " + bindRecord.iBinder);
-//                return bindRecord.iBinder;
+                    Log.d(TAG, "onBind() return " + bindRecord.iBinder);
+                } else if (bindRecord.needRebind) {
+                    pluginServiceRecord.service.onRebind(pluginIntent);
+                    bindRecord.needUnbind = true;
+                } else if (bindRecord.needOnbind) {
+                    bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
+                    bindRecord.needOnbind = false;
+                    bindRecord.needUnbind = true;
+                }
+
+                bindRecord.bindCount++;
                 return new StubBinder(bindRecord);
             }
         }
@@ -119,11 +133,12 @@ public class PluginStubMainService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        boolean res = true;
+        boolean res = false;
         Log.d(TAG, "onUnbind()");
         showAction(intent);
 
         ComponentName targetComponent = intent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
+        int conn = intent.getIntExtra(INTENT_EXTRA_BIND_CONN_KEY, -1);
         Intent pluginIntent = getPluginIntent(intent);
         if (targetComponent != null) {
             ServiceRecord pluginServiceRecord = fetchCachedServiceRecord(targetComponent);
@@ -132,10 +147,12 @@ public class PluginStubMainService extends Service {
                 BindRecord bindRecord = pluginServiceRecord.getBindRecord(pluginIntent);
                 if (bindRecord != null) {
                     Log.d(TAG, "onUnbind() BindRecord = " + bindRecord);
+                    bindRecord.bindCount--;
 //                    if (pluginServiceRecord.bindCount > 0) {
-                        if (bindRecord.needUnbind) {
+                        if (bindRecord.bindCount == 0 && bindRecord.needUnbind) {
                             bindRecord.needRebind = pluginServiceRecord.service.onUnbind(pluginIntent);
                             bindRecord.needUnbind = false;
+                            bindRecord.needOnbind = true;
 //                            pluginServiceRecord.removeBindRecord(pluginIntent);
                         }
 //                        pluginServiceRecord.bindCount--;
@@ -155,47 +172,47 @@ public class PluginStubMainService extends Service {
 
     @Override
     public void onRebind(Intent intent) {
-        Log.d(TAG, "onRebind()");
-        showAction(intent);
-
-        ComponentName targetComponent = intent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
-        Intent pluginIntent = getPluginIntent(intent);
-        if (targetComponent != null) {
-            ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(targetComponent);
-            Log.d(TAG, "onRebind() before pluginServiceRecord = " + pluginServiceRecord);
-            if (pluginServiceRecord != null) {
-                BindRecord bindRecord = pluginServiceRecord.getBindRecord(pluginIntent);
-
-                if (bindRecord == null) {
-                    Log.d(TAG, "onRebind() add BindRecord for " + pluginServiceRecord);
-                    bindRecord = new BindRecord(pluginServiceRecord, new Intent(intent));
-                    pluginServiceRecord.addBindRecord(pluginIntent, bindRecord);
-                }
-
-                Log.d(TAG, "onRebind() BindRecord = " + bindRecord);
-
-//                pluginServiceRecord.bindCount++;
-                if (bindRecord.needRebind) {
-                    pluginServiceRecord.service.onRebind(pluginIntent);
-                    bindRecord.needUnbind = true;
-                } else if (bindRecord.needOnbind) {
-                    bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
-                    bindRecord.needOnbind = false;
-                    bindRecord.needUnbind = true;
-                }
-//                else {
-//                    bindRecord.needUnbind = false;
+        Log.d(TAG, "onRebind() do nothing!");
+//        showAction(intent);
+//
+//        ComponentName targetComponent = intent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
+//        Intent pluginIntent = getPluginIntent(intent);
+//        if (targetComponent != null) {
+//            ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(targetComponent);
+//            Log.d(TAG, "onRebind() before pluginServiceRecord = " + pluginServiceRecord);
+//            if (pluginServiceRecord != null) {
+//                BindRecord bindRecord = pluginServiceRecord.getBindRecord(pluginIntent);
+//
+//                if (bindRecord == null) {
+//                    Log.d(TAG, "onRebind() add BindRecord for " + pluginServiceRecord);
+//                    bindRecord = new BindRecord(pluginServiceRecord, new Intent(intent));
+//                    pluginServiceRecord.addBindRecord(pluginIntent, bindRecord);
 //                }
-
-            }
-        }
+//
+//                Log.d(TAG, "onRebind() BindRecord = " + bindRecord);
+//
+////                pluginServiceRecord.bindCount++;
+//                if (bindRecord.needRebind) {
+//                    pluginServiceRecord.service.onRebind(pluginIntent);
+//                    bindRecord.needUnbind = true;
+//                } else if (bindRecord.needOnbind) {
+//                    bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
+//                    bindRecord.needOnbind = false;
+//                    bindRecord.needUnbind = true;
+//                }
+////                else {
+////                    bindRecord.needUnbind = false;
+////                }
+//
+//            }
+//        }
     }
 
     private Intent getPluginIntent(Intent intent) {
         Intent resIntent = new Intent(intent);
         String action = resIntent.getAction();
         if (action != null) {
-            String[] actions = action.split(INTENT_EXTRA_BIND_ACTION_PREFIX);
+            String[] actions = action.split(INTENT_ACTION_BIND_PREFIX);
             resIntent.setAction(actions[0]);
         }
         resIntent.removeExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
@@ -259,6 +276,9 @@ public class PluginStubMainService extends Service {
                 attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), serviceInfo.name,
                         FieldUtils.readField(this, "mToken"), pluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
+                // test
+                Log.d(TAG, "mBase of service is " + FieldUtils.readField(pluginServiceRecord.service, "mBase"));
+
                 synchronized (mInstalledServices) {
                     mInstalledServices.put(componentName, pluginServiceRecord);
                 }
@@ -281,7 +301,7 @@ public class PluginStubMainService extends Service {
 
             boolean isSuc = mInstalledServices.remove(serviceRecord.componentName) != null;
             Log.d(TAG, "removePluginService() " + serviceRecord + " suc ? " + isSuc);
-//            stopStubServiceIfNeededLocked();
+            stopStubServiceIfNeededLocked();
             return isSuc;
         }
 
@@ -300,7 +320,7 @@ public class PluginStubMainService extends Service {
 
     public static String getPluginAppendAction(String packageName, String className) {
         //加上pid是因为不同pid的bind同样intent的service，只有第一个进程的bindService触发onRebind回调。
-        return PluginStubMainService.INTENT_EXTRA_BIND_ACTION_PREFIX + android.os.Process.myPid() +
+        return PluginStubMainService.INTENT_ACTION_BIND_PREFIX + System.nanoTime() + android.os.Process.myPid() +
                 packageName + "#" + className;
     }
 
@@ -310,7 +330,6 @@ public class PluginStubMainService extends Service {
 
         public Service service;
         public boolean started;
-        public int bindCount = 0;
 
         HashMap<Intent.FilterComparison, BindRecord> bindRecords = new HashMap<>();
 
@@ -320,7 +339,7 @@ public class PluginStubMainService extends Service {
             }
 
             for (BindRecord bindRecord: bindRecords.values()) {
-                if (bindRecord.needUnbind) {
+                if (bindRecord.needUnbind || bindRecord.bindCount != 0) {
                     return false;
                 }
             }
@@ -345,8 +364,8 @@ public class PluginStubMainService extends Service {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + String.format("[ service = %s, started = %b, bindCount = %d, bindRecords = %s]",
-                    service, started, bindCount, bindRecords);
+            return getClass().getSimpleName() + String.format("[ service = %s, started = %b, bindRecords = %s]",
+                    service, started, bindRecords);
         }
     }
 
@@ -358,6 +377,7 @@ public class PluginStubMainService extends Service {
         public boolean needRebind;
         public boolean needUnbind;
         public boolean needOnbind = true;
+        public int bindCount;
 
         public BindRecord(ServiceRecord serviceRecord, Intent intent) {
             this.serviceRecord = serviceRecord;
@@ -366,8 +386,8 @@ public class PluginStubMainService extends Service {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + String.format("[ intent = %s, iBinder = %s, needRebind = %b, needUnbind = %b, needOnbind = %b ]",
-                    intent, iBinder, needRebind, needUnbind, needOnbind);
+            return getClass().getSimpleName() + String.format("[ intent = %s, iBinder = %s, needRebind = %b, needUnbind = %b, needOnbind = %b, bindCount = %d ]",
+                    intent, iBinder, needRebind, needUnbind, needOnbind, bindCount);
         }
     }
 
@@ -380,6 +400,16 @@ public class PluginStubMainService extends Service {
             mIntent = bindRecord.intent;
         }
 
+//        @Override
+//        public boolean needConnect() {
+//            BindRecord bindRecord = getBindRecord();
+//            Log.d(TAG, "needConnect() " + bindRecord);
+//            if (bindRecord != null) {
+//                return bindRecord.;
+//            } else {
+//                return false;
+//            }
+//        }
 
         @Override
         public ComponentName getComponentName() throws RemoteException {
@@ -408,11 +438,10 @@ public class PluginStubMainService extends Service {
             ServiceRecord serviceRecord = fetchCachedServiceRecord(mComponentName);
 
             // hack here: 系统会先调用serviceConnetion.connected 然后调用onRebind, 会导致找不到BindRecord
-            if (serviceRecord == null) {
-                onRebind(mIntent);
-            }
-
-            serviceRecord = fetchCachedServiceRecord(mComponentName);
+//            if (serviceRecord == null) {
+//                onRebind(mIntent);
+//            }
+//            serviceRecord = fetchCachedServiceRecord(mComponentName);
 
             if (serviceRecord != null) {
                 return serviceRecord.getBindRecord(getPluginIntent(mIntent));

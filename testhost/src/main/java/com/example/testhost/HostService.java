@@ -43,7 +43,7 @@ public class HostService extends Service {
     public IBinder onBind(Intent intent) {
         Log.d(TAG,"onBind()");
         showAction(intent);
-        return myBinder;//new Binder();
+        return new Binder();
     }
 
     @Override

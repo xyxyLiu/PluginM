@@ -27,6 +27,8 @@ public class PluginActivityA extends BasePluginActivity {
     private Button mBtn8;
     private Button mBtn9;
     private Button mBtn10;
+    private Button mBtn11;
+    private Button mBtn12;
 
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
@@ -97,7 +99,7 @@ public class PluginActivityA extends BasePluginActivity {
         });
 
         mBtn4 = (Button) findViewById(R.id.btn4);
-        mBtn4.setText("bind plugin service");
+        mBtn4.setText("bind plugin service with conn1");
         mBtn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,7 +110,7 @@ public class PluginActivityA extends BasePluginActivity {
         });
 
         mBtn5 = (Button) findViewById(R.id.btn5);
-        mBtn5.setText("unbind plugin service");
+        mBtn5.setText("unbind plugin service with conn1");
         mBtn5.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -117,19 +119,19 @@ public class PluginActivityA extends BasePluginActivity {
         });
 
         mBtn6 = (Button) findViewById(R.id.btn6);
-        mBtn6.setText("bind plugin service");
+        mBtn6.setText("bind plugin service with conn2");
         mBtn6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.setAction("asdasd");
+//                intent.setAction("asdasd");
                 intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
                 bindService(intent, mConn2, BIND_AUTO_CREATE);
             }
         });
 
         mBtn7 = (Button) findViewById(R.id.btn7);
-        mBtn7.setText("unbind plugin service");
+        mBtn7.setText("unbind plugin service conn2");
         mBtn7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -147,12 +149,13 @@ public class PluginActivityA extends BasePluginActivity {
         });
 
         mBtn9 = (Button) findViewById(R.id.btn9);
-        mBtn9.setText("start plugin serviceA");
+        mBtn9.setText("start plugin serviceA start act");
         mBtn9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
                 intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                intent.setAction("startactivity");
                 startService(intent);
             }
         });
@@ -165,6 +168,28 @@ public class PluginActivityA extends BasePluginActivity {
                 Intent intent = new Intent();
                 intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
                 stopService(intent);
+            }
+        });
+
+        mBtn11 = (Button) findViewById(R.id.btn11);
+        mBtn11.setText("bing plugin serviceA with conn1");
+        mBtn11.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                bindService(intent, mConn1, BIND_AUTO_CREATE);
+            }
+        });
+
+        mBtn12 = (Button) findViewById(R.id.btn12);
+        mBtn12.setText("unbind plugin serviceA with conn1");
+        mBtn12.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                unbindService(mConn1);
             }
         });
 

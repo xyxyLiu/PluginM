@@ -11,13 +11,17 @@ import android.widget.Toast;
 public class PluginService extends Service {
     private static final String TAG = "PluginService";
 
-    private IBinder myBinder = new ITestBinder.Stub() {
+    private static class TestBinder extends ITestBinder.Stub {
 
         @Override
         public String getTestString() throws RemoteException {
-            return "Hi, I'm ITestBinder, from process " + android.os.Process.myPid();
+            return "Hi, I'm " + this + ", from process " + android.os.Process.myPid();
         }
     };
+
+    private IBinder myBinder = new TestBinder();
+
+
 
     public PluginService() {
         Log.d(TAG,"PluginService()");
@@ -48,7 +52,7 @@ public class PluginService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG,"onBind()");
-        return myBinder;//new Binder();
+        return new TestBinder();
     }
 
     public boolean onUnbind(Intent intent) {

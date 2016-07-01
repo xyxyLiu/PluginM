@@ -113,7 +113,7 @@ public class PluginContext extends ContextThemeWrapper {
             String finalAction = (action != null ? action : "") + pluginAppendedAction;
             pluginIntent.setAction(finalAction);
             Log.d(TAG, "plugin bindService() intent = " + intent);
-            return super.bindService(pluginIntent, conn, flags);
+            return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
         } else {
             return super.bindService(intent, conn, flags);
         }
@@ -121,7 +121,12 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public void unbindService(ServiceConnection conn) {
-        super.unbindService(conn);
+        PluginServiceConnection pluginServiceConnection = PluginServiceConnection.getConnection(conn);
+        if (pluginServiceConnection != null) {
+            super.unbindService(pluginServiceConnection);
+        } else {
+            super.unbindService(conn);
+        }
     }
 
 }

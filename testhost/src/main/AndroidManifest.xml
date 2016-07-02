@@ -27,8 +27,7 @@
         </activity>
 
         <service
-            android:name=".HostService"
-            android:process=":background">
+            android:name=".HostService">
         </service>
     </application>
 

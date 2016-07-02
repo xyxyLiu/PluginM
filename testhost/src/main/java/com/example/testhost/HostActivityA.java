@@ -111,8 +111,8 @@ public class HostActivityA extends Activity {
             public void onClick(View v) {
                 Intent intent = new Intent(HostActivityA.this, HostService.class);
 //                intent.putExtra("asdas", "asd");
-//                intent.setAction("random action " + SystemClock.currentThreadTimeMillis());
-                bindService(intent, mConn1, BIND_AUTO_CREATE);
+//                intent.setAction("random action ");
+                bindService(intent, mConn2, BIND_AUTO_CREATE);
             }
         });
 
@@ -121,7 +121,7 @@ public class HostActivityA extends Activity {
         mBtn7.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                unbindService(mConn1);
+                unbindService(mConn2);
             }
         });
 

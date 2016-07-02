@@ -27,7 +27,7 @@ public class HostService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG,"onStartCommand()");
-        if (intent.getAction() != null && intent.getAction().equals("stopself")) {
+        if (intent != null && "stopself".equals(intent.getAction())) {
             stopSelf();
         }
 

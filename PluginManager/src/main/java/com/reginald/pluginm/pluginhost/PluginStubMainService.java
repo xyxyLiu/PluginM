@@ -106,6 +106,7 @@ public class PluginStubMainService extends Service {
             Log.d(TAG, "onBind() before pluginServiceRecord = " + pluginServiceRecord);
             if (pluginServiceRecord != null) {
                 BindRecord bindRecord = pluginServiceRecord.getBindRecord(pluginIntent);
+                Log.d(TAG, "onBind() before bindRecord = " + bindRecord);
                 if (bindRecord == null) {
                     bindRecord = new BindRecord(pluginServiceRecord, new Intent(intent));
                     bindRecord.iBinder = pluginServiceRecord.service.onBind(pluginIntent);
@@ -152,7 +153,7 @@ public class PluginStubMainService extends Service {
                         if (bindRecord.bindCount == 0 && bindRecord.needUnbind) {
                             bindRecord.needRebind = pluginServiceRecord.service.onUnbind(pluginIntent);
                             bindRecord.needUnbind = false;
-                            bindRecord.needOnbind = true;
+//                            bindRecord.needOnbind = true;
 //                            pluginServiceRecord.removeBindRecord(pluginIntent);
                         }
 //                        pluginServiceRecord.bindCount--;

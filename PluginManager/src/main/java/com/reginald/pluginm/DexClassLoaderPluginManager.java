@@ -14,8 +14,7 @@ import android.content.res.Resources;
 import android.util.Log;
 
 import com.android.common.ContextCompat;
-import com.reginald.pluginm.packages.ApkParser;
-import com.reginald.pluginm.pluginbase.BasePluginApplication;
+import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.pluginbase.PluginContext;
 import com.reginald.pluginm.pluginhost.HostClassLoader;
 import com.reginald.pluginm.pluginhost.HostHCallback;
@@ -151,7 +150,7 @@ public class DexClassLoaderPluginManager {
             Log.d(TAG, "install() dexClassLoader = " + dexClassLoader);
             Log.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
 
-            PluginInfo pluginInfo = ApkParser.parsePackage(mContext, apkFile.getAbsolutePath());
+            PluginInfo pluginInfo = ApkParser.parsePluginInfo(mContext, apkFile.getAbsolutePath());
             pluginInfo.classLoader = dexClassLoader;
             pluginInfo.parentClassLoader = parentClassLoader;
             pluginInfo.apkPath = apkFile.getAbsolutePath();
@@ -318,7 +317,7 @@ public class DexClassLoaderPluginManager {
             Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);
 
             if (applicationInfo.className == null) {
-                applicationInfo.className = BasePluginApplication.class.getName();
+                applicationInfo.className = Application.class.getName();//BasePluginApplication.class.getName();
             }
 
             Class pluginAppClass = pluginInfo.classLoader.loadClass(applicationInfo.className);
@@ -334,6 +333,21 @@ public class DexClassLoaderPluginManager {
         }
     }
 
+
+//    private void initStaticReceivers(PluginInfo pluginInfo) {
+//
+//
+//        Object packageParser = PackageCompat.createPackageParser(pluginInfo.apkPath);
+//        Object pluginPackage = PackageCompat.packageParser_parsePackage();
+//
+//
+//        Context pluginContext = pluginInfo.application;
+//        if (pluginInfo.pkgInfo != null && pluginInfo.pkgInfo.receivers != null) {
+//            for (ActivityInfo receiverInfo : pluginInfo.pkgInfo.receivers) {
+//                receiverInfo.
+//            }
+//        }
+//    }
 
     // packages:
 

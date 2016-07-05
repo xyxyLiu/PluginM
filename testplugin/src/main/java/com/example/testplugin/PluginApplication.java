@@ -1,13 +1,12 @@
 package com.example.testplugin;
 
+import android.app.Application;
 import android.util.Log;
-
-import com.reginald.pluginm.pluginbase.BasePluginApplication;
 
 /**
  * Created by lxy on 16-6-28.
  */
-public class PluginApplication extends BasePluginApplication{
+public class PluginApplication extends Application {
 
     private static final String TAG = "PluginApplication";
 

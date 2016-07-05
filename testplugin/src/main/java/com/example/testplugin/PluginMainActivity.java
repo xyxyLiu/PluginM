@@ -1,6 +1,9 @@
 package com.example.testplugin;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -15,6 +18,17 @@ public class PluginMainActivity extends BasePluginActivity {
 
     private Button mBtn1;
     private Button mBtn2;
+
+
+    public static final String BROADCAST_ACTION_1 = "plugin_broadcast_test_1";
+    public static final String BROADCAST_ACTION_2 = "plugin_broadcast_test_2";
+
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Plugin BroadcastReceiver.onReceive() context = " + context + " ,intent = " + intent);
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,7 +66,13 @@ public class PluginMainActivity extends BasePluginActivity {
             }
         });
 
+        broadcastTest();
         showClassloader();
+    }
+
+    private void broadcastTest() {
+        registerReceiver(mBroadcastReceiver, new IntentFilter(BROADCAST_ACTION_1));
+        registerReceiver(mBroadcastReceiver, new IntentFilter(BROADCAST_ACTION_2));
     }
 
     private void showClassloader() {

@@ -1,7 +1,10 @@
 package com.example.testhost;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +32,16 @@ public class HostMainActivity extends AppCompatActivity {
 
     private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
+    public static final String BROADCAST_ACTION_1 = "host_broadcast_test_1";
+    public static final String BROADCAST_ACTION_2 = "host_broadcast_test_2";
+
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "BroadcastReceiver.onReceive() intent = " + intent);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +56,13 @@ public class HostMainActivity extends AppCompatActivity {
         Log.d(TAG, "AnimatorSet.class = " + AnimatorSet.class);
         Log.d(TAG, "AnimatorSet.class.hashCode() = " + AnimatorSet.class.hashCode());
         Log.d(TAG, "AnimatorSet.class.hashCode() = " + AnimatorSet.class.hashCode());
+
+        broadcastTest();
+    }
+
+    private void broadcastTest() {
+        registerReceiver(mBroadcastReceiver, new IntentFilter(BROADCAST_ACTION_1));
+        registerReceiver(mBroadcastReceiver, new IntentFilter(BROADCAST_ACTION_2));
     }
 
     private void initViews() {

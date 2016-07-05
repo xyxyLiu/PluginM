@@ -29,6 +29,7 @@ public class PluginActivityA extends BasePluginActivity {
     private Button mBtn10;
     private Button mBtn11;
     private Button mBtn12;
+    private Button mBtn13;
 
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
@@ -194,6 +195,15 @@ public class PluginActivityA extends BasePluginActivity {
         });
 
 
+        mBtn13 = (Button) findViewById(R.id.btn13);
+        mBtn13.setText("send plugin broadcast ");
+        mBtn13.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendBroadcast(new Intent(PluginMainActivity.BROADCAST_ACTION_1));
+                sendBroadcast(new Intent(PluginMainActivity.BROADCAST_ACTION_2));
+            }
+        });
 
         showClassloader();
     }

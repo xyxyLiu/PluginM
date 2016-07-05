@@ -125,5 +125,15 @@ public class HostActivityA extends Activity {
             }
         });
 
+        mBtn8 = (Button) findViewById(R.id.btn8);
+        mBtn8.setText("send host broadcast");
+        mBtn8.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendBroadcast(new Intent(HostMainActivity.BROADCAST_ACTION_1));
+                sendBroadcast(new Intent(HostMainActivity.BROADCAST_ACTION_2));
+            }
+        });
+
     }
 }

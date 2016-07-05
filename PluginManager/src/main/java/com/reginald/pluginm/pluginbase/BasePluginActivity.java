@@ -1,18 +1,14 @@
 package com.reginald.pluginm.pluginbase;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.reginald.pluginm.AssetsManager;
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.ResourcesManager;
 
 /**
  * Created by lxy on 16-6-6.

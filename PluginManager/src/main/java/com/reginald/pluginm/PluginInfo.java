@@ -6,14 +6,19 @@ import android.content.IContentProvider;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
 
+import com.reginald.pluginm.parser.PluginPackageParser;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by lxy on 16-6-21.
  */
-public class PluginInfo {
+public final class PluginInfo {
 
     public String packageName;
+    public PluginPackageParser pkgParser;
     public PackageInfo pkgInfo;
     public ClassLoader classLoader;
     public ClassLoader parentClassLoader;
@@ -22,9 +27,9 @@ public class PluginInfo {
 //    public AssetManager assetManager;
     public Resources resources;
 //    public l serviceDispatcher;
-//    public ArrayList<i> activityIntentFilters = new ArrayList();
-//    public ArrayList<i> receiverIntentFilters = new ArrayList();
-//    public ArrayList<i> serviceIntentFilters = new ArrayList();
+//    public List<IntentFilterInfo> activityIntentFilters = new ArrayList();
+//    public List<IntentFilterInfo> receiverIntentFilters = new ArrayList();
+//    public List<IntentFilterInfo> serviceIntentFilters = new ArrayList();
     public String apkPath;
     public long fileSize;
     public long lastModified;

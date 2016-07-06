@@ -1,6 +1,7 @@
 package com.reginald.pluginm;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -187,9 +188,6 @@ public class DexClassLoaderPluginManager {
             }
 
             initPluginApplication(pluginInfo, mContext);
-
-            initStaticReceivers(pluginInfo);
-
             return true;
         } catch (Exception e) {
             Log.e(TAG, "install() error! exception: " + e);
@@ -295,8 +293,9 @@ public class DexClassLoaderPluginManager {
         String targetPackage = null;
         String targetClass = className;
 
+        Log.d(TAG, "findPluginClass() mPendingLoadActivity = " + mPendingLoadActivity);
         // replace target class
-        if (className.startsWith(PluginHostProxy.STUB_ACTIVITY)) {
+        if (className.startsWith(PluginHostProxy.STUB_ACTIVITY) && mPendingLoadActivity != null) {
             targetPackage = mPendingLoadActivity.packageName;
             targetClass = mPendingLoadActivity.name;
         }
@@ -362,6 +361,8 @@ public class DexClassLoaderPluginManager {
             attachMethod.invoke(pluginInfo.application, pluginInfo.baseContext);
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
             pluginInfo.application.onCreate();
+
+            initStaticReceivers(pluginInfo);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -375,6 +376,17 @@ public class DexClassLoaderPluginManager {
             for (Map.Entry<ActivityInfo, List<IntentFilter>> entry : receiverIntentFilters.entrySet()) {
                 ActivityInfo receiverInfo = entry.getKey();
                 List<IntentFilter> intentFilters = entry.getValue();
+
+                try {
+                    BroadcastReceiver receiver = (BroadcastReceiver) pluginInfo.classLoader.loadClass(receiverInfo.name).newInstance();
+                    for (IntentFilter filter : intentFilters) {
+                        pluginInfo.application.registerReceiver(receiver, filter);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
                 //test;
                 Log.d(TAG, "initStaticReceivers() receiverInfo = " + receiverInfo);
                 int i = 1;

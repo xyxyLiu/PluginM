@@ -28,6 +28,9 @@ public class HostMainActivity extends AppCompatActivity {
     private TextView mLoadModeText;
     private Button mBtn1;
     private Button mBtn1_1;
+    private Button mBtn1_2;
+    private Button mBtn1_3;
+
     private Button mBtn2;
     private Button mBtn3;
     private Button mBtn4;
@@ -73,6 +76,8 @@ public class HostMainActivity extends AppCompatActivity {
         mBtn3 = (Button) findViewById(R.id.btn3);
         mBtn4 = (Button) findViewById(R.id.btn4);
         mBtn1_1 = (Button) findViewById(R.id.btn1_1);
+        mBtn1_2 = (Button) findViewById(R.id.btn1_2);
+        mBtn1_3 = (Button) findViewById(R.id.btn1_3);
         mLoadModeText = (TextView) findViewById(R.id.plugin_load_mode);
     }
 
@@ -108,7 +113,7 @@ public class HostMainActivity extends AppCompatActivity {
 
         mLoadModeText.setText("loadmode = DexCLassLoader");
         String pluginPackageName = "com.example.testplugin";
-        boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName, isStandAlone);
+        final boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName, isStandAlone);
 
         Toast.makeText(this, "plugin " + pluginPackageName + " install " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
 
@@ -130,6 +135,7 @@ public class HostMainActivity extends AppCompatActivity {
                 }
             });
 
+            mBtn1_1.setText("start plugin activity with action");
             mBtn1_1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -137,6 +143,24 @@ public class HostMainActivity extends AppCompatActivity {
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
+                }
+            });
+
+            mBtn1_2.setText("send plugin broadcast");
+            mBtn1_2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent pluginIntent = new Intent("plugin_broadcast_test_2");
+                    sendBroadcast(pluginIntent);
+                }
+            });
+
+            mBtn1_3.setText("send plugin static broadcast");
+            mBtn1_3.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent pluginIntent = new Intent("action.plugin.broadcast.test2");
+                    sendBroadcast(pluginIntent);
                 }
             });
 

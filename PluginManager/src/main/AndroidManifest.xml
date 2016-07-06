@@ -12,6 +12,11 @@
             android:exported="false">
         </service>
 
+        <receiver
+            android:name="com.reginald.pluginm.pluginhost.PluginStubBroadcast"
+            android:exported="false">
+        </receiver>
+
         <!-- begin of stub components -->
 
         <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">

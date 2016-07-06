@@ -32,7 +32,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     public PluginContext(PluginInfo pluginInfo, Context baseContext) {
         // test theme
-        super(baseContext, pluginInfo.pkgInfo.applicationInfo.theme);
+        super(baseContext, pluginInfo.applicationInfo.theme);
         Log.d(TAG, "PluginActivityContext() pluginInfo = " + pluginInfo);
         mPluginInfo = pluginInfo;
         mApkPath = pluginInfo.apkPath;
@@ -74,13 +74,12 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     public ApplicationInfo getApplicationInfo() {
-        return mPluginInfo.pkgInfo.applicationInfo;
+        return mPluginInfo.applicationInfo;
     }
 
     @Override
     public ComponentName startService(Intent intent) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent,
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
             return super.startService(pluginIntent);
@@ -91,8 +90,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public boolean stopService(Intent intent) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent,
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
             super.startService(pluginIntent);
@@ -105,8 +103,7 @@ public class PluginContext extends ContextThemeWrapper {
     @Override
     public boolean bindService(Intent intent, ServiceConnection conn,
             int flags) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent,
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             String action = pluginIntent.getAction();
             String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(
@@ -138,8 +135,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public void startActivity(Intent intent, Bundle options) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
         if(pluginIntent != null) {
             super.startActivity(pluginIntent, options);
         } else {
@@ -156,8 +152,7 @@ public class PluginContext extends ContextThemeWrapper {
     public void startActivities(Intent[] intents, Bundle options) {
         for (int i = 0; i < intents.length; i++) {
             Intent intent = intents[i];
-            Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
-                    intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+            Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
             if(pluginIntent != null) {
                 intents[i] = pluginIntent;
             }

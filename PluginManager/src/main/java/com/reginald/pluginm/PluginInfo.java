@@ -3,6 +3,7 @@ package com.reginald.pluginm;
 import android.app.Application;
 import android.content.Context;
 import android.content.IContentProvider;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
 
@@ -19,17 +20,13 @@ public final class PluginInfo {
 
     public String packageName;
     public PluginPackageParser pkgParser;
-    public PackageInfo pkgInfo;
     public ClassLoader classLoader;
     public ClassLoader parentClassLoader;
+    public ApplicationInfo applicationInfo;
     public Application application;
     public Context baseContext;
 //    public AssetManager assetManager;
     public Resources resources;
-//    public l serviceDispatcher;
-//    public List<IntentFilterInfo> activityIntentFilters = new ArrayList();
-//    public List<IntentFilterInfo> receiverIntentFilters = new ArrayList();
-//    public List<IntentFilterInfo> serviceIntentFilters = new ArrayList();
     public String apkPath;
     public long fileSize;
     public long lastModified;
@@ -41,7 +38,7 @@ public final class PluginInfo {
 
 
     public String toString() {
-        return "PluginInfo[ packageName = " + packageName + " , pkgInfo = " + pkgInfo + " , classLoader = " +
+        return "PluginInfo[ packageName = " + packageName + " , pkgParser = " + pkgParser + " , classLoader = " +
                 classLoader + " , resources = " + resources + " , apkPath = " + apkPath + "]";
     }
 

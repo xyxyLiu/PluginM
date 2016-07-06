@@ -400,7 +400,7 @@ public class PluginPackageParser {
         }
     }
 
-    public String getPackageName() throws Exception {
+    public String getPackageName() {
         return mPackageName;
     }
 

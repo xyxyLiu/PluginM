@@ -22,16 +22,31 @@ public class ApkParser {
 
     public static PluginInfo parsePluginInfo(Context context, String apkFile) {
         PluginPackageParser pluginPackageParser = parsePackage(context, apkFile);
+
         if (pluginPackageParser != null) {
-            return getPluginInfo(pluginPackageParser);
+            try {
+                PluginInfo pluginInfo = new PluginInfo();
+                pluginInfo.pkgParser = pluginPackageParser;
+                pluginInfo.packageName = pluginPackageParser.getPackageName();
+                pluginInfo.applicationInfo = pluginPackageParser.getApplicationInfo(0);
+
+                //test:
+                showPluginInfo(pluginInfo.pkgParser);
+
+                return pluginInfo;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
         return null;
     }
 
-    private static PluginInfo getPluginInfo(PluginPackageParser pluginPackageParser) {
+    private static void showPluginInfo(PluginPackageParser pluginPackageParser) {
 
         PluginInfo pluginInfo = new PluginInfo();
+        pluginInfo.pkgParser = pluginPackageParser;
 
         PackageInfo packageInfo = null;
 
@@ -41,13 +56,10 @@ public class ApkParser {
                             PackageManager.GET_RECEIVERS | PackageManager.GET_META_DATA);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
 
         if (packageInfo != null) {
-            pluginInfo.pkgParser = pluginPackageParser;
             pluginInfo.packageName = packageInfo.packageName;
-
 
             // test
             Log.d(TAG, "\n## packageInfo.packageInfo.applicationInfo: ");
@@ -84,15 +96,7 @@ public class ApkParser {
                 }
             }
 
-
-            pluginInfo.pkgInfo = packageInfo;
-        } else {
-            return null;
         }
-
-
-
-        return pluginInfo;
     }
 
     private static PluginPackageParser parsePackage(Context context, String apkFile) {

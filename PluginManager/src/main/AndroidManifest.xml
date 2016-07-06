@@ -6,16 +6,21 @@
         android:allowBackup="true"
         android:label="@string/app_name"
         android:supportsRtl="true">
-        <activity android:name="com.reginald.pluginm.pluginbase.VoidStubPluginActivity" />
+
+        <service
+            android:name="com.reginald.pluginm.pluginhost.PluginStubMainService"
+            android:exported="false">
+        </service>
+
+        <!-- begin of stub components -->
+
         <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
         </activity>
 
         <service android:name="com.reginald.pluginm.pluginhost.PluginProxy.Service">
         </service>
-        <service
-            android:name="com.reginald.pluginm.pluginhost.PluginStubMainService"
-            android:exported="false">
-        </service>
+
+        <!-- end of stub components -->
     </application>
 
 </manifest>

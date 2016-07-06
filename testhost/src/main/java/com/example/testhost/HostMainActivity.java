@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.MultiDexPluginManager;
@@ -26,6 +27,7 @@ public class HostMainActivity extends AppCompatActivity {
 
     private TextView mLoadModeText;
     private Button mBtn1;
+    private Button mBtn1_1;
     private Button mBtn2;
     private Button mBtn3;
     private Button mBtn4;
@@ -70,6 +72,7 @@ public class HostMainActivity extends AppCompatActivity {
         mBtn2 = (Button) findViewById(R.id.btn2);
         mBtn3 = (Button) findViewById(R.id.btn3);
         mBtn4 = (Button) findViewById(R.id.btn4);
+        mBtn1_1 = (Button) findViewById(R.id.btn1_1);
         mLoadModeText = (TextView) findViewById(R.id.plugin_load_mode);
     }
 
@@ -104,7 +107,11 @@ public class HostMainActivity extends AppCompatActivity {
         mDexClassLoaderPluginManager = DexClassLoaderPluginManager.getInstance(getApplicationContext());
 
         mLoadModeText.setText("loadmode = DexCLassLoader");
-        mDexClassLoaderPluginManager.install("com.example.testplugin", isStandAlone);
+        String pluginPackageName = "com.example.testplugin";
+        boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName, isStandAlone);
+
+        Toast.makeText(this, "plugin " + pluginPackageName + " install " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
+
         try {
             Class<?> clazz = mDexClassLoaderPluginManager.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
 
@@ -115,12 +122,20 @@ public class HostMainActivity extends AppCompatActivity {
             mBtn1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    Intent pluginIntent = new Intent();
-//                    pluginIntent.setClassName(HostMainActivity.this, "com.example.testplugin.PluginMainActivity");
-//                    startActivity(pluginIntent);
-                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(new Intent(),
-                            "com.example.testplugin", "com.example.testplugin.PluginMainActivity");
+                    Intent pluginIntent = new Intent();
+                    pluginIntent.setClassName("com.example.testplugin", "com.example.testplugin.PluginMainActivity");
+                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    HostMainActivity.this.startActivity(intent);
+                }
+            });
+
+            mBtn1_1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent pluginIntent = new Intent("action.com.example.testplugin.testA");
+                    pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });

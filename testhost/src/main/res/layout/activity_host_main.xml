@@ -28,6 +28,12 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:text="start plugin activity" />
+    <Button
+        android:id="@+id/btn1_1"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:text="start plugin activity with action" />
 
     <Button
         android:id="@+id/btn2"

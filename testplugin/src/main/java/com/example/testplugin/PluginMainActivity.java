@@ -18,7 +18,7 @@ public class PluginMainActivity extends BasePluginActivity {
 
     private Button mBtn1;
     private Button mBtn2;
-
+    private Button mBtn3;
 
     public static final String BROADCAST_ACTION_1 = "plugin_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "plugin_broadcast_test_2";
@@ -62,6 +62,16 @@ public class PluginMainActivity extends BasePluginActivity {
             public void onClick(View v) {
                 Intent intent = new Intent();
                 intent.setClassName(PluginUtils.HOST_PACKAGE_NAME, "com.example.testhost.HostMainActivity");
+                startActivity(intent);
+            }
+        });
+
+        mBtn3 = (Button) findViewById(R.id.btn3);
+        mBtn3.setText("start plugin activity with action");
+        mBtn3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent("action.com.example.testplugin.testA");
                 startActivity(intent);
             }
         });

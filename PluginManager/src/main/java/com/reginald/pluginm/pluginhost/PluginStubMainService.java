@@ -243,7 +243,7 @@ public class PluginStubMainService extends Service {
         ServiceRecord pluginServiceRecord = new ServiceRecord();
         pluginServiceRecord.componentName = componentName;
         PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(componentName.getPackageName());
-        ServiceInfo serviceInfo = DexClassLoaderPluginManager.getServiceInfo(componentName.getPackageName(), componentName.getClassName());
+        ServiceInfo serviceInfo = DexClassLoaderPluginManager.getServiceInfo(componentName);
 
         if (serviceInfo == null) {
             return null;

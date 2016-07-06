@@ -17,6 +17,11 @@ xmlns:android="http://schemas.android.com/apk/res/android">
         </intent-filter>
     </activity>
     <activity android:name=".PluginActivityA">
+        <intent-filter>
+            <action android:name="action.com.example.testplugin.testA" />
+
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
     </activity>
 
     <service
@@ -33,6 +38,9 @@ xmlns:android="http://schemas.android.com/apk/res/android">
     <receiver android:name="com.example.testplugin.PluginBroadcastReceiver">
         <intent-filter android:priority="1000000" >
             <action android:name="action.plugin.broadcast.test1" />
+        </intent-filter>
+        <intent-filter android:priority="123123" >
+            <action android:name="action.plugin.broadcast.test2" />
         </intent-filter>
     </receiver>
 

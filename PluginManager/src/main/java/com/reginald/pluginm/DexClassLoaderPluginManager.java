@@ -5,16 +5,22 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.util.Log;
+import android.util.LogPrinter;
 
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.parser.ApkParser;
+import com.reginald.pluginm.parser.IntentMatcher;
+import com.reginald.pluginm.parser.PluginPackageParser;
 import com.reginald.pluginm.pluginbase.PluginContext;
 import com.reginald.pluginm.pluginhost.HostClassLoader;
 import com.reginald.pluginm.pluginhost.HostHCallback;
@@ -24,6 +30,7 @@ import com.reginald.pluginm.reflect.FieldUtils;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.security.Provider;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +47,7 @@ public class DexClassLoaderPluginManager {
 
     private static Map<String, PluginConfig> sPluginConfigs = new HashMap<>();
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
+    private static Map<String, PluginPackageParser> sInstalledPkgParser = new HashMap<>();
 
     public static final String EXTRA_INTENT_TARGET_COMPONENT = "extra.plugin.target.component";
 
@@ -155,6 +163,9 @@ public class DexClassLoaderPluginManager {
             pluginInfo.parentClassLoader = parentClassLoader;
             pluginInfo.apkPath = apkFile.getAbsolutePath();
 
+            synchronized (sInstalledPkgParser) {
+                sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
+            }
 
             Resources resources = ResourcesManager.getPluginResources(mContext, apkFile.getAbsolutePath());
             if (resources != null) {
@@ -176,6 +187,8 @@ public class DexClassLoaderPluginManager {
             }
 
             initPluginApplication(pluginInfo, mContext);
+
+            initStaticReceivers(pluginInfo);
 
             return true;
         } catch (Exception e) {
@@ -207,22 +220,32 @@ public class DexClassLoaderPluginManager {
         return null;
     }
 
-    public Intent getPluginActivityIntent(Intent originIntent, String pluginPkg, String clazz) {
-        Log.d(TAG, "getPluginActivityIntent() classloader = " + this.getClass().getClassLoader());
-        Log.d(TAG, String.format("getPluginActivityIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
+    public Intent getPluginActivityIntent(Intent originIntent) {
+        Log.d(TAG, "getPluginActivityIntent() originIntent = " + originIntent);
 
         // test resolve plugin activity:
-        ActivityInfo activityInfo = getActivityInfo(pluginPkg, clazz);
-        Log.d(TAG, String.format("getPluginActivityIntent() resolved activityInfo = %s", activityInfo));
+        List<ResolveInfo> resolveInfos = null;
+        try {
+            resolveInfos = IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, originIntent, originIntent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, String.format("getPluginActivityIntent() resolveInfos = %s", resolveInfos));
 
-        if (activityInfo == null) {
+        if (resolveInfos == null || resolveInfos.isEmpty()) {
             return null;
         }
+
+        // choose the first one:
+        ResolveInfo finalInfo = resolveInfos.get(0);
+        ActivityInfo activityInfo = finalInfo.activityInfo;
+
+        Log.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s", activityInfo));
 
         // make a proxy activity for it:
         Intent intent = new Intent(originIntent);
         intent.setClassName(mContext, PluginHostProxy.STUB_ACTIVITY);
-        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(pluginPkg, clazz));
+        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(activityInfo.packageName, activityInfo.name));
 
         // register class for it:
 //        registerActivity(activityInfo);
@@ -230,26 +253,37 @@ public class DexClassLoaderPluginManager {
         return intent;
     }
 
+
     public void registerActivity(ActivityInfo activityInfo) {
         mPendingLoadActivity = activityInfo;
     }
 
-    public Intent getPluginServiceIntent(Intent originIntent, String pluginPkg, String clazz) {
-        Log.d(TAG, "getPluginServiceIntent() classloader = " + this.getClass().getClassLoader());
-        Log.d(TAG, String.format("getPluginServiceIntent() pluginPkg = %s, clazz = %s", pluginPkg, clazz));
+    public Intent getPluginServiceIntent(Intent originIntent) {
+        Log.d(TAG, "getPluginServiceIntent() originIntent = " + originIntent);
 
         // test resolve plugin activity:
-        ServiceInfo serviceInfo = getServiceInfo(pluginPkg, clazz);
-        Log.d(TAG, String.format("getPluginServiceIntent() resolved activityInfo = %s", serviceInfo));
+        List<ResolveInfo> resolveInfos = null;
+        try {
+            resolveInfos = IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, originIntent, originIntent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.d(TAG, String.format("getPluginServiceIntent() resolveInfos = %s", resolveInfos));
 
-        if (serviceInfo == null) {
+        if (resolveInfos == null || resolveInfos.isEmpty()) {
             return null;
         }
+
+        // choose the first one:
+        ResolveInfo finalInfo = resolveInfos.get(0);
+        ServiceInfo serviceInfo = finalInfo.serviceInfo;
+
+        Log.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s", serviceInfo));
 
         // make a proxy activity for it:
         Intent intent = new Intent(originIntent);
         intent.setClassName(mContext, PluginHostProxy.STUB_SERVICE);
-        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(pluginPkg, clazz));
+        intent.putExtra(EXTRA_INTENT_TARGET_COMPONENT, new ComponentName(serviceInfo.packageName, serviceInfo.name));
 
         return intent;
     }
@@ -313,7 +347,7 @@ public class DexClassLoaderPluginManager {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
             pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
 
-            ApplicationInfo applicationInfo = pluginInfo.pkgInfo.applicationInfo;
+            ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
             Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);
 
             if (applicationInfo.className == null) {
@@ -334,73 +368,105 @@ public class DexClassLoaderPluginManager {
     }
 
 
-//    private void initStaticReceivers(PluginInfo pluginInfo) {
-//
-//
-//        Object packageParser = PackageCompat.createPackageParser(pluginInfo.apkPath);
-//        Object pluginPackage = PackageCompat.packageParser_parsePackage();
-//
-//
-//        Context pluginContext = pluginInfo.application;
-//        if (pluginInfo.pkgInfo != null && pluginInfo.pkgInfo.receivers != null) {
-//            for (ActivityInfo receiverInfo : pluginInfo.pkgInfo.receivers) {
-//                receiverInfo.
-//            }
-//        }
-//    }
+    private void initStaticReceivers(PluginInfo pluginInfo) {
+        Map<ActivityInfo, List<IntentFilter>> receiverIntentFilters = pluginInfo.pkgParser.getReceiverIntentFilter();
+
+        if (receiverIntentFilters != null) {
+            for (Map.Entry<ActivityInfo, List<IntentFilter>> entry : receiverIntentFilters.entrySet()) {
+                ActivityInfo receiverInfo = entry.getKey();
+                List<IntentFilter> intentFilters = entry.getValue();
+                //test;
+                Log.d(TAG, "initStaticReceivers() receiverInfo = " + receiverInfo);
+                int i = 1;
+                for (IntentFilter intentFilter : intentFilters) {
+                    Log.d(TAG, "initStaticReceivers() IntentFilter No." + i++ + " :");
+                    intentFilter.dump(new LogPrinter(Log.DEBUG, "initStaticReceivers() "), "");
+                    Log.d(TAG, "initStaticReceivers() \n");
+                }
+
+            }
+        }
+    }
 
     // packages:
 
-    public static ActivityInfo getActivityInfo(String packageName, String clazz) {
-        Log.d(TAG, "getActivityInfo() packageName = " + packageName + " , clazz = " + clazz);
-        PluginInfo pluginInfo = getPluginInfo(packageName);
-        if (pluginInfo == null) {
+    public static ActivityInfo getActivityInfo(ComponentName componentName) {
+        Log.d(TAG, "getActivityInfo() componentName = " + componentName);
+
+        PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
+        if (pluginPackageParser == null) {
             return null;
         }
 
-        Log.d(TAG, "getActivityInfo() pluginInfo = " + pluginInfo);
-
-        PackageInfo packageInfo = pluginInfo.pkgInfo;
-        if (packageInfo == null || packageInfo.activities == null) {
-            return null;
-        }
-
-        ActivityInfo[] activityInfos = packageInfo.activities;
-
-        for (ActivityInfo info : activityInfos) {
-            Log.d(TAG, "getActivityInfo() check = " + info.name);
-            if (info.name.equals(clazz)) {
-                return info;
-            }
+        try {
+            return pluginPackageParser.getActivityInfo(componentName, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return null;
     }
 
-    public static ServiceInfo getServiceInfo(String packageName, String clazz) {
-        Log.d(TAG, "getServiceInfo() packageName = " + packageName + " , clazz = " + clazz);
-        PluginInfo pluginInfo = getPluginInfo(packageName);
+    public static ServiceInfo getServiceInfo(ComponentName componentName) {
+        Log.d(TAG, "getServiceInfo() componentName = " + componentName);
+
+        PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
+        if (pluginPackageParser == null) {
+            return null;
+        }
+
+        try {
+            return pluginPackageParser.getServiceInfo(componentName, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static ActivityInfo getReceiverInfo(ComponentName componentName) {
+        Log.d(TAG, "getActivityInfo() componentName = " + componentName);
+
+        PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
+        if (pluginPackageParser == null) {
+            return null;
+        }
+
+        try {
+            return pluginPackageParser.getReceiverInfo(componentName, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
+
+    public static ProviderInfo getProviderInfo(ComponentName componentName) {
+        Log.d(TAG, "getProviderInfo() componentName = " + componentName);
+
+        PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
+        if (pluginPackageParser == null) {
+            return null;
+        }
+
+        try {
+            return pluginPackageParser.getProviderInfo(componentName, 0);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
+
+    private static PluginPackageParser getPackageParserForComponent(ComponentName componentName) {
+        PluginInfo pluginInfo = getPluginInfo(componentName.getPackageName());
         if (pluginInfo == null) {
             return null;
         }
 
-        Log.d(TAG, "getServiceInfo() pluginInfo = " + pluginInfo);
-
-        PackageInfo packageInfo = pluginInfo.pkgInfo;
-        if (packageInfo == null || packageInfo.services == null) {
-            return null;
-        }
-
-        ServiceInfo[] serviceInfos = packageInfo.services;
-
-        for (ServiceInfo info : serviceInfos) {
-            Log.d(TAG, "getServiceInfo() check = " + info.name);
-            if (info.name.equals(clazz)) {
-                return info;
-            }
-        }
-
-        return null;
+        return pluginInfo.pkgParser;
     }
 
 

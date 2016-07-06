@@ -42,8 +42,7 @@ public class BasePluginActivity extends Activity{
 
     @Override
     public void startActivityForResult(Intent intent, int requestCode, Bundle bundle) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent,
-                intent.getComponent().getPackageName(), intent.getComponent().getClassName());
+        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
         if(pluginIntent != null) {
             super.startActivityForResult(pluginIntent, requestCode, bundle);
         } else {

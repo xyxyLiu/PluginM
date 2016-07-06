@@ -36,6 +36,8 @@ import android.content.pm.Signature;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 
+import com.android.common.SystemPropertiesCompat;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;

@@ -20,7 +20,7 @@
 **
 **/
 
-package com.reginald.pluginm.parser;
+package com.android.common;
 
 import android.os.UserHandle;
 

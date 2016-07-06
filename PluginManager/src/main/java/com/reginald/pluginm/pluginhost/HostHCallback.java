@@ -394,7 +394,7 @@ public class HostHCallback {
             }
 
             if (proxyClassName.equals(PluginHostProxy.STUB_ACTIVITY)) {
-                mDexClassLoaderPluginManager.registerActivity(DexClassLoaderPluginManager.getActivityInfo(targetComponent.getPackageName(), targetComponent.getClassName()));
+                mDexClassLoaderPluginManager.registerActivity(DexClassLoaderPluginManager.getActivityInfo(targetComponent));
             }
         }
 

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +24,7 @@ public class HostActivityA extends Activity {
     private Button mBtn6;
     private Button mBtn7;
     private Button mBtn8;
+    private Button mBtn9;
 
     private ServiceConnection mConn1 = new ServiceConnection() {
         @Override
@@ -132,6 +134,15 @@ public class HostActivityA extends Activity {
             public void onClick(View v) {
                 sendBroadcast(new Intent(HostMainActivity.BROADCAST_ACTION_1));
                 sendBroadcast(new Intent(HostMainActivity.BROADCAST_ACTION_2));
+            }
+        });
+
+        mBtn9 = (Button) findViewById(R.id.btn9);
+        mBtn9.setText("kill process");
+        mBtn9.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.os.Process.killProcess(Process.myPid());
             }
         });
 

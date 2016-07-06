@@ -27,7 +27,8 @@
         </activity>
 
         <service
-            android:name=".HostService">
+            android:name=".HostService"
+            android:process=":back">
         </service>
     </application>
 

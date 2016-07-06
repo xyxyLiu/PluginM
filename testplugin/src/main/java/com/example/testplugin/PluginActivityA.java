@@ -205,12 +205,14 @@ public class PluginActivityA extends BasePluginActivity {
             }
         });
 
-        showClassloader();
+        showPluginInfo();
     }
 
-    private void showClassloader() {
+    private void showPluginInfo() {
         ClassLoader classLoader = getClassLoader();
         Log.d(TAG, "classloader = " + classLoader);
         Log.d(TAG, "parent classloader = " + classLoader.getParent());
+        Log.d(TAG, "getApplication() = " + getApplication());
+        Log.d(TAG, "getPackageName() = " + getPackageName());
     }
 }

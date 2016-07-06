@@ -40,7 +40,7 @@ public class HostMainActivity extends AppCompatActivity {
     public static final String BROADCAST_ACTION_1 = "host_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "host_broadcast_test_2";
 
-    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+    private static BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "BroadcastReceiver.onReceive() intent = " + intent);

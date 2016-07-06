@@ -38,7 +38,7 @@ public class PluginStubMainService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        mDexClassLoaderPluginManager.getInstance(getApplicationContext());
+        mDexClassLoaderPluginManager = DexClassLoaderPluginManager.getInstance(getApplicationContext());
         Log.d(TAG, "onCreate()");
     }
 

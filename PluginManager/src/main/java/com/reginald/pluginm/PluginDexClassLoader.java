@@ -60,8 +60,14 @@ public class PluginDexClassLoader extends DexClassLoader {
 //
 //        return clazz;
 
-
-        return super.loadClass(className, resolve);
+        try {
+            Class<?> clazz = super.loadClass(className, resolve);
+            Log.d(TAG, "loadClass() classname = " + className + " ok!");
+            return clazz;
+        } catch (Exception e) {
+            Log.e(TAG, "loadClass() classname = " + className + " fail!");
+            throw e;
+        }
     }
 
     public String toString() {

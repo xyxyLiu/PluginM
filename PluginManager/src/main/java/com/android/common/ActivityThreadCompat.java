@@ -1,5 +1,8 @@
 package com.android.common;
 
+import android.content.ContentProvider;
+import android.content.Context;
+import android.content.pm.ProviderInfo;
 import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.NonNull;
@@ -11,6 +14,7 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class ActivityThreadCompat {
     private static final String TAG = "ActivityThreadCompat";
@@ -20,6 +24,7 @@ public class ActivityThreadCompat {
     private static Method sMtd_currentActivityThread;
     private static Method sMtd_getProcessName;
     private static Method sMtd_currentProcessName;
+    private static Method sMtd_installContentProviders;
 
     static {
         try {
@@ -173,5 +178,33 @@ public class ActivityThreadCompat {
             return getProcessName(activityThread);
         }
         return null;
+    }
+
+
+    private static void reflect_installContentProviders() {
+        if (sMtd_installContentProviders != null || sClass_ActivityThread == null) {
+            return;
+        }
+
+        try {
+            // public static ActivityThread currentActivityThread()
+            sMtd_installContentProviders = sClass_ActivityThread.getDeclaredMethod("installContentProviders", Context.class, List.class);
+            sMtd_installContentProviders.setAccessible(true);
+        } catch (NoSuchMethodException e) {
+            if (DEBUG) Log.w(TAG, "method not found", e);
+        }
+    }
+
+    public static void installContentProviders(Context context, List<ProviderInfo> providers) {
+        reflect_installContentProviders();
+        if (sMtd_installContentProviders != null) {
+            try {
+                sMtd_installContentProviders.invoke(currentActivityThread(), context, providers);
+            } catch (IllegalAccessException e) {
+                if (DEBUG) Log.w(TAG, "failed to invoke #installContentProviders()", e);
+            } catch (InvocationTargetException e) {
+                if (DEBUG) Log.w(TAG, "failed to invoke #installContentProviders() more", e);
+            }
+        }
     }
 }

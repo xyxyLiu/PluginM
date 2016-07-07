@@ -19,6 +19,7 @@ public class PluginMainActivity extends BasePluginActivity {
     private Button mBtn1;
     private Button mBtn2;
     private Button mBtn3;
+    private Button mBtn4;
 
     public static final String BROADCAST_ACTION_1 = "plugin_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "plugin_broadcast_test_2";
@@ -55,6 +56,17 @@ public class PluginMainActivity extends BasePluginActivity {
             }
         });
 
+        mBtn4 = (Button) findViewById(R.id.btn4);
+        mBtn4.setText("start plugin activity B");
+        mBtn4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginActivityB.class.getName());
+                startActivity(intent);
+            }
+        });
+
         mBtn2 = (Button) findViewById(R.id.btn2);
         mBtn2.setText("start host activity");
         mBtn2.setOnClickListener(new View.OnClickListener() {
@@ -78,6 +90,10 @@ public class PluginMainActivity extends BasePluginActivity {
 
         broadcastTest();
         showClassloader();
+
+        //test plugin class:
+        CustomClassA objA = new CustomClassA(1, "Hi");
+        Log.d(TAG, "test CustomClassA " + objA);
     }
 
     private void broadcastTest() {

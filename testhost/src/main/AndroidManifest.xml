@@ -30,6 +30,12 @@
             android:name=".HostService"
             android:process=":back">
         </service>
+
+        <provider
+            android:name=".HostContentProvider"
+            android:authorities="com.example.testhost.provider"
+            android:exported="false">
+        </provider>
     </application>
 
 </manifest>

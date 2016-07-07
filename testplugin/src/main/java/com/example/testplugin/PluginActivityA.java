@@ -64,7 +64,7 @@ public class PluginActivityA extends BasePluginActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_plugin);
+        setContentView(R.layout.activity_plugin_activity_a);
 
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn1.setText("start plugin activity main");
@@ -156,7 +156,7 @@ public class PluginActivityA extends BasePluginActivity {
             public void onClick(View v) {
                 Intent intent = new Intent();
                 intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
-                intent.setAction("startactivity");
+                intent.setAction("killself");
                 startService(intent);
             }
         });

@@ -69,6 +69,9 @@ public class PluginStubMainService extends Service {
                     }
                 }
             }
+        } else {
+            Log.d(TAG, "onStartCommand() not intent, stop stub service!");
+            stopSelf();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -270,7 +273,7 @@ public class PluginStubMainService extends Service {
                 Context pluginServiceContext = new PluginContext(pluginInfo, getBaseContext());
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
-                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), serviceInfo.name,
+                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), getClass().getName(),
                         FieldUtils.readField(this, "mToken"), pluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
                 // test

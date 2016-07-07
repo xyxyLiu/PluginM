@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.util.Log;
 import android.util.LogPrinter;
 
@@ -92,6 +94,20 @@ public class ApkParser {
                 for (ActivityInfo receiverInfo : packageInfo.receivers) {
                     Log.d(TAG, "packageInfo.receiver No." + ++i);
                     receiverInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
+                    Log.d(TAG, "\n");
+                }
+            }
+
+            if (packageInfo.providers != null) {
+                Log.d(TAG, "\n## packageInfo.providers: ");
+                int i = 0;
+                for (ProviderInfo providerInfo : packageInfo.providers) {
+                    Log.d(TAG, "packageInfo.provider No." + ++i);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        providerInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
+                    } else {
+                        Log.d(TAG, " " + providerInfo);
+                    }
                     Log.d(TAG, "\n");
                 }
             }

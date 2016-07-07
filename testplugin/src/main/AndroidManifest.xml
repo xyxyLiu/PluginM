@@ -1,51 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="com.example.testplugin"
-xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-<application
-    android:name=".PluginApplication"
-    android:allowBackup="true"
-    android:icon="@mipmap/ic_launcher"
-    android:label="@string/app_name"
-    android:supportsRtl="true"
-    android:theme="@style/AppTheme">
-    <activity android:name=".PluginMainActivity">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+    <application
+        android:name=".PluginApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".PluginMainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-    </activity>
-    <activity android:name=".PluginActivityA">
-        <intent-filter>
-            <action android:name="action.com.example.testplugin.testA" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".PluginActivityA">
+            <intent-filter>
+                <action android:name="action.com.example.testplugin.testA" />
 
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
-    </activity>
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
-    <service
-        android:name=".PluginService"
-        android:exported="false">
-    </service>
+        <service
+            android:name=".PluginService"
+            android:exported="false">
+        </service>
+        <service
+            android:name=".PluginServiceA"
+            android:exported="false">
+        </service>
 
-    <service
-        android:name=".PluginServiceA"
-        android:exported="false">
-    </service>
+        <receiver android:name=".PluginStaticBroadcastReceiver">
+            <intent-filter android:priority="1000000">
+                <action android:name="action.plugin.broadcast.test1" />
+            </intent-filter>
+            <intent-filter android:priority="123123">
+                <action android:name="action.plugin.broadcast.test2" />
+            </intent-filter>
+        </receiver>
 
+        <provider
+            android:name=".PluginContentProvider"
+            android:authorities="com.example.testplugin.testprovider"
+            android:exported="false">
+        </provider>
 
-    <receiver android:name=".PluginStaticBroadcastReceiver">
-        <intent-filter android:priority="1000000" >
-            <action android:name="action.plugin.broadcast.test1" />
-        </intent-filter>
-        <intent-filter android:priority="123123" >
-            <action android:name="action.plugin.broadcast.test2" />
-        </intent-filter>
-    </receiver>
-
-</application>
-
-
+        <activity android:name=".PluginActivityB">
+        </activity>
+    </application>
 
 </manifest>

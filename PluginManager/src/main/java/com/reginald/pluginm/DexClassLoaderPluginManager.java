@@ -18,6 +18,7 @@ import android.content.res.Resources;
 import android.util.Log;
 import android.util.LogPrinter;
 
+import com.android.common.ActivityThreadCompat;
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.Provider;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -287,32 +289,43 @@ public class DexClassLoaderPluginManager {
     }
 
 
-
+    /**
+     * only called by classloader
+     * 目前只有创建插件Activity时有效
+     *
+     * @param className
+     * @return
+     * @throws ClassNotFoundException
+     */
     public Class<?> findPluginClass(String className) throws ClassNotFoundException {
         Log.d(TAG, "findPluginClass() className = " + className);
         String targetPackage = null;
         String targetClass = className;
 
-        Log.d(TAG, "findPluginClass() mPendingLoadActivity = " + mPendingLoadActivity);
+
         // replace target class
         if (className.startsWith(PluginHostProxy.STUB_ACTIVITY) && mPendingLoadActivity != null) {
+            Log.d(TAG, "findPluginClass() mPendingLoadActivity = " + mPendingLoadActivity);
             targetPackage = mPendingLoadActivity.packageName;
             targetClass = mPendingLoadActivity.name;
         }
+
         Log.d(TAG, "findPluginClass() targetPackage = " + targetPackage + " ,targetClass = " + className);
 
-//        try {
-        return loadPluginClass(targetPackage, targetClass);
-//        } catch (ClassNotFoundException e) {
-//            if (className.startsWith(PluginHostProxy.STUB_ACTIVITY)) {
-//                Log.d(TAG, "findPluginClass() return " + VoidStubPluginActivity.class);
-//                return VoidStubPluginActivity.class;
-//            } else {
-//                throw e;
-//            }
-//        }
+        if (targetPackage != null && targetClass != null) {
+            return loadPluginClass(targetPackage, targetClass);
+        }
+
+        throw new ClassNotFoundException(className);
     }
 
+    /**
+     * find plugin class by plugin packageName and className
+     * @param packageName
+     * @param className
+     * @return
+     * @throws ClassNotFoundException
+     */
     public Class<?> loadPluginClass(String packageName, String className) throws ClassNotFoundException {
         Log.d(TAG, "loadPluginClass() className = " + className);
         PluginInfo pluginInfo;
@@ -322,14 +335,16 @@ public class DexClassLoaderPluginManager {
 
         if (pluginInfo != null) {
             ClassLoader pluginClassLoader = pluginInfo.classLoader;
+            Log.d(TAG, "loadPluginClass() pluginClassLoader = " + pluginClassLoader);
             try {
                 Class<?> clazz = pluginClassLoader.loadClass(className);
                 if (clazz != null) {
-                    Log.d(TAG, "loadPluginClass() success!");
+                    Log.d(TAG, "loadPluginClass() className = " + className + " success!");
                     return clazz;
                 }
             } catch (Exception e) {
 //                    e.printStackTrace();
+                Log.e(TAG, "loadPluginClass() className = " + className + " fail!");
             }
         }
         throw new ClassNotFoundException(className);
@@ -345,6 +360,10 @@ public class DexClassLoaderPluginManager {
         try {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
             pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
+
+
+            initContentProviders(pluginInfo);
+
 
             ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
             Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);
@@ -362,12 +381,31 @@ public class DexClassLoaderPluginManager {
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
             pluginInfo.application.onCreate();
 
+
             initStaticReceivers(pluginInfo);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    private void initContentProviders(PluginInfo pluginInfo) {
+
+        try {
+            List<ProviderInfo> srcProviderInfos = pluginInfo.pkgParser.getProviders();
+            List<ProviderInfo> providerInfos = new ArrayList<>();
+            for (ProviderInfo srcProviderInfo : srcProviderInfos) {
+                ProviderInfo providerInfo = new ProviderInfo(srcProviderInfo);
+                providerInfo.packageName = pluginInfo.baseContext.getPackageName();
+                providerInfo.applicationInfo = new ApplicationInfo(srcProviderInfo.applicationInfo);
+                providerInfo.applicationInfo.packageName = pluginInfo.baseContext.getPackageName();
+                providerInfos.add(providerInfo);
+            }
+            ActivityThreadCompat.installContentProviders(pluginInfo.baseContext, providerInfos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private void initStaticReceivers(PluginInfo pluginInfo) {
         Map<ActivityInfo, List<IntentFilter>> receiverIntentFilters = pluginInfo.pkgParser.getReceiverIntentFilter();

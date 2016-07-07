@@ -34,8 +34,6 @@ public final class PluginInfo {
     public String dexDir;
     public String nativeLibDir;
     public String libraryPaths;
-    public HashMap<String, IContentProvider> providers = new HashMap();
-
 
     public String toString() {
         return "PluginInfo[ packageName = " + packageName + " , pkgParser = " + pkgParser + " , classLoader = " +

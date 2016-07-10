@@ -2,10 +2,17 @@ package com.example.testplugin;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.reginald.pluginm.pluginbase.BasePluginActivity;
 
@@ -27,6 +34,8 @@ public class PluginActivityB extends BasePluginActivity {
     private Button mBtn12;
     private Button mBtn13;
 
+    private WebView mWebView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,5 +52,43 @@ public class PluginActivityB extends BasePluginActivity {
                 Cursor cursor = getContentResolver().query(PluginContentProvider.CONTENT_URI, null, null, null, null);
             }
         });
+
+        mBtn10 = (Button) findViewById(R.id.btn10);
+        mBtn10.setText("load native library");
+        mBtn10.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    System.loadLibrary("locSDK6a");
+                    Log.d(TAG, "loadLibrary() ok! ");
+                    Toast.makeText(PluginActivityB.this, "load library ok!", Toast.LENGTH_SHORT).show();
+                } catch (Throwable t) {
+                    Log.e(TAG, "loadLibrary() error " + t);
+                }
+
+            }
+        });
+
+        mWebView = (WebView) findViewById(R.id.webview);
+        mWebView.setWebViewClient(new WebViewClient(){
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                // TODO Auto-generated method stub
+                //返回值是true的时候控制去WebView打开，为false调用系统浏览器或第三方浏览器
+                view.loadUrl(url);
+                return true;
+            }
+        });
+
+        mWebView.loadUrl("http://www.baidu.com");
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && mWebView.canGoBack()) {
+            mWebView.goBack();// 返回前一个页面
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

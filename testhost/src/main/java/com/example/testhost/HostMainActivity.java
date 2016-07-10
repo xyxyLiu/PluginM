@@ -128,9 +128,12 @@ public class HostMainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent();
-                    pluginIntent.setClassName("com.example.testplugin", "com.example.testplugin.PluginMainActivity");
+//                    pluginIntent.setClassName("com.example.testplugin", "com.example.testplugin.PluginMainActivity");
+                    pluginIntent.setPackage("com.example.testplugin");
+                    pluginIntent.setAction(Intent.ACTION_MAIN);
+                    pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     HostMainActivity.this.startActivity(intent);
                 }
             });

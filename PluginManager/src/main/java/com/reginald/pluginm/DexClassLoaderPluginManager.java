@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
-import android.content.pm.PackageInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -32,11 +31,11 @@ import com.reginald.pluginm.reflect.FieldUtils;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.Provider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import dalvik.system.DexClassLoader;
 
@@ -144,11 +143,26 @@ public class DexClassLoaderPluginManager {
             }
 
 
-            File apkFile = AssetsManager.copyAssetsApk(mContext, pluginConfig.apkPath);
+            File apkFile = PackageUtils.copyAssetsApk(mContext, pluginConfig.apkPath);
             File pluginDexPath = mContext.getDir(PLUGIN_DEX_FOLDER_NAME, Context.MODE_PRIVATE);
             File pluginLibPath = mContext.getDir(PLUGIN_LIB_FOLDER_NAME, Context.MODE_PRIVATE);
+            File pluginNativeLibPath = new File(pluginLibPath, pluginPackageName);
             ClassLoader parentClassLoader;
 
+
+            // install so
+            File apkParent = apkFile.getParentFile();
+            File tempSoDir = new File(apkParent, "temp");
+            Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
+            if (soList != null) {
+                for (String soName : soList) {
+                    PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
+                }
+                //删掉临时文件
+                PackageUtils.deleteAll(tempSoDir);
+            }
+
+            // create classloader
             Log.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
 
             if (isStandAlone) {
@@ -157,7 +171,7 @@ public class DexClassLoaderPluginManager {
                 parentClassLoader = mContext.getClassLoader();
             }
             DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginLibPath.getAbsolutePath(), parentClassLoader);
+                    apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginNativeLibPath.getAbsolutePath(), parentClassLoader);
             Log.d(TAG, "install() dexClassLoader = " + dexClassLoader);
             Log.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
 
@@ -170,6 +184,7 @@ public class DexClassLoaderPluginManager {
                 sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
             }
 
+            // replace resources
             Resources resources = ResourcesManager.getPluginResources(mContext, apkFile.getAbsolutePath());
             if (resources != null) {
                 pluginInfo.resources = resources;
@@ -177,6 +192,9 @@ public class DexClassLoaderPluginManager {
                 Log.e(TAG, "install() error! resources is null!");
                 return false;
             }
+
+
+
 
             Log.d(TAG, "install() pluginInfo = " + pluginInfo);
 

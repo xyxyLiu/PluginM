@@ -84,7 +84,7 @@ public final class MultiDexPluginManager {
 
         try {
 
-            File apkFile = AssetsManager.copyAssetsApk(context, pluginApkName);
+            File apkFile = PackageUtils.copyAssetsApk(context, pluginApkName);
 
             ApplicationInfo applicationInfo = getApplicationInfo(context);
             if (applicationInfo == null) {

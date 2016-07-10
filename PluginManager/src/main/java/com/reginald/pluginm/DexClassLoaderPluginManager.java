@@ -149,19 +149,6 @@ public class DexClassLoaderPluginManager {
             File pluginNativeLibPath = new File(pluginLibPath, pluginPackageName);
             ClassLoader parentClassLoader;
 
-
-            // install so
-            File apkParent = apkFile.getParentFile();
-            File tempSoDir = new File(apkParent, "temp");
-            Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
-            if (soList != null) {
-                for (String soName : soList) {
-                    PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
-                }
-                //删掉临时文件
-                PackageUtils.deleteAll(tempSoDir);
-            }
-
             // create classloader
             Log.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
 
@@ -179,10 +166,24 @@ public class DexClassLoaderPluginManager {
             pluginInfo.classLoader = dexClassLoader;
             pluginInfo.parentClassLoader = parentClassLoader;
             pluginInfo.apkPath = apkFile.getAbsolutePath();
+            pluginInfo.fileSize = apkFile.length();
 
             synchronized (sInstalledPkgParser) {
                 sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
             }
+
+            // install so
+            File apkParent = apkFile.getParentFile();
+            File tempSoDir = new File(apkParent, "temp");
+            Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
+            if (soList != null) {
+                for (String soName : soList) {
+                    PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
+                }
+                //删掉临时文件
+                PackageUtils.deleteAll(tempSoDir);
+            }
+            pluginInfo.nativeLibDir = pluginNativeLibPath.getAbsolutePath();
 
             // replace resources
             Resources resources = ResourcesManager.getPluginResources(mContext, apkFile.getAbsolutePath());

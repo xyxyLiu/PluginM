@@ -19,6 +19,7 @@ public class BasePluginActivity extends Activity{
     @Override
     protected void attachBaseContext(Context newBase) {
         PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(getClass().getClassLoader());
+        Log.d(TAG, "attachBaseContext() pluginInfo = " + pluginInfo);
         if (pluginInfo == null) {
             super.attachBaseContext(newBase);
             return;

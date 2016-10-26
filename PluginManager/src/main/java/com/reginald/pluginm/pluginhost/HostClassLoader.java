@@ -46,12 +46,12 @@ public class HostClassLoader extends ClassLoader {
             Log.d(TAG, "loadClass() " + className + " in old app classloader fail!");
         }
 
-        try {
-            return super.loadClass(className, resolve);
-        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-            Log.d(TAG, "loadClass() " + className + " in HostClassLoader fail!");
-        }
+//        try {
+//            return super.loadClass(className, resolve);
+//        } catch (ClassNotFoundException e) {
+////            e.printStackTrace();
+//            Log.d(TAG, "loadClass() " + className + " in HostClassLoader fail!");
+//        }
 
         try {
             Class<?> clazz = mDexClassLoaderPluginManager.findPluginClass(className);

@@ -381,7 +381,7 @@ public class DexClassLoaderPluginManager {
             pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
 
 
-            initContentProviders(pluginInfo);
+            installContentProviders(pluginInfo);
 
 
             ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
@@ -407,7 +407,7 @@ public class DexClassLoaderPluginManager {
         }
     }
 
-    private void initContentProviders(PluginInfo pluginInfo) {
+    private void installContentProviders(PluginInfo pluginInfo) {
 
         try {
             List<ProviderInfo> srcProviderInfos = pluginInfo.pkgParser.getProviders();
@@ -419,6 +419,8 @@ public class DexClassLoaderPluginManager {
                 providerInfo.applicationInfo.packageName = pluginInfo.baseContext.getPackageName();
                 providerInfos.add(providerInfo);
             }
+
+            Log.d(TAG, "installContentProviders() providerInfos = " + providerInfos);
             ActivityThreadCompat.installContentProviders(pluginInfo.baseContext, providerInfos);
         } catch (Exception e) {
             e.printStackTrace();

@@ -36,6 +36,8 @@ public class PluginMainActivity extends BasePluginActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plugin_main);
 
+        Log.d(TAG, "onCreate() getClassLoader() = " + getClassLoader());
+        Log.d(TAG, "onCreate() getClass().getClassLoader() = " + getClass().getClassLoader());
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.cancel();

@@ -22,8 +22,14 @@
         <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
         </activity>
 
-        <service android:name="com.reginald.pluginm.pluginhost.PluginProxy.Service">
-        </service>
+        
+        <!--<service android:name="com.reginald.pluginm.pluginhost.PluginProxy.Service"-->
+            <!--&gt;-->
+        <!--</service>-->
+        
+        <!--<provider-->
+            <!--android:authorities="${applicationId}.stub.provider"-->
+            <!--android:name=""-->
 
         <!-- end of stub components -->
     </application>

@@ -59,8 +59,7 @@ public class PluginActivityB extends BasePluginActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    System.loadLibrary("locSDK6a");
-                    Log.d(TAG, "loadLibrary() ok! ");
+                    JniUtils.loadTestJni();
                     Toast.makeText(PluginActivityB.this, "load library ok!", Toast.LENGTH_SHORT).show();
                 } catch (Throwable t) {
                     Log.e(TAG, "loadLibrary() error " + t);

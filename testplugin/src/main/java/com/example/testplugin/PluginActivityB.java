@@ -1,14 +1,11 @@
 package com.example.testplugin;
 
-import android.content.Intent;
+import android.content.ContentResolver;
 import android.database.Cursor;
-import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -18,7 +15,7 @@ import com.reginald.pluginm.pluginbase.BasePluginActivity;
 
 public class PluginActivityB extends BasePluginActivity {
 
-    private static final String TAG = "PluginActivityA";
+    private static final String TAG = "PluginActivityB";
 
     private Button mBtn1;
     private Button mBtn2;
@@ -49,7 +46,14 @@ public class PluginActivityB extends BasePluginActivity {
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cursor cursor = getContentResolver().query(PluginContentProvider.CONTENT_URI, null, null, null, null);
+                ContentResolver contentResolver = getContentResolver();
+                Log.d(TAG, "contentResolver = " + contentResolver);
+                Cursor cursor = contentResolver.query(PluginContentProvider.CONTENT_URI, null, null, null, null);
+                Log.d(TAG, "cursor = " + cursor);
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    Toast.makeText(getApplicationContext(), "cursor first value: \n" + cursor.getString(0), Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -69,7 +73,7 @@ public class PluginActivityB extends BasePluginActivity {
         });
 
         mWebView = (WebView) findViewById(R.id.webview);
-        mWebView.setWebViewClient(new WebViewClient(){
+        mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // TODO Auto-generated method stub

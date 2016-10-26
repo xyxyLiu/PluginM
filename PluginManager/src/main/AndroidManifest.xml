@@ -7,6 +7,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
+        <!-- begin of stub components -->
+
+        <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
+        </activity>
+
         <service
             android:name="com.reginald.pluginm.pluginhost.PluginStubMainService"
             android:exported="false">
@@ -16,20 +21,10 @@
             android:name="com.reginald.pluginm.pluginhost.PluginStubBroadcast"
             android:exported="false">
         </receiver>
-
-        <!-- begin of stub components -->
-
-        <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
-        </activity>
-
         
-        <!--<service android:name="com.reginald.pluginm.pluginhost.PluginProxy.Service"-->
-            <!--&gt;-->
-        <!--</service>-->
-        
-        <!--<provider-->
-            <!--android:authorities="${applicationId}.stub.provider"-->
-            <!--android:name=""-->
+        <provider
+            android:authorities="com.reginald.pluginm.stub.provider"
+            android:name="com.reginald.pluginm.pluginhost.PluginStubMainProvider" />
 
         <!-- end of stub components -->
     </application>

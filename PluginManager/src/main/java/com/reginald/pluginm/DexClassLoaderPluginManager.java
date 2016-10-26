@@ -14,6 +14,7 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 
@@ -307,6 +308,22 @@ public class DexClassLoaderPluginManager {
         return intent;
     }
 
+    public ProviderInfo resolveContentProvider(String name) {
+        try {
+            for (PluginPackageParser pluginPackageParser : sInstalledPkgParser.values()) {
+                List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
+                for (ProviderInfo providerInfo : providerInfos) {
+                    if (TextUtils.equals(providerInfo.authority, name)) {
+                        return providerInfo;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     /**
      * only called by classloader
@@ -380,10 +397,6 @@ public class DexClassLoaderPluginManager {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
             pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
 
-
-            installContentProviders(pluginInfo);
-
-
             ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
             Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);
 
@@ -405,27 +418,6 @@ public class DexClassLoaderPluginManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    private void installContentProviders(PluginInfo pluginInfo) {
-
-        try {
-            List<ProviderInfo> srcProviderInfos = pluginInfo.pkgParser.getProviders();
-            List<ProviderInfo> providerInfos = new ArrayList<>();
-            for (ProviderInfo srcProviderInfo : srcProviderInfos) {
-                ProviderInfo providerInfo = new ProviderInfo(srcProviderInfo);
-                providerInfo.packageName = pluginInfo.baseContext.getPackageName();
-                providerInfo.applicationInfo = new ApplicationInfo(srcProviderInfo.applicationInfo);
-                providerInfo.applicationInfo.packageName = pluginInfo.baseContext.getPackageName();
-                providerInfos.add(providerInfo);
-            }
-
-            Log.d(TAG, "installContentProviders() providerInfos = " + providerInfos);
-            ActivityThreadCompat.installContentProviders(pluginInfo.baseContext, providerInfos);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 
     private void initStaticReceivers(PluginInfo pluginInfo) {

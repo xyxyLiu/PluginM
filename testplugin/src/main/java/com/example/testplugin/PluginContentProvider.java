@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -46,7 +47,9 @@ public class PluginContentProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
         Log.d(TAG, String.format("query() uri = %s", uri));
-        return null;
+        MatrixCursor cursor = new MatrixCursor(new String[]{"column1"});
+        cursor.addRow(new Object[]{"row1.column1.value"});
+        return cursor;
     }
 
     @Override

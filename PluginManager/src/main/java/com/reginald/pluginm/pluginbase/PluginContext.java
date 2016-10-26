@@ -1,6 +1,7 @@
 package com.reginald.pluginm.pluginbase;
 
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -15,6 +16,7 @@ import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.pluginhost.PluginContentResolver;
 import com.reginald.pluginm.pluginhost.PluginStubMainService;
 
 /**
@@ -158,6 +160,11 @@ public class PluginContext extends ContextThemeWrapper {
             }
         }
         startActivities(intents, options);
+    }
+
+    @Override
+    public ContentResolver getContentResolver() {
+        return new PluginContentResolver(this, super.getContentResolver());
     }
 
 }

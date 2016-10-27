@@ -2,6 +2,7 @@ package com.example.testplugin;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -11,11 +12,13 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.reginald.pluginm.pluginbase.BasePluginActivity;
+import pluginm.reginald.com.pluginlib.BasePluginActivity;
 
 public class PluginActivityB extends BasePluginActivity {
 
     private static final String TAG = "PluginActivityB";
+    public static final String HOST_PROVIDER_AUTHORITY = "com.example.testhost.provider";
+    public static final Uri HOST_CONTENT_URI = Uri.parse("content://"+ HOST_PROVIDER_AUTHORITY + "/pluginfirst");
 
     private Button mBtn1;
     private Button mBtn2;
@@ -47,12 +50,28 @@ public class PluginActivityB extends BasePluginActivity {
             @Override
             public void onClick(View v) {
                 ContentResolver contentResolver = getContentResolver();
-                Log.d(TAG, "contentResolver = " + contentResolver);
+                Log.d(TAG, "plugin contentResolver = " + contentResolver);
                 Cursor cursor = contentResolver.query(PluginContentProvider.CONTENT_URI, null, null, null, null);
-                Log.d(TAG, "cursor = " + cursor);
+                Log.d(TAG, "plugin cursor = " + cursor);
                 if (cursor != null) {
                     cursor.moveToFirst();
-                    Toast.makeText(getApplicationContext(), "cursor first value: \n" + cursor.getString(0), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "plugin cursor first value: \n" + cursor.getString(0), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        mBtn2 = (Button) findViewById(R.id.btn2);
+        mBtn2.setText("query host providers");
+        mBtn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ContentResolver contentResolver = getContentResolver();
+                Log.d(TAG, "host contentResolver = " + contentResolver);
+                Cursor cursor = contentResolver.query(HOST_CONTENT_URI, null, null, null, null);
+                Log.d(TAG, "host cursor = " + cursor);
+                if (cursor != null) {
+                    cursor.moveToFirst();
+                    Toast.makeText(getApplicationContext(), "host cursor first value: \n" + cursor.getString(0), Toast.LENGTH_SHORT).show();
                 }
             }
         });

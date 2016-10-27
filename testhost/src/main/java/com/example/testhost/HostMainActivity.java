@@ -113,7 +113,7 @@ public class HostMainActivity extends AppCompatActivity {
 
         mLoadModeText.setText("loadmode = DexCLassLoader");
         String pluginPackageName = "com.example.testplugin";
-        final boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName, isStandAlone);
+        final boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName);
 
         Toast.makeText(this, "plugin " + pluginPackageName + " install " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
 

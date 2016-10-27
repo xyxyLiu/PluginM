@@ -48,7 +48,7 @@ public class PluginContentProvider extends ContentProvider {
             String[] selectionArgs, String sortOrder) {
         Log.d(TAG, String.format("query() uri = %s", uri));
         MatrixCursor cursor = new MatrixCursor(new String[]{"column1"});
-        cursor.addRow(new Object[]{"row1.column1.value"});
+        cursor.addRow(new Object[]{"row1.column1.plugin_value"});
         return cursor;
     }
 

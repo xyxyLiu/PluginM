@@ -2,16 +2,10 @@ package com.reginald.pluginm;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.IContentProvider;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.content.res.Resources;
 
 import com.reginald.pluginm.parser.PluginPackageParser;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by lxy on 16-6-21.

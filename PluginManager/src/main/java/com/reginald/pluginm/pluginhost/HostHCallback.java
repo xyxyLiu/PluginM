@@ -390,7 +390,7 @@ public class HostHCallback {
 
             if (mDexClassLoaderPluginManager.getPluginInfo(targetComponent.getPackageName()) == null) {
                 // test here!
-                mDexClassLoaderPluginManager.install(targetComponent.getPackageName(), false);
+                mDexClassLoaderPluginManager.install(targetComponent.getPackageName());
             }
 
             if (proxyClassName.equals(PluginHostProxy.STUB_ACTIVITY)) {

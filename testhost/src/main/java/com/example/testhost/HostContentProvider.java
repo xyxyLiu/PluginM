@@ -3,6 +3,7 @@ package com.example.testhost;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.util.Log;
 
@@ -45,8 +46,10 @@ public class HostContentProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
             String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        Log.d(TAG, String.format("query() uri = %s", uri));
+        MatrixCursor cursor = new MatrixCursor(new String[]{"column1"});
+        cursor.addRow(new Object[]{"row1.column1.host_value"});
+        return cursor;
     }
 
     @Override

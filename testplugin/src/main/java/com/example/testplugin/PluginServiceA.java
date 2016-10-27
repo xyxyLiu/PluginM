@@ -7,9 +7,6 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.reginald.pluginm.DexClassLoaderPluginManager;
-import com.reginald.pluginm.reflect.FieldUtils;
-
 /**
  * Created by lxy on 16-6-30.
  */
@@ -44,11 +41,11 @@ public class PluginServiceA extends Service {
         } else if (intent != null && "startactivity".equals(intent.getAction())) {
             Intent actIntent = new Intent();
 
-            try {
-                Log.d(TAG, "## mBase of service is " + FieldUtils.readField(this, "mBase"));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Log.d(TAG, "## mBase of service is " + FieldUtils.readField(this, "mBase"));
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
 
             actIntent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginMainActivity.class.getName());
             actIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

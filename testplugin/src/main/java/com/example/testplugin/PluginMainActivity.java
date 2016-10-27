@@ -9,8 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.reginald.pluginm.pluginbase.BasePluginActivity;
 import com.nineoldandroids.animation.AnimatorSet;
+
+import pluginm.reginald.com.pluginlib.BasePluginActivity;
 
 public class PluginMainActivity extends BasePluginActivity {
 
@@ -36,6 +37,7 @@ public class PluginMainActivity extends BasePluginActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plugin_main);
 
+        Log.d(TAG, "onCreate() getPackageName() = " + getPackageName());
         Log.d(TAG, "onCreate() getClassLoader() = " + getClassLoader());
         Log.d(TAG, "onCreate() getClass().getClassLoader() = " + getClass().getClassLoader());
 
@@ -70,12 +72,11 @@ public class PluginMainActivity extends BasePluginActivity {
         });
 
         mBtn2 = (Button) findViewById(R.id.btn2);
-        mBtn2.setText("start host activity");
+        mBtn2.setText("start host activity with action");
         mBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.HOST_PACKAGE_NAME, "com.example.testhost.HostMainActivity");
+                Intent intent = new Intent("action.com.example.testplugin.HostMainActivity");
                 startActivity(intent);
             }
         });

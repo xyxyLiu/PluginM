@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginbase;
+package com.reginald.pluginm.pluginhost;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;

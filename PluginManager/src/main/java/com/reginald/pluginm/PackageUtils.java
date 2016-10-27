@@ -1,5 +1,10 @@
 package com.reginald.pluginm;
 
+import android.content.Context;
+import android.content.res.AssetManager;
+import android.os.Build;
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -14,12 +19,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.os.Build;
-import android.util.Log;
-import android.widget.Toast;
 
 /**
  * @Author Zheng Haibo

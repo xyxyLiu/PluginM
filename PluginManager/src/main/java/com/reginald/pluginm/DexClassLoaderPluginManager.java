@@ -18,32 +18,33 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 
-import com.android.common.ActivityThreadCompat;
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
-import com.reginald.pluginm.pluginbase.PluginContext;
+import com.reginald.pluginm.pluginhost.PluginContext;
 import com.reginald.pluginm.pluginhost.HostClassLoader;
 import com.reginald.pluginm.pluginhost.HostHCallback;
 import com.reginald.pluginm.pluginhost.PluginHostProxy;
 import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.reflect.MethodUtils;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import dalvik.system.DexClassLoader;
+import pluginm.reginald.com.pluginlib.IPluginManager;
+import pluginm.reginald.com.pluginlib.PluginHelper;
 
 /**
  * Created by lxy on 16-6-1.
  */
-public class DexClassLoaderPluginManager {
+public class DexClassLoaderPluginManager implements IPluginManager {
     private static final String TAG = "DexClassLoderPM";
     private static final String PLUGIN_DEX_FOLDER_NAME = "plugin_dexes_2";
     private static final String PLUGIN_LIB_FOLDER_NAME = "plugin_lib_2";
@@ -125,7 +126,7 @@ public class DexClassLoaderPluginManager {
     }
 
 
-    public boolean install(String pluginPackageName, boolean isStandAlone) {
+    private boolean install(String pluginPackageName, boolean isStandAlone) {
         try {
 
             synchronized (sInstalledPluginMap) {
@@ -209,7 +210,10 @@ public class DexClassLoaderPluginManager {
                 sInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
 
-            initPluginApplication(pluginInfo, mContext);
+            if (!initPlugin(pluginInfo, mContext)) {
+                return false;
+            }
+
             return true;
         } catch (Exception e) {
             Log.e(TAG, "install() error! exception: " + e);
@@ -240,6 +244,7 @@ public class DexClassLoaderPluginManager {
         return null;
     }
 
+    @Override
     public Intent getPluginActivityIntent(Intent originIntent) {
         Log.d(TAG, "getPluginActivityIntent() originIntent = " + originIntent);
 
@@ -387,11 +392,50 @@ public class DexClassLoaderPluginManager {
     }
 
 
-    public static Context createPluginContext(PluginInfo pluginInfo, Context baseContext) {
-        return new PluginContext(pluginInfo, baseContext);
+    @Override
+    public Context createPluginContext(String packageName, Context baseContext) {
+        PluginInfo pluginInfo = getPluginInfo(packageName);
+        if (pluginInfo != null) {
+            return new PluginContext(pluginInfo, baseContext);
+        } else {
+            return null;
+        }
     }
 
-    public void initPluginApplication(PluginInfo pluginInfo, Context hostContext) {
+    public boolean initPlugin(PluginInfo pluginInfo, Context hostContext) {
+        Log.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
+        if(!initPluginHelper(pluginInfo, hostContext)) {
+            Log.e(TAG, "initPlugin() initPluginHelper error! ");
+            return false;
+        }
+
+        if(!initPluginApplication(pluginInfo, hostContext)) {
+            Log.e(TAG, "initPlugin() initPluginApplication error! ");
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
+        Log.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
+        Class<?> pluginHelperClazz;
+        try {
+            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
+            IPluginManager iPluginManager = DexClassLoaderPluginManager.getInstance(hostContext);
+            if (pluginHelperClazz != null) {
+                MethodUtils.invokeStaticMethod(pluginHelperClazz, "onInit",
+                        new Object[] {iPluginManager, pluginInfo.packageName},
+                        new Class[]{Object.class, String.class});
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean initPluginApplication(PluginInfo pluginInfo, Context hostContext) {
         Log.d(TAG, "initPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
         try {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
@@ -413,11 +457,12 @@ public class DexClassLoaderPluginManager {
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
             pluginInfo.application.onCreate();
 
-
             initStaticReceivers(pluginInfo);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     private void initStaticReceivers(PluginInfo pluginInfo) {

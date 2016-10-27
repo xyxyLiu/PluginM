@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginbase;
+package pluginm.reginald.com.pluginlib;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,26 +7,21 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.reginald.pluginm.DexClassLoaderPluginManager;
-import com.reginald.pluginm.PluginInfo;
-
 /**
  * Created by lxy on 16-6-6.
  */
 public class BasePluginActivity extends Activity{
     private static final String TAG = "BasePluginActivity";
 
+    static {
+        Log.d(TAG,"classloader = " + BasePluginActivity.class.getClassLoader());
+    }
+
     @Override
     protected void attachBaseContext(Context newBase) {
-        PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(getClass().getClassLoader());
-        Log.d(TAG, "attachBaseContext() pluginInfo = " + pluginInfo);
-        if (pluginInfo == null) {
-            super.attachBaseContext(newBase);
-            return;
-        }
-
-        Context pluginContext = DexClassLoaderPluginManager.createPluginContext(pluginInfo, newBase);
-        super.attachBaseContext(pluginContext);
+        Context pluginContext = PluginHelper.pluginManager.createPluginContext(PluginHelper.getPackageName(), newBase);
+        Log.d(TAG, "attachBaseContext() pluginContext = " + pluginContext);
+        super.attachBaseContext(pluginContext == null ? newBase : pluginContext);
     }
 
     @Override
@@ -43,7 +38,7 @@ public class BasePluginActivity extends Activity{
 
     @Override
     public void startActivityForResult(Intent intent, int requestCode, Bundle bundle) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
+        Intent pluginIntent = PluginHelper.pluginManager.getPluginActivityIntent(intent);
         if(pluginIntent != null) {
             super.startActivityForResult(pluginIntent, requestCode, bundle);
         } else {

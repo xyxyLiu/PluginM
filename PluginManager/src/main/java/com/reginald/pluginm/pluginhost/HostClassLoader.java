@@ -40,10 +40,12 @@ public class HostClassLoader extends ClassLoader {
         Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve);
 
         try {
-            return mOldClassLoader.loadClass(className);
+            Class<?> clazz = mOldClassLoader.loadClass(className);
+            Log.d(TAG, "loadClass() use old one " + className + " ok! clazz = " + clazz);
+            return clazz;
         } catch (ClassNotFoundException e) {
             //e.printStackTrace();
-            Log.d(TAG, "loadClass() " + className + " in old app classloader fail!");
+            Log.d(TAG, "loadClass() use old one " + className + " fail!");
         }
 
 //        try {
@@ -55,10 +57,10 @@ public class HostClassLoader extends ClassLoader {
 
         try {
             Class<?> clazz = mDexClassLoaderPluginManager.findPluginClass(className);
-            Log.d(TAG, "loadClass() " + className + " ok! clazz = " + clazz);
+            Log.d(TAG, "loadClass() use plugin loaders" + className + " ok! clazz = " + clazz);
             return clazz;
         } catch (ClassNotFoundException e) {
-            Log.e(TAG, "loadClass() " + className + " in PluginClassLoader fail!");
+            Log.e(TAG, "loadClass() use plugin loaders" + className + " fail!");
             throw e;
         }
     }

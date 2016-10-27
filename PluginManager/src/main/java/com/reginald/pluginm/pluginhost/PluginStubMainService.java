@@ -15,12 +15,10 @@ import com.android.common.ContextCompat;
 import com.example.multidexmodeplugin.IPluginServiceStubBinder;
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.pluginbase.PluginContext;
 import com.reginald.pluginm.reflect.FieldUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 public class PluginStubMainService extends Service {
@@ -233,7 +231,7 @@ public class PluginStubMainService extends Service {
         // install plugin if needed
         PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(componentName.getPackageName());
         if (pluginInfo == null) {
-            mDexClassLoaderPluginManager.install(componentName.getPackageName(), false);
+            mDexClassLoaderPluginManager.install(componentName.getPackageName());
         }
 
         synchronized (mInstalledServices) {

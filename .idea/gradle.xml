@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/PluginManager" />
+            <option value="$PROJECT_DIR$/pluginlib" />
             <option value="$PROJECT_DIR$/testhost" />
             <option value="$PROJECT_DIR$/testplugin" />
           </set>
@@ -17,6 +18,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/PluginManager" />
+            <option value="$PROJECT_DIR$/pluginlib" />
             <option value="$PROJECT_DIR$/testhost" />
             <option value="$PROJECT_DIR$/testplugin" />
           </set>

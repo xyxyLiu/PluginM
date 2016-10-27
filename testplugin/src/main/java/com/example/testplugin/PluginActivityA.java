@@ -11,7 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import com.reginald.pluginm.pluginbase.BasePluginActivity;
+import pluginm.reginald.com.pluginlib.BasePluginActivity;
+
 
 public class PluginActivityA extends BasePluginActivity {
 

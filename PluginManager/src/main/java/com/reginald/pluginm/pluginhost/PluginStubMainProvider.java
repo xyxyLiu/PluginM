@@ -63,7 +63,7 @@ public class PluginStubMainProvider extends ContentProvider {
 
             // try install it if not found
             if (pluginInfo == null) {
-                DexClassLoaderPluginManager.getInstance(getContext()).install(packageName, false);
+                DexClassLoaderPluginManager.getInstance(getContext()).install(packageName);
                 pluginInfo = DexClassLoaderPluginManager.getPluginInfo(packageName);
             }
 

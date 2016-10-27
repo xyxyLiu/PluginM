@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginbase;
+package com.reginald.pluginm.pluginhost;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -10,14 +10,11 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.pluginhost.PluginContentResolver;
-import com.reginald.pluginm.pluginhost.PluginStubMainService;
 
 /**
  * Created by lxy on 16-6-28.

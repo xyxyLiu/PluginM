@@ -2,20 +2,19 @@ package pluginm.reginald.com.pluginlib;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import java.lang.reflect.Method;
 
 /**
  * Created by lxy on 16-6-6.
  */
 public class BasePluginActivity extends Activity{
     private static final String TAG = "BasePluginActivity";
-
-    static {
-        Log.d(TAG,"classloader = " + BasePluginActivity.class.getClassLoader());
-    }
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -34,6 +33,7 @@ public class BasePluginActivity extends Activity{
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy() " + this);
+        scheduleFinalCleanup();
     }
 
     @Override
@@ -43,6 +43,23 @@ public class BasePluginActivity extends Activity{
             super.startActivityForResult(pluginIntent, requestCode, bundle);
         } else {
             super.startActivityForResult(intent, requestCode, bundle);
+        }
+    }
+
+    private void scheduleFinalCleanup() {
+        try {
+            Object contextImpl = ((ContextWrapper) super.getBaseContext()).getBaseContext();
+            Class<?> contextImplClazz = Class.forName("android.app.ContextImpl");
+            if (contextImplClazz != null) {
+                Method cleanUpMethod = contextImplClazz.getDeclaredMethod("scheduleFinalCleanup", new Class[]{String.class, String.class});
+                cleanUpMethod.setAccessible(true);
+                if (cleanUpMethod != null) {
+                    cleanUpMethod.invoke(contextImpl, getClass().getName(), "Activity");
+                    Log.d(TAG, "doFinalCleanUp() for " + getClass().getName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

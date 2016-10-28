@@ -4,6 +4,7 @@ import android.app.Application;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.os.IBinder;
@@ -84,7 +85,7 @@ public class PluginStubMainService extends Service {
 
                 if (serviceRecord != null) {
                     Log.d(TAG, "onDestroy() call Service.onDestroy() of " + serviceRecord.service);
-                    serviceRecord.service.onDestroy();
+                    destroyPluginService(serviceRecord);
                 }
             }
             mInstalledServices.clear();
@@ -147,12 +148,12 @@ public class PluginStubMainService extends Service {
                     Log.d(TAG, "onUnbind() BindRecord = " + bindRecord);
                     bindRecord.bindCount--;
 //                    if (pluginServiceRecord.bindCount > 0) {
-                        if (bindRecord.bindCount == 0 && bindRecord.needUnbind) {
-                            bindRecord.needRebind = pluginServiceRecord.service.onUnbind(pluginIntent);
-                            bindRecord.needUnbind = false;
+                    if (bindRecord.bindCount == 0 && bindRecord.needUnbind) {
+                        bindRecord.needRebind = pluginServiceRecord.service.onUnbind(pluginIntent);
+                        bindRecord.needUnbind = false;
 //                            bindRecord.needOnbind = true;
 //                            pluginServiceRecord.removeBindRecord(pluginIntent);
-                        }
+                    }
 //                        pluginServiceRecord.bindCount--;
 //                    }
 
@@ -294,7 +295,7 @@ public class PluginStubMainService extends Service {
 
 
     private boolean removePluginService(ServiceRecord serviceRecord) {
-        serviceRecord.service.onDestroy();
+        destroyPluginService(serviceRecord);
         synchronized (mInstalledServices) {
 
             boolean isSuc = mInstalledServices.remove(serviceRecord.componentName) != null;
@@ -303,6 +304,25 @@ public class PluginStubMainService extends Service {
             return isSuc;
         }
 
+    }
+
+    private void destroyPluginService(ServiceRecord serviceRecord) {
+        Log.d(TAG, "destroyPluginService() for " + serviceRecord.service.getClass().getName());
+        serviceRecord.service.onDestroy();
+        try {
+            Object contextImpl = ((ContextWrapper) serviceRecord.service.getBaseContext()).getBaseContext();
+            Class<?> contextImplClazz = Class.forName("android.app.ContextImpl");
+            if (contextImplClazz != null) {
+                Method cleanUpMethod = contextImplClazz.getDeclaredMethod("scheduleFinalCleanup", new Class[]{String.class, String.class});
+                cleanUpMethod.setAccessible(true);
+                if (cleanUpMethod != null) {
+                    cleanUpMethod.invoke(contextImpl, serviceRecord.service.getClass().getName(), "Service");
+                    Log.d(TAG, "scheduleFinalCleanup() for " + serviceRecord.service.getClass().getName());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void stopStubServiceIfNeededLocked() {
@@ -336,7 +356,7 @@ public class PluginStubMainService extends Service {
                 return false;
             }
 
-            for (BindRecord bindRecord: bindRecords.values()) {
+            for (BindRecord bindRecord : bindRecords.values()) {
                 if (bindRecord.needUnbind || bindRecord.bindCount != 0) {
                     return false;
                 }

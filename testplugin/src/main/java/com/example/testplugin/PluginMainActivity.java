@@ -37,6 +37,7 @@ public class PluginMainActivity extends BasePluginActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plugin_main);
 
+        Log.d(TAG, "onCreate() getBaseContext() = " + getBaseContext());
         Log.d(TAG, "onCreate() getPackageName() = " + getPackageName());
         Log.d(TAG, "onCreate() getClassLoader() = " + getClassLoader());
         Log.d(TAG, "onCreate() getClass().getClassLoader() = " + getClass().getClassLoader());

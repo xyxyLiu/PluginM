@@ -1,8 +1,11 @@
 package com.example.testhost;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -15,6 +18,12 @@ import android.widget.Button;
 public class HostActivityA extends Activity {
     private static final String TAG = "HostActivityA";
 
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "HostActivityA.onReceive() context = " + context + " ,intent = " + intent);
+        }
+    };
 
     private Button mBtn1;
     private Button mBtn2;
@@ -54,7 +63,7 @@ public class HostActivityA extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_host);
-
+        registerReceiver(mBroadcastReceiver, new IntentFilter("host_broadcast_test"));
 
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn1.setText("bind host service");

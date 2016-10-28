@@ -3,6 +3,7 @@ package com.reginald.pluginm.pluginhost;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
@@ -15,6 +16,8 @@ import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
+
+import java.lang.reflect.Method;
 
 /**
  * Created by lxy on 16-6-28.
@@ -163,5 +166,4 @@ public class PluginContext extends ContextThemeWrapper {
     public ContentResolver getContentResolver() {
         return new PluginContentResolver(this, super.getContentResolver());
     }
-
 }

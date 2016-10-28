@@ -209,6 +209,18 @@ public class PluginActivityA extends BasePluginActivity {
         showPluginInfo();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() ");
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() ");
+    }
+
     private void showPluginInfo() {
         ClassLoader classLoader = getClassLoader();
         Log.d(TAG, "classloader = " + classLoader);

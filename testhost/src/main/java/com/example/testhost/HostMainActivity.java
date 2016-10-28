@@ -155,6 +155,8 @@ public class HostMainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent("plugin_broadcast_test_2");
                     sendBroadcast(pluginIntent);
+                    Intent hostIntent = new Intent("host_broadcast_test");
+                    sendBroadcast(hostIntent);
                 }
             });
 

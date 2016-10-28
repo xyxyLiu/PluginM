@@ -54,7 +54,7 @@ public class HostMainActivity extends AppCompatActivity {
         initViews();
 
 //        testMultiDexModePlugin();
-        testDexCLassLoaderModePlugin(false);
+        testDexCLassLoaderModePlugin();
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.cancel();
@@ -108,7 +108,7 @@ public class HostMainActivity extends AppCompatActivity {
         }
     }
 
-    private void testDexCLassLoaderModePlugin(boolean isStandAlone) {
+    private void testDexCLassLoaderModePlugin() {
         mDexClassLoaderPluginManager = DexClassLoaderPluginManager.getInstance(getApplicationContext());
 
         mLoadModeText.setText("loadmode = DexCLassLoader");

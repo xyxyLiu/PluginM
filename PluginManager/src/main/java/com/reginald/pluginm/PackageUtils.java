@@ -144,6 +144,7 @@ public class PackageUtils {
 						File sourceFile = new File(sourceDir, name);
 						if (sourceFile.exists()) {
 							if (copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
+								Log.d(TAG, "use " + name);
 								return true;
 							}
 							//api21 64位系统的目录可能有些不同
@@ -159,6 +160,7 @@ public class PackageUtils {
 				File sourceFile = new File(sourceDir, name);
 
 				if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
+					Log.d(TAG, "use " + name);
 					return true;
 				}
 
@@ -167,6 +169,7 @@ public class PackageUtils {
 					sourceFile = new File(sourceDir, name);
 
 					if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
+						Log.d(TAG, "use " + name);
 						return true;
 					}
 				}

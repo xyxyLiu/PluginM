@@ -15,7 +15,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.reginald.pluginm.DexClassLoaderPluginManager;
+import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.PluginManagerNative;
 import com.reginald.pluginm.MultiDexPluginManager;
 import com.nineoldandroids.animation.AnimatorSet;
 
@@ -35,7 +36,7 @@ public class HostMainActivity extends AppCompatActivity {
     private Button mBtn3;
     private Button mBtn4;
 
-    private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
+    private PluginManagerNative mPluginManagerNative;
 
     public static final String BROADCAST_ACTION_1 = "host_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "host_broadcast_test_2";
@@ -109,20 +110,20 @@ public class HostMainActivity extends AppCompatActivity {
     }
 
     private void testDexCLassLoaderModePlugin() {
-        mDexClassLoaderPluginManager = DexClassLoaderPluginManager.getInstance(getApplicationContext());
-
-        mLoadModeText.setText("loadmode = DexCLassLoader");
+        mPluginManagerNative = PluginManagerNative.getInstance(getApplicationContext());
+//
+//        mLoadModeText.setText("loadmode = DexCLassLoader");
         String pluginPackageName = "com.example.testplugin";
-        final boolean isInstallSuc = mDexClassLoaderPluginManager.install(pluginPackageName);
-
-        Toast.makeText(this, "plugin " + pluginPackageName + " install " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
+        final boolean isInstallSuc = mPluginManagerNative.install(pluginPackageName);
+//
+        Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
 
         try {
-            Class<?> clazz = mDexClassLoaderPluginManager.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
-
-            Object testUtilsObj = clazz.newInstance();
-            Method method = clazz.getDeclaredMethod("test");
-            Log.d(TAG, "testPlugin success! \n testUtilsObj.test() = " + method.invoke(testUtilsObj));
+//            Class<?> clazz = mPluginManagerNative.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
+//
+//            Object testUtilsObj = clazz.newInstance();
+//            Method method = clazz.getDeclaredMethod("test");
+//            Log.d(TAG, "testPlugin success! \n testUtilsObj.test() = " + method.invoke(testUtilsObj));
 
             mBtn1.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -133,7 +134,7 @@ public class HostMainActivity extends AppCompatActivity {
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
+                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -144,7 +145,7 @@ public class HostMainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent("action.com.example.testplugin.testA");
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mDexClassLoaderPluginManager.getPluginActivityIntent(pluginIntent);
+                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });

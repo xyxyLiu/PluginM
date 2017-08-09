@@ -6,7 +6,7 @@ import android.content.Intent;
 /**
  * Created by lxy on 16-10-27.
  */
-public interface IPluginManager {
+public interface ILocalPluginManager {
     Context createPluginContext(String packageName, Context baseContext);
     Intent getPluginActivityIntent(Intent pluginIntent);
 }

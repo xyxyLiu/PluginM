@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm.stub;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -8,8 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.reginald.pluginm.DexClassLoaderPluginManager;
-import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.PluginManagerNative;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -39,7 +38,7 @@ public class PluginContentResolver extends ContentResolver {
             }
             Method method = mOriginContentResolver.getClass().getDeclaredMethod("acquireProvider", new Class[]{Context.class, String.class});
             method.setAccessible(true);
-            return (IContentProvider)method.invoke(mOriginContentResolver, context, auth);
+            return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -57,7 +56,7 @@ public class PluginContentResolver extends ContentResolver {
             }
             Method method = mOriginContentResolver.getClass().getDeclaredMethod("acquireExistingProvider", new Class[]{Context.class, String.class});
             method.setAccessible(true);
-            return (IContentProvider)method.invoke(mOriginContentResolver, context, auth);
+            return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -90,7 +89,7 @@ public class PluginContentResolver extends ContentResolver {
 
             Method method = mOriginContentResolver.getClass().getDeclaredMethod("acquireUnstableProvider", new Class[]{Context.class, String.class});
             method.setAccessible(true);
-            return (IContentProvider)method.invoke(mOriginContentResolver, context, auth);
+            return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -137,7 +136,7 @@ public class PluginContentResolver extends ContentResolver {
     }
 
     private IContentProvider getTargetProvider(String auth) {
-        ProviderInfo providerInfo = DexClassLoaderPluginManager.getInstance(mAppContext).resolveContentProvider(auth);
+        ProviderInfo providerInfo = PluginManagerNative.getInstance(mAppContext).resolveProviderInfo(auth);
         if (providerInfo != null) {
             return getIContentProvider(providerInfo);
         }
@@ -148,7 +147,9 @@ public class PluginContentResolver extends ContentResolver {
     private IContentProvider getIContentProvider(ProviderInfo providerInfo) {
         Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo);
         final Uri uri = Uri.parse("content://" + PluginStubMainProvider.AUTH_PREFIX);
-        Bundle bundle = mOriginContentResolver.call(uri, providerInfo.packageName, providerInfo.name, null);
+        Bundle providerBundle = new Bundle();
+        providerBundle.putParcelable(PluginManagerNative.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
+        Bundle bundle = mOriginContentResolver.call(uri, providerInfo.packageName, providerInfo.name, providerBundle);
         Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo + " , bundle = " + bundle);
         if (bundle != null) {
             return PluginStubMainProvider.parseIContentProvider(bundle);

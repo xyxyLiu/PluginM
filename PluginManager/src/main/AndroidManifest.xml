@@ -9,24 +9,97 @@
 
         <!-- begin of stub components -->
 
-        <activity android:name="com.reginald.pluginm.pluginhost.PluginProxy.Activity">
+
+        <!-- process P0 start -->
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$Standard0"
+            android:launchMode="standard"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTop0"
+            android:launchMode="singleTop"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTop1"
+            android:launchMode="singleTop"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTask0"
+            android:launchMode="singleTask"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTask1"
+            android:launchMode="singleTask"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleInstance0"
+            android:launchMode="singleInstance"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleInstance1"
+            android:launchMode="singleInstance"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
         </activity>
 
         <service
-            android:name="com.reginald.pluginm.pluginhost.PluginStubMainService"
-            android:exported="false">
+            android:name="com.reginald.pluginm.stub.PluginStubMainService"
+            android:exported="false"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
         </service>
 
-        <receiver
-            android:name="com.reginald.pluginm.pluginhost.PluginStubBroadcast"
-            android:exported="false">
-        </receiver>
-        
         <provider
+            android:name="com.reginald.pluginm.stub.PluginStubMainProvider"
             android:authorities="com.reginald.pluginm.stub.provider"
-            android:name="com.reginald.pluginm.pluginhost.PluginStubMainProvider" />
+            android:process=":p0">
+        </provider>
 
         <!-- end of stub components -->
+
+        <!-- process P0 end -->
     </application>
 
 </manifest>

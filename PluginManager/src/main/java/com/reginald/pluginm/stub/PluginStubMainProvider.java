@@ -1,6 +1,5 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm.stub;
 
-import android.content.ComponentName;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.IContentProvider;
@@ -8,19 +7,17 @@ import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.common.ContentProviderCompat;
-import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.PluginManagerNative;
 import com.reginald.pluginm.reflect.MethodUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,29 +56,28 @@ public class PluginStubMainProvider extends ContentProvider {
         if (!TextUtils.isEmpty(method) && !TextUtils.isEmpty(arg)) {
             String packageName = method;
             String providerName = arg;
-            PluginInfo pluginInfo = DexClassLoaderPluginManager.getPluginInfo(packageName);
+            ProviderInfo providerInfo = extras.getParcelable(PluginManagerNative.EXTRA_INTENT_TARGET_PROVIDERINFO);
+            PluginInfo pluginInfo = PluginManager.getPluginInfo(providerInfo.packageName);
 
-            // try install it if not found
-            if (pluginInfo == null) {
-                DexClassLoaderPluginManager.getInstance(getContext()).install(packageName);
-                pluginInfo = DexClassLoaderPluginManager.getPluginInfo(packageName);
+            boolean loaded = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
+
+            if (pluginInfo == null || !loaded) {
+                return null;
             }
 
-            if (pluginInfo != null) {
-                try {
-                    ProviderInfo providerInfo = pluginInfo.pkgParser.getProviderInfo(new ComponentName(packageName, providerName), 0);
-                    IContentProvider iContentProvider = getIContentProvider(pluginInfo, providerInfo);
-                    Log.d(TAG, "call() iContentProvider = " + iContentProvider);
-                    if (iContentProvider != null) {
-                        Bundle bundle = new Bundle();
-                        BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
-                        bundle.putParcelable(EXTRA_BINDER, binderParcelable);
-                        return bundle;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            try {
+                IContentProvider iContentProvider = getIContentProvider(pluginInfo, providerInfo);
+                Log.d(TAG, "call() iContentProvider = " + iContentProvider);
+                if (iContentProvider != null) {
+                    Bundle bundle = new Bundle();
+                    BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
+                    bundle.putParcelable(EXTRA_BINDER, binderParcelable);
+                    return bundle;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
         }
         return null;
     }
@@ -125,7 +121,7 @@ public class PluginStubMainProvider extends ContentProvider {
                     return iContentProvider;
                 }
 
-                Log.d(TAG, "getIContentProvider() install provider " + providerInfo.name);
+                Log.d(TAG, "getIContentProvider() loadPlugin provider " + providerInfo.name);
                 Class clazz = pluginInfo.classLoader.loadClass(providerInfo.name);
                 ContentProvider contentProvider = (ContentProvider) clazz.newInstance();
                 contentProvider.attachInfo(pluginInfo.baseContext, providerInfo);

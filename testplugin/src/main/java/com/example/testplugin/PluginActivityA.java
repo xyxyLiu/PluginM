@@ -3,6 +3,7 @@ package com.example.testplugin;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Process;
@@ -85,7 +86,8 @@ public class PluginActivityA extends BasePluginActivity {
             public void onClick(View v) {
                 Intent intent = new Intent();
                 intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
-                startService(intent);
+                ComponentName componentName = startService(intent);
+                Log.d(TAG,"startService() return componentName = " + componentName);
             }
         });
 

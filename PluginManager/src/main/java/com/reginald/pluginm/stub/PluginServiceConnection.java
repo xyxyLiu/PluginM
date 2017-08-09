@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm.stub;
 
 import android.content.ComponentName;
 import android.content.ServiceConnection;
@@ -62,9 +62,9 @@ public class PluginServiceConnection implements ServiceConnection {
                 IBinder iBinder = stubBinder.getBinder();
                 if (mBase != null && componentName != null) {
                     ConnectionInfo oldConnectionInfo = mBinderMap.get(componentName);
-                    Log.d(TAG, String.format("onServiceConnected() oldConnectionInfo = %s" , oldConnectionInfo));
+                    Log.d(TAG, String.format("onServiceConnected() oldConnectionInfo = %s", oldConnectionInfo));
                     if (oldConnectionInfo != null && oldConnectionInfo.binder != null && oldConnectionInfo.binder == iBinder) {
-                        Log.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!" , componentName, iBinder));
+                        Log.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!", componentName, iBinder));
                         return;
                     }
 

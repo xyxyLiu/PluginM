@@ -1,16 +1,16 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 
 import com.android.common.ActivityThreadCompat;
-import com.reginald.pluginm.DexClassLoaderPluginManager;
 import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.stub.ActivityStub;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -214,7 +214,6 @@ public class HostHCallback {
         private Handler mOldHandle = null;
         private Handler.Callback mCallback = null;
         private Context mHostContext;
-        private DexClassLoaderPluginManager mDexClassLoaderPluginManager;
 
         private boolean mEnable = false;
 
@@ -222,7 +221,6 @@ public class HostHCallback {
             mOldHandle = oldHandle;
             mCallback = callback;
             mHostContext = hostContext;
-            mDexClassLoaderPluginManager = DexClassLoaderPluginManager.getInstance(hostContext);
         }
 
         public void setEnable(boolean enable) {
@@ -254,8 +252,7 @@ public class HostHCallback {
 
                 if (msg.what == LAUNCH_ACTIVITY) {
                     handleLaunchActivity(msg);
-                }
-                else if (msg.what == CREATE_SERVICE) {
+                } else if (msg.what == CREATE_SERVICE) {
                     handleCreateService(msg);
                 }
                 /*else if (msg.what == INSTALL_PROVIDER) {
@@ -380,27 +377,24 @@ public class HostHCallback {
 
             Log.d(TAG, "handleLaunchActivity() stubIntent = " + stubIntent);
             String proxyClassName = stubIntent.getComponent().getClassName();
-            ComponentName targetComponent = stubIntent.getParcelableExtra(DexClassLoaderPluginManager.EXTRA_INTENT_TARGET_COMPONENT);
+            ActivityInfo targetActivityInfo = stubIntent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_ACTIVITYINFO);
 
-            Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetComponent = %s", proxyClassName, targetComponent));
+            Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetActivityInfo = %s", proxyClassName, targetActivityInfo));
 
-            if (targetComponent == null) {
+            if (targetActivityInfo == null) {
                 return;
             }
 
-            if (mDexClassLoaderPluginManager.getPluginInfo(targetComponent.getPackageName()) == null) {
-                // test here!
-                mDexClassLoaderPluginManager.install(targetComponent.getPackageName());
-            }
+            boolean loaded = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.applicationInfo);
 
-            if (proxyClassName.equals(PluginHostProxy.STUB_ACTIVITY)) {
-                mDexClassLoaderPluginManager.registerActivity(DexClassLoaderPluginManager.getActivityInfo(targetComponent));
+            if (loaded && proxyClassName.startsWith(ActivityStub.class.getName())) {
+                PluginManager.getInstance(mHostContext).registerActivity(targetActivityInfo);
             }
         }
 
 
         //test
-        private void handleCreateService(Message msg){
+        private void handleCreateService(Message msg) {
             Log.d(TAG, "handleCreateService() msg = " + msg);
 
             Object obj = msg.obj;

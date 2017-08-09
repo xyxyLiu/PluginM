@@ -225,7 +225,7 @@ public class FieldUtils {
         writeField(field, target, value, false);
     }
 
-    public static boolean copyAllFields(Class<?> clsBase, Object src, Object target) throws IllegalAccessException{
+    public static boolean copyAllFields(Class<?> clsBase, Object src, Object target) throws IllegalAccessException {
         if (src == null || target == null) {
             return false;
         }

@@ -37,7 +37,6 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.util.Log;
 
-
 import com.android.common.UserHandleCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.MethodUtils;
@@ -216,7 +215,8 @@ class PackageParserApi21 extends PackageParser {
             } catch (Exception e) {
             }
             if (grantedPermissionsArray == null) {
-                grantedPermissionsArray = grantedPermissions;            }
+                grantedPermissionsArray = grantedPermissions;
+            }
             return (PackageInfo) method.invoke(null, mPackage, gids, flags, firstInstallTime, lastUpdateTime, grantedPermissionsArray, mDefaultPackageUserState, mUserId);
         } catch (NoSuchMethodException e) {
             Log.i(TAG, "get generatePackageInfo 3 fail", e);

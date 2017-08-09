@@ -58,20 +58,20 @@ public final class MultiDexPluginManager {
 
     private static final Set<String> installedApk = new HashSet<String>();
 
-    private MultiDexPluginManager() {}
+    private MultiDexPluginManager() {
+    }
 
     /**
      * Patches the application context class loader by appending extra dex files
      * loaded from the application apk. This method should be called in the
      * attachBaseContext of your {@link Application}, see
      * {@link MultiDexApplication} for more explanation and an example.
-     *
      * @param context application context.
      * @throws RuntimeException if an error occurred preventing the classloader
-     *         extension.
+     * extension.
      */
     public static boolean install(Context context, String pluginApkName) {
-        Log.i(TAG, "install");
+        Log.i(TAG, "loadPlugin");
 //        if (IS_VM_MULTIDEX_CAPABLE) {
 //            Log.i(TAG, "VM has multidex support, MultiDex support library is disabled.");
 //            return;
@@ -131,18 +131,18 @@ public final class MultiDexPluginManager {
                 List apkList = new ArrayList();
                 apkList.add(apkFile);
 
-                Log.i(TAG, "before install \nclassloader = " + loader);
+                Log.i(TAG, "before loadPlugin \nclassloader = " + loader);
 
                 installPluginDexes(loader, pluginDexPath, apkList);
 
-                Log.i(TAG, "after install \nclassloader = " + loader);
+                Log.i(TAG, "after loadPlugin \nclassloader = " + loader);
                 return true;
             }
 
         } catch (Exception e) {
             Log.e(TAG, "Multidex installation failure", e);
         }
-        Log.i(TAG, "install done");
+        Log.i(TAG, "loadPlugin done");
         return false;
     }
 
@@ -189,7 +189,6 @@ public final class MultiDexPluginManager {
 
     /**
      * Locates a given field anywhere in the class inheritance hierarchy.
-     *
      * @param instance an object to search the field into.
      * @param name field name
      * @return a field object
@@ -216,7 +215,6 @@ public final class MultiDexPluginManager {
 
     /**
      * Locates a given method anywhere in the class inheritance hierarchy.
-     *
      * @param instance an object to search the method into.
      * @param name method name
      * @param parameterTypes method parameter types
@@ -385,7 +383,7 @@ public final class MultiDexPluginManager {
             ZipFile[] extraZips = new ZipFile[extraSize];
             DexFile[] extraDexs = new DexFile[extraSize];
             for (ListIterator<File> iterator = additionalClassPathEntries.listIterator();
-                 iterator.hasNext();) {
+                 iterator.hasNext(); ) {
                 File additionalEntry = iterator.next();
                 String entryPath = additionalEntry.getAbsolutePath();
                 path.append(':').append(entryPath);

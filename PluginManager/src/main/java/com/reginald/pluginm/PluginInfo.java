@@ -19,7 +19,7 @@ public final class PluginInfo {
     public ApplicationInfo applicationInfo;
     public Application application;
     public Context baseContext;
-//    public AssetManager assetManager;
+    //    public AssetManager assetManager;
     public Resources resources;
     public String apkPath;
     public long fileSize;

@@ -10,7 +10,7 @@ import pluginm.reginald.com.pluginlib.proxy.ProxyManager;
  */
 public class PluginHelper {
     private static final String TAG = "PluginHelper";
-    public static IPluginManager pluginManager;
+    public static ILocalPluginManager pluginManager;
     public static String packageName;
 
     /**
@@ -20,7 +20,7 @@ public class PluginHelper {
      */
     public static void onInit(Object iPluginManager, String pkgName) {
         packageName = pkgName;
-        pluginManager = ProxyManager.getProxy(iPluginManager, IPluginManager.class);
+        pluginManager = ProxyManager.getProxy(iPluginManager, ILocalPluginManager.class);
 
         Log.d(TAG, "onInit() packageName = " + packageName + " , pluginManager = " +
                 (pluginManager == null ? "null" : "IPluginManager" + pluginManager.getClass().getName()));

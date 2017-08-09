@@ -37,7 +37,6 @@ import android.content.pm.Signature;
 import android.os.Build;
 import android.text.TextUtils;
 
-
 import com.reginald.pluginm.reflect.FieldUtils;
 
 import java.io.File;

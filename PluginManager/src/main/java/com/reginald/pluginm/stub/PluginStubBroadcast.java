@@ -1,4 +1,4 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm.stub;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

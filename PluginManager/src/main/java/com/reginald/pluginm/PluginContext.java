@@ -1,23 +1,22 @@
-package com.reginald.pluginm.pluginhost;
+package com.reginald.pluginm;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 
-import com.reginald.pluginm.DexClassLoaderPluginManager;
-import com.reginald.pluginm.PluginInfo;
-
-import java.lang.reflect.Method;
+import com.reginald.pluginm.stub.PluginContentResolver;
+import com.reginald.pluginm.stub.PluginServiceConnection;
+import com.reginald.pluginm.stub.PluginStubMainService;
 
 /**
  * Created by lxy on 16-6-28.
@@ -26,21 +25,25 @@ public class PluginContext extends ContextThemeWrapper {
 
     private static final String TAG = "PluginActivityContext";
 
+    private Context mBaseContext;
     private PluginInfo mPluginInfo;
     private String mApkPath;
     private AssetManager mAssetManager;
     private Resources mResources;
     private ClassLoader mClassLoader;
+    private ContentResolver mContentResolver;
 
     public PluginContext(PluginInfo pluginInfo, Context baseContext) {
         // test theme
         super(baseContext, pluginInfo.applicationInfo.theme);
         Log.d(TAG, "PluginActivityContext() pluginInfo = " + pluginInfo);
+        mBaseContext = baseContext;
         mPluginInfo = pluginInfo;
         mApkPath = pluginInfo.apkPath;
         mAssetManager = pluginInfo.resources.getAssets();
         mResources = pluginInfo.resources;
         mClassLoader = pluginInfo.classLoader;
+        mContentResolver = new PluginContentResolver(mBaseContext, super.getContentResolver());
     }
 
     public String getPackageResourcePath() {
@@ -81,10 +84,16 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public ComponentName startService(Intent intent) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
-            return super.startService(pluginIntent);
+            if (super.startService(pluginIntent) != null) {
+                ServiceInfo serviceInfo = pluginIntent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+                if (serviceInfo != null) {
+                    return new ComponentName(serviceInfo.packageName, serviceInfo.name);
+                }
+            }
+            return null;
         } else {
             return super.startService(intent);
         }
@@ -92,7 +101,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public boolean stopService(Intent intent) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
             super.startService(pluginIntent);
@@ -105,7 +114,7 @@ public class PluginContext extends ContextThemeWrapper {
     @Override
     public boolean bindService(Intent intent, ServiceConnection conn,
             int flags) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             String action = pluginIntent.getAction();
             String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(
@@ -137,8 +146,8 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public void startActivity(Intent intent, Bundle options) {
-        Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
-        if(pluginIntent != null) {
+        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
+        if (pluginIntent != null) {
             super.startActivity(pluginIntent, options);
         } else {
             super.startActivity(intent, options);
@@ -154,8 +163,8 @@ public class PluginContext extends ContextThemeWrapper {
     public void startActivities(Intent[] intents, Bundle options) {
         for (int i = 0; i < intents.length; i++) {
             Intent intent = intents[i];
-            Intent pluginIntent = DexClassLoaderPluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
-            if(pluginIntent != null) {
+            Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
+            if (pluginIntent != null) {
                 intents[i] = pluginIntent;
             }
         }
@@ -164,6 +173,6 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public ContentResolver getContentResolver() {
-        return new PluginContentResolver(this, super.getContentResolver());
+        return mContentResolver;
     }
 }

@@ -28,17 +28,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.os.UserHandle;
 import android.util.Log;
-
-import com.reginald.pluginm.DexClassLoaderPluginManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,17 +98,6 @@ public class IntentMatcher {
             }
         }
 
-        if (intent.getComponent() != null) {
-            ActivityInfo receiverInfo = DexClassLoaderPluginManager.getReceiverInfo(intent.getComponent());
-            if (receiverInfo != null) {
-                final ResolveInfo resolveInfo = new ResolveInfo();
-                resolveInfo.activityInfo = receiverInfo;
-                list.add(resolveInfo);
-            }
-            return list;
-        }
-
-
         if (comp != null && comp.getPackageName() != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
@@ -162,16 +147,6 @@ public class IntentMatcher {
 
                 }
             }
-        }
-
-        if (intent.getComponent() != null) {
-            ServiceInfo serviceInfo = DexClassLoaderPluginManager.getServiceInfo(intent.getComponent());
-            if (serviceInfo != null) {
-                final ResolveInfo resolveInfo = new ResolveInfo();
-                resolveInfo.serviceInfo = serviceInfo;
-                list.add(resolveInfo);
-            }
-            return list;
         }
 
         if (comp != null && comp.getPackageName() != null) {
@@ -226,16 +201,6 @@ public class IntentMatcher {
             }
         }
 
-        if (intent.getComponent() != null) {
-            ProviderInfo providerInfo = DexClassLoaderPluginManager.getProviderInfo(intent.getComponent());
-            if (providerInfo != null) {
-                final ResolveInfo resolveInfo = new ResolveInfo();
-                resolveInfo.providerInfo = providerInfo;
-                list.add(resolveInfo);
-            }
-            return list;
-        }
-
         if (comp != null && comp.getPackageName() != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
@@ -285,16 +250,6 @@ public class IntentMatcher {
 
                 }
             }
-        }
-
-        if (intent.getComponent() != null) {
-            ActivityInfo activityInfo = DexClassLoaderPluginManager.getActivityInfo(intent.getComponent());
-            if (activityInfo != null) {
-                final ResolveInfo resolveInfo = new ResolveInfo();
-                resolveInfo.activityInfo = activityInfo;
-                list.add(resolveInfo);
-            }
-            return list;
         }
 
         if (comp != null && comp.getPackageName() != null) {
@@ -615,5 +570,10 @@ public class IntentMatcher {
 
     public static ResolveInfo findBest(List<ResolveInfo> infos) {
         return infos.get(0);
+    }
+
+    private static PluginPackageParser getPackageParserForComponent(Map<String, PluginPackageParser> pluginPackages,
+            ComponentName componentName) {
+        return pluginPackages.get(componentName.getPackageName());
     }
 }

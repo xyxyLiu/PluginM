@@ -53,7 +53,7 @@ public class MethodUtils {
 
 
     private static Method getAccessibleMethodFromSuperclass(final Class<?> cls,
-                                                            final String methodName, final Class<?>... parameterTypes) {
+            final String methodName, final Class<?>... parameterTypes) {
         Class<?> parentClass = cls.getSuperclass();
         while (parentClass != null) {
             if (Modifier.isPublic(parentClass.getModifiers())) {
@@ -70,7 +70,7 @@ public class MethodUtils {
 
 
     private static Method getAccessibleMethodFromInterfaceNest(Class<?> cls,
-                                                               final String methodName, final Class<?>... parameterTypes) {
+            final String methodName, final Class<?>... parameterTypes) {
         // Search up the superclass chain
         for (; cls != null; cls = cls.getSuperclass()) {
 
@@ -127,7 +127,7 @@ public class MethodUtils {
     }
 
     public static Method getAccessibleMethod(final Class<?> cls, final String methodName,
-                                             final Class<?>... parameterTypes) throws NoSuchMethodException {
+            final Class<?>... parameterTypes) throws NoSuchMethodException {
         String key = getKey(cls, methodName, parameterTypes);
         Method method;
         synchronized (sMethodCache) {
@@ -150,7 +150,7 @@ public class MethodUtils {
     }
 
     private static Method getMatchingAccessibleMethod(final Class<?> cls,
-                                                      final String methodName, final Class<?>... parameterTypes) {
+            final String methodName, final Class<?>... parameterTypes) {
 
         String key = getKey(cls, methodName, parameterTypes);
         Method cachedMethod;
@@ -199,7 +199,7 @@ public class MethodUtils {
     }
 
     public static Object invokeMethod(final Object object, final String methodName,
-                                      Object[] args, Class<?>[] parameterTypes)
+            Object[] args, Class<?>[] parameterTypes)
             throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException {
         parameterTypes = Utils.nullToEmpty(parameterTypes);
@@ -215,7 +215,7 @@ public class MethodUtils {
     }
 
     public static Object invokeStaticMethod(final Class clazz, final String methodName,
-                                            Object[] args, Class<?>[] parameterTypes)
+            Object[] args, Class<?>[] parameterTypes)
             throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException {
         parameterTypes = Utils.nullToEmpty(parameterTypes);
@@ -231,7 +231,7 @@ public class MethodUtils {
     }
 
     public static Object invokeStaticMethod(final Class clazz, final String methodName,
-                                            Object... args) throws NoSuchMethodException,
+            Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException {
         args = Utils.nullToEmpty(args);
         final Class<?>[] parameterTypes = Utils.toClass(args);
@@ -239,7 +239,7 @@ public class MethodUtils {
     }
 
     public static Object invokeMethod(final Object object, final String methodName,
-                                      Object... args) throws NoSuchMethodException,
+            Object... args) throws NoSuchMethodException,
             IllegalAccessException, InvocationTargetException {
         args = Utils.nullToEmpty(args);
         final Class<?>[] parameterTypes = Utils.toClass(args);
@@ -268,7 +268,7 @@ public class MethodUtils {
     }
 
     public static <T> Constructor<T> getMatchingAccessibleConstructor(final Class<T> cls,
-                                                                      final Class<?>... parameterTypes) {
+            final Class<?>... parameterTypes) {
         Validate.isTrue(cls != null, "class cannot be null");
         // see if we can find the constructor directly
         // most of the time this works and it's much faster

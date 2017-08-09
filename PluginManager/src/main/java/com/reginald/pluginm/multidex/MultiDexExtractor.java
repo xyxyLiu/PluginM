@@ -73,11 +73,10 @@ final class MultiDexExtractor {
     /**
      * Extracts application secondary dexes into files in the application data
      * directory.
-     *
      * @return a list of files that were created. The list may be empty if there
-     *         are no secondary dex files.
+     * are no secondary dex files.
      * @throws IOException if encounters a problem while reading or writing
-     *         secondary dex files
+     * secondary dex files
      */
     static List<File> load(Context context, ApplicationInfo applicationInfo, File dexDir,
             boolean forceReload) throws IOException {
@@ -353,6 +352,7 @@ final class MultiDexExtractor {
     // The following is taken from SharedPreferencesCompat to avoid having a dependency of the
     // multidex support library on another support library.
     private static Method sApplyMethod;  // final
+
     static {
         try {
             Class<?> cls = SharedPreferences.Editor.class;

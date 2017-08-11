@@ -364,8 +364,10 @@ public class HostHCallback {
 
             Object obj = msg.obj;
             Intent stubIntent = null;
+            ActivityInfo rawActivityInfo = null;
             try {
                 stubIntent = (Intent) FieldUtils.readField(obj, "intent");
+                rawActivityInfo = (ActivityInfo) FieldUtils.readField(obj, "activityInfo");
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
                 return;
@@ -385,10 +387,17 @@ public class HostHCallback {
                 return;
             }
 
-            boolean loaded = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.applicationInfo);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.applicationInfo);
 
-            if (loaded && proxyClassName.startsWith(ActivityStub.class.getName())) {
+            if (loadedPluginInfo != null && proxyClassName.startsWith(ActivityStub.class.getName())) {
                 PluginManager.getInstance(mHostContext).registerActivity(targetActivityInfo);
+            }
+
+            Log.d(TAG, "handleLaunchActivity() rawActivityInfo = " + rawActivityInfo);
+            if (rawActivityInfo != null) {
+                rawActivityInfo.theme = targetActivityInfo.theme != 0 ? targetActivityInfo.theme :
+                        targetActivityInfo.applicationInfo.theme;
+                Log.d(TAG, "handleLaunchActivity() set theme = " + rawActivityInfo.theme);
             }
         }
 

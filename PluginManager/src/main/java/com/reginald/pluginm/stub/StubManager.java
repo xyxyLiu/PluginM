@@ -1,5 +1,6 @@
 package com.reginald.pluginm.stub;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -104,6 +105,13 @@ public class StubManager {
         stubActivityInfo.packageName = mContext.getPackageName();
         stubActivityInfo.name = String.format(PluginHostProxy.STUB_ACTIVITY, "P0", "Standard0");
         return stubActivityInfo;
+    }
+
+    public boolean isStubActivity(Activity activity) {
+        if (activity != null) {
+            return activity.getClass().getName().startsWith("com.reginald.pluginm.stub.ActivityStub");
+        }
+        return false;
     }
 
 

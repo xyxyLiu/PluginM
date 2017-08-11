@@ -1,5 +1,6 @@
 package com.example.testplugin;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,9 +12,7 @@ import android.widget.Button;
 
 import com.nineoldandroids.animation.AnimatorSet;
 
-import pluginm.reginald.com.pluginlib.BasePluginActivity;
-
-public class PluginMainActivity extends BasePluginActivity {
+public class PluginMainActivity extends Activity {
 
     private static final String TAG = "PluginMainActivity";
 
@@ -39,6 +38,7 @@ public class PluginMainActivity extends BasePluginActivity {
 
         Log.d(TAG, "onCreate() getBaseContext() = " + getBaseContext());
         Log.d(TAG, "onCreate() getPackageName() = " + getPackageName());
+        Log.d(TAG, "onCreate() getResource() = " + getResources());
         Log.d(TAG, "onCreate() getClassLoader() = " + getClassLoader());
         Log.d(TAG, "onCreate() getClass().getClassLoader() = " + getClass().getClassLoader());
 
@@ -55,8 +55,7 @@ public class PluginMainActivity extends BasePluginActivity {
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginActivityA.class.getName());
+                Intent intent = new Intent(PluginMainActivity.this, PluginActivityA.class);
                 startActivity(intent);
             }
         });
@@ -66,8 +65,7 @@ public class PluginMainActivity extends BasePluginActivity {
         mBtn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginActivityB.class.getName());
+                Intent intent = new Intent(PluginMainActivity.this, PluginActivityB.class);
                 startActivity(intent);
             }
         });

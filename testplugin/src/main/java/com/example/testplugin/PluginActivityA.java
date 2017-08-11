@@ -1,5 +1,6 @@
 package com.example.testplugin;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -15,7 +16,7 @@ import android.widget.Button;
 import pluginm.reginald.com.pluginlib.BasePluginActivity;
 
 
-public class PluginActivityA extends BasePluginActivity {
+public class PluginActivityA extends Activity {
 
     private static final String TAG = "PluginActivityA";
 
@@ -73,8 +74,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginMainActivity.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginMainActivity.class);
                 startActivity(intent);
             }
         });
@@ -84,8 +84,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginService.class);
                 ComponentName componentName = startService(intent);
                 Log.d(TAG,"startService() return componentName = " + componentName);
             }
@@ -96,8 +95,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginService.class);
                 stopService(intent);
             }
         });
@@ -107,8 +105,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginService.class);
                 bindService(intent, mConn1, BIND_AUTO_CREATE);
             }
         });
@@ -127,9 +124,8 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn6.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
+                Intent intent = new Intent(PluginActivityA.this, PluginService.class);
 //                intent.setAction("asdasd");
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginService.class.getName());
                 bindService(intent, mConn2, BIND_AUTO_CREATE);
             }
         });
@@ -157,8 +153,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
                 intent.setAction("killself");
                 startService(intent);
             }
@@ -169,8 +164,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn10.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
                 stopService(intent);
             }
         });
@@ -180,8 +174,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn11.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
                 bindService(intent, mConn1, BIND_AUTO_CREATE);
             }
         });
@@ -191,8 +184,7 @@ public class PluginActivityA extends BasePluginActivity {
         mBtn12.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginServiceA.class.getName());
+                Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
                 unbindService(mConn1);
             }
         });

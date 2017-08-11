@@ -57,16 +57,15 @@ public class PluginStubMainProvider extends ContentProvider {
             String packageName = method;
             String providerName = arg;
             ProviderInfo providerInfo = extras.getParcelable(PluginManagerNative.EXTRA_INTENT_TARGET_PROVIDERINFO);
-            PluginInfo pluginInfo = PluginManager.getPluginInfo(providerInfo.packageName);
 
-            boolean loaded = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
 
-            if (pluginInfo == null || !loaded) {
+            if (loadedPluginInfo == null) {
                 return null;
             }
 
             try {
-                IContentProvider iContentProvider = getIContentProvider(pluginInfo, providerInfo);
+                IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
                 Log.d(TAG, "call() iContentProvider = " + iContentProvider);
                 if (iContentProvider != null) {
                     Bundle bundle = new Bundle();

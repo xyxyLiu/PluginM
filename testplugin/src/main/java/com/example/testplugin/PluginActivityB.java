@@ -1,5 +1,6 @@
 package com.example.testplugin;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
@@ -14,7 +15,7 @@ import android.widget.Toast;
 
 import pluginm.reginald.com.pluginlib.BasePluginActivity;
 
-public class PluginActivityB extends BasePluginActivity {
+public class PluginActivityB extends Activity {
 
     private static final String TAG = "PluginActivityB";
     public static final String HOST_PROVIDER_AUTHORITY = "com.example.testhost.provider";

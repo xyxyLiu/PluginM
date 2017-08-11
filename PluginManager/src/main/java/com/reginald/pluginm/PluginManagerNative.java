@@ -10,9 +10,11 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
+import android.support.v4.app.ActivityManagerCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
@@ -80,6 +82,8 @@ public class PluginManagerNative {
 
             Log.d(TAG, "onAttachBaseContext() replace classloader success! classload = " + newLoader);
 
+            HostInstrumentation.onInstall(app);
+
             HostHCallback.onInstall(app);
 
         } catch (Exception e) {
@@ -109,15 +113,17 @@ public class PluginManagerNative {
 
     // public api
 
-    public boolean install(String pluginPackageName) {
+    public PluginInfo install(String pluginPackageName) {
         return install(pluginPackageName, true);
     }
 
     public ProviderInfo resolveProviderInfo(String name) {
+        Log.d(TAG, "resolveProviderInfo() name = " + name + " ,sInstalledPkgParser = " + sInstalledPkgParser);
         try {
             for (PluginPackageParser pluginPackageParser : sInstalledPkgParser.values()) {
                 List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
                 for (ProviderInfo providerInfo : providerInfos) {
+                    Log.d(TAG, "resolveProviderInfo() check providerInfo " + providerInfo);
                     if (TextUtils.equals(providerInfo.authority, name)) {
                         return providerInfo;
                     }
@@ -177,12 +183,13 @@ public class PluginManagerNative {
     }
 
 
-    private boolean install(String pluginPackageName, boolean isStandAlone) {
+    private PluginInfo install(String pluginPackageName, boolean isStandAlone) {
         try {
-
+            PluginInfo pluginInfo = null;
             synchronized (sInstalledPluginMap) {
-                if (sInstalledPluginMap.get(pluginPackageName) != null) {
-                    return true;
+                pluginInfo = sInstalledPluginMap.get(pluginPackageName);
+                if (pluginInfo != null) {
+                    return pluginInfo;
                 }
             }
 
@@ -192,7 +199,7 @@ public class PluginManagerNative {
             }
             if (pluginConfig == null) {
                 Log.d(TAG, "install() pluginPackageName = " + pluginPackageName + " error! no config found!");
-                return false;
+                return null;
             }
 
 
@@ -200,6 +207,12 @@ public class PluginManagerNative {
             File pluginDexPath = mContext.getDir(PLUGIN_DEX_FOLDER_NAME, Context.MODE_PRIVATE);
             File pluginLibPath = mContext.getDir(PLUGIN_LIB_FOLDER_NAME, Context.MODE_PRIVATE);
             File pluginNativeLibPath = new File(pluginLibPath, pluginPackageName);
+
+            if (!apkFile.exists()) {
+                Log.e(TAG, "install() apkFile = " + apkFile.getAbsolutePath() + " NOT exist!");
+                return null;
+            }
+
             ClassLoader parentClassLoader;
 
             // create classloader
@@ -215,7 +228,7 @@ public class PluginManagerNative {
             Log.d(TAG, "install() dexClassLoader = " + dexClassLoader);
             Log.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
 
-            PluginInfo pluginInfo = ApkParser.parsePluginInfo(mContext, apkFile.getAbsolutePath());
+            pluginInfo = ApkParser.parsePluginInfo(mContext, apkFile.getAbsolutePath());
             pluginInfo.classLoader = dexClassLoader;
             pluginInfo.parentClassLoader = parentClassLoader;
             pluginInfo.apkPath = apkFile.getAbsolutePath();
@@ -240,7 +253,7 @@ public class PluginManagerNative {
                 pluginInfo.resources = resources;
             } else {
                 Log.e(TAG, "install() error! resources is null!");
-                return false;
+                return null;
             }
 
 
@@ -248,22 +261,24 @@ public class PluginManagerNative {
 
             if (pluginInfo == null) {
                 Log.e(TAG, "install() error! pluginInfo is null!");
-                return false;
+                return null;
             }
 
             synchronized (sInstalledPkgParser) {
+                Log.d(TAG, "install() sInstalledPkgParser add " + pluginInfo.packageName);
                 sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
             }
 
             synchronized (sInstalledPluginMap) {
+                Log.d(TAG, "install() sInstalledPluginMap add " + pluginInfo.packageName);
                 sInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
 
-            return true;
+            return pluginInfo;
         } catch (Exception e) {
             Log.e(TAG, "install() error! exception: " + e);
             e.printStackTrace();
-            return false;
+            return null;
         }
 
     }
@@ -385,7 +400,7 @@ public class PluginManagerNative {
         return pluginInfo.pkgParser;
     }
 
-    private PluginInfo getPluginInfo(String packageName) {
+    public PluginInfo getPluginInfo(String packageName) {
         synchronized (sInstalledPluginMap) {
             return sInstalledPluginMap.get(packageName);
         }

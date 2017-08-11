@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
@@ -55,7 +56,7 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     public String getPackageName() {
-        return super.getPackageName();
+        return mPluginInfo.packageName;/** super.getPackageName(); **/
     }
 
     public PackageManager getPackageManager() {
@@ -72,6 +73,14 @@ public class PluginContext extends ContextThemeWrapper {
 
     public Resources getResources() {
         return mResources;
+    }
+
+    @Override
+    public Resources.Theme getTheme() {
+        Log.d(TAG, "getTheme()");
+        Resources.Theme theme = mPluginInfo.resources.newTheme();
+        theme.applyStyle(mPluginInfo.applicationInfo.theme, false);
+        return theme;
     }
 
     public Context getApplicationContext() {

@@ -234,24 +234,22 @@ public class PluginStubMainService extends Service {
         ComponentName componentName = new ComponentName(serviceInfo.packageName, serviceInfo.name);
 
         synchronized (mInstalledServices) {
-            Log.d(TAG, "fetchCachedServiceRecord() return" + mInstalledServices.get(componentName));
+            Log.d(TAG, "fetchCachedServiceRecord() return " + mInstalledServices.get(componentName));
             return mInstalledServices.get(componentName);
         }
     }
 
 
     private ServiceRecord createPluginService(ServiceInfo serviceInfo) {
-        boolean loaded = PluginManager.getInstance(getApplicationContext()).loadPlugin(serviceInfo.applicationInfo);
-
-        ServiceRecord pluginServiceRecord = new ServiceRecord(serviceInfo);
-        PluginInfo pluginInfo = PluginManager.getPluginInfo(serviceInfo.packageName);
-
-        if (pluginInfo == null || !loaded) {
+        PluginInfo loadedPluginInfo = PluginManager.getInstance(getApplicationContext()).loadPlugin(serviceInfo.applicationInfo);
+        if (loadedPluginInfo == null) {
             return null;
         }
 
+        ServiceRecord pluginServiceRecord = new ServiceRecord(serviceInfo);
+
         try {
-            Class<?> serviceClass = pluginInfo.classLoader.loadClass(serviceInfo.name);
+            Class<?> serviceClass = loadedPluginInfo.classLoader.loadClass(serviceInfo.name);
             pluginServiceRecord.service = (Service) serviceClass.newInstance();
             Log.d(TAG, "createPluginService() create service " + pluginServiceRecord.service);
         } catch (Exception e) {
@@ -268,11 +266,11 @@ public class PluginStubMainService extends Service {
                 attachMethod.setAccessible(true);
 
 
-                Context pluginServiceContext = new PluginContext(pluginInfo, getBaseContext());
+                Context pluginServiceContext = new PluginContext(loadedPluginInfo, getBaseContext());
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
                 attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), getClass().getName(),
-                        FieldUtils.readField(this, "mToken"), pluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
+                        FieldUtils.readField(this, "mToken"), loadedPluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
                 // test
                 Log.d(TAG, "mBase of service is " + FieldUtils.readField(pluginServiceRecord.service, "mBase"));

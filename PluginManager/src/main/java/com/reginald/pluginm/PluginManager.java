@@ -7,24 +7,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
-import android.content.res.Resources;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 
 import com.android.common.ContextCompat;
-import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.ActivityStub;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import dalvik.system.DexClassLoader;
 import pluginm.reginald.com.pluginlib.ILocalPluginManager;
 import pluginm.reginald.com.pluginlib.PluginHelper;
 
@@ -54,116 +48,55 @@ public class PluginManager implements ILocalPluginManager {
         mContext = hostContext;
     }
 
-    public boolean loadPlugin(ApplicationInfo applicationInfo) {
-        // test
-        String pluginPackageName = "com.example.testplugin";
-        final boolean isInstallSuc = PluginManagerNative.getInstance(mContext).install(pluginPackageName);
-
-        return loadPlugin(mContext, applicationInfo, true);
-    }
-
-
-    private static boolean loadPlugin(Context context, ApplicationInfo applicationInfo, boolean isStandAlone) {
+    public PluginInfo loadPlugin(ApplicationInfo applicationInfo) {
         Log.d(TAG, "loadPlugin() applicationInfo = " + applicationInfo);
         try {
             String pluginPackageName = applicationInfo.packageName;
-            String apkPath = applicationInfo.publicSourceDir;
-            Log.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName + " ,apkPath = " + apkPath);
+            PluginInfo pluginInfo = null;
+            Log.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName);
             synchronized (sLoadedPluginMap) {
-                if (sLoadedPluginMap.get(pluginPackageName) != null) {
-                    return true;
+                pluginInfo = sLoadedPluginMap.get(pluginPackageName);
+                if (pluginInfo != null) {
+                    Log.d(TAG, "loadPlugin() found loaded pluginInfo " + pluginInfo);
+                    return pluginInfo;
                 }
             }
 
-            if (TextUtils.isEmpty(apkPath)) {
-                Log.d(TAG, "loadPlugin() apkPath = " + apkPath + " error! no config found!");
-                return false;
-            }
-
-
-            File apkFile = new File(apkPath);//PackageUtils.copyAssetsApk(context, apkPath);
-            File pluginDexPath = context.getDir(PluginManagerNative.PLUGIN_DEX_FOLDER_NAME, Context.MODE_PRIVATE);
-            File pluginLibPath = context.getDir(PluginManagerNative.PLUGIN_LIB_FOLDER_NAME, Context.MODE_PRIVATE);
-            File pluginNativeLibPath = new File(pluginLibPath, pluginPackageName);
-            ClassLoader parentClassLoader;
-
-            // create classloader
-            Log.d(TAG, "loadPlugin() mContext.getClassLoader() = " + context.getClassLoader());
-
-            if (isStandAlone) {
-                parentClassLoader = context.getClassLoader().getParent();
-            } else {
-                parentClassLoader = context.getClassLoader();
-            }
-            DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    apkFile.getAbsolutePath(),
-                    pluginDexPath.getAbsolutePath(),
-                    pluginNativeLibPath.getAbsolutePath(),
-                    parentClassLoader);
-            Log.d(TAG, "loadPlugin() dexClassLoader = " + dexClassLoader);
-            Log.d(TAG, "loadPlugin() dexClassLoader's parent = " + dexClassLoader.getParent());
-
-            PluginInfo pluginInfo = ApkParser.parsePluginInfo(context, apkFile.getAbsolutePath());
-            pluginInfo.classLoader = dexClassLoader;
-            pluginInfo.parentClassLoader = parentClassLoader;
-            pluginInfo.apkPath = apkFile.getAbsolutePath();
-            pluginInfo.fileSize = apkFile.length();
-
-
-            // loadPlugin so
-            File apkParent = apkFile.getParentFile();
-            File tempSoDir = new File(apkParent, "temp");
-            Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
-            if (soList != null) {
-                for (String soName : soList) {
-                    PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
-                }
-                //删掉临时文件
-                PackageUtils.deleteAll(tempSoDir);
-            }
-            pluginInfo.nativeLibDir = pluginNativeLibPath.getAbsolutePath();
-
-            // replace resources
-            Resources resources = ResourcesManager.getPluginResources(context, apkFile.getAbsolutePath());
-            if (resources != null) {
-                pluginInfo.resources = resources;
-            } else {
-                Log.e(TAG, "loadPlugin() error! resources is null!");
-                return false;
-            }
-
+            pluginInfo = PluginManagerNative.getInstance(mContext).install(applicationInfo.packageName);
 
             Log.d(TAG, "loadPlugin() pluginInfo = " + pluginInfo);
 
             if (pluginInfo == null) {
-                Log.e(TAG, "loadPlugin() error! pluginInfo is null!");
-                return false;
+                Log.e(TAG, "loadPlugin() install error with " + pluginInfo);
+                return null;
             }
 
             synchronized (sLoadedPluginMap) {
                 sLoadedPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
 
-            if (!initPlugin(pluginInfo, context)) {
+
+            if (!initPlugin(pluginInfo, mContext)) {
                 Log.e(TAG, "loadPlugin() initPlugin error!");
-                return false;
+                return null;
             }
 
+
             Log.d(TAG, "loadPlugin() ok!");
-            return true;
+            return pluginInfo;
         } catch (Exception e) {
             Log.e(TAG, "loadPlugin() error! exception: " + e);
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
     private static boolean initPlugin(PluginInfo pluginInfo, Context hostContext) {
         Log.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
-        if (!initPluginHelper(pluginInfo, hostContext)) {
-            Log.e(TAG, "initPlugin() initPluginHelper error! ");
-            return false;
-        }
+//        if (!initPluginHelper(pluginInfo, hostContext)) {
+//            Log.e(TAG, "initPlugin() initPluginHelper error! ");
+//            return false;
+//        }
 
         if (!initPluginApplication(pluginInfo, hostContext)) {
             Log.e(TAG, "initPlugin() initPluginApplication error! ");

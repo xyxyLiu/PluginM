@@ -11,7 +11,7 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 /**
- * Created by lxy on 16-6-6.
+ * @deprecated
  */
 public class BasePluginActivity extends Activity{
     private static final String TAG = "BasePluginActivity";

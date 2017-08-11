@@ -39,15 +39,13 @@ public class PluginServiceA extends Service {
             Log.d(TAG,"onStartCommand() stopself!");
             stopSelf();
         } else if (intent != null && "startactivity".equals(intent.getAction())) {
-            Intent actIntent = new Intent();
+            Intent actIntent = new Intent(this, PluginMainActivity.class);
 
 //            try {
 //                Log.d(TAG, "## mBase of service is " + FieldUtils.readField(this, "mBase"));
 //            } catch (IllegalAccessException e) {
 //                e.printStackTrace();
 //            }
-
-            actIntent.setClassName(PluginUtils.PLUGIN_PACKAGE_NAME, PluginMainActivity.class.getName());
             actIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(actIntent);
         }

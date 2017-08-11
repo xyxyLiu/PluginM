@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.PluginManagerNative;
 import com.reginald.pluginm.MultiDexPluginManager;
@@ -114,9 +115,9 @@ public class HostMainActivity extends AppCompatActivity {
 //
 //        mLoadModeText.setText("loadmode = DexCLassLoader");
         String pluginPackageName = "com.example.testplugin";
-        final boolean isInstallSuc = mPluginManagerNative.install(pluginPackageName);
+        PluginInfo pluginInfo = mPluginManagerNative.install(pluginPackageName);
 //
-        Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (isInstallSuc ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (pluginInfo != null ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
 
         try {
 //            Class<?> clazz = mPluginManagerNative.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
@@ -150,14 +151,30 @@ public class HostMainActivity extends AppCompatActivity {
                 }
             });
 
-            mBtn1_2.setText("send plugin broadcast");
+            mBtn1_2.setText("install & start wifimgr");
             mBtn1_2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent pluginIntent = new Intent("plugin_broadcast_test_2");
-                    sendBroadcast(pluginIntent);
-                    Intent hostIntent = new Intent("host_broadcast_test");
-                    sendBroadcast(hostIntent);
+//                    Intent pluginIntent = new Intent("plugin_broadcast_test_2");
+//                    sendBroadcast(pluginIntent);
+//                    Intent hostIntent = new Intent("host_broadcast_test");
+//                    sendBroadcast(hostIntent);
+
+                    String wifiPluginPkg = "com.dianxinos.optimizer.plugin.wifimgr";
+                    final PluginInfo installedPluginInfo = mPluginManagerNative.install(wifiPluginPkg);
+                    Toast.makeText(HostMainActivity.this, "wifimgr install " + (installedPluginInfo != null ? "ok!":"error!"),
+                            Toast.LENGTH_SHORT).show();
+
+                    if (installedPluginInfo == null) {
+                        return;
+                    }
+
+                    Intent pluginIntent = new Intent();
+                    pluginIntent.setAction(Intent.ACTION_MAIN);
+                    pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
+                    HostMainActivity.this.startActivity(intent);
                 }
             });
 

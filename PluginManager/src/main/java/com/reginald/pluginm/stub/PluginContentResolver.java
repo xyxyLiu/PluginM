@@ -137,6 +137,7 @@ public class PluginContentResolver extends ContentResolver {
 
     private IContentProvider getTargetProvider(String auth) {
         ProviderInfo providerInfo = PluginManagerNative.getInstance(mAppContext).resolveProviderInfo(auth);
+        Log.d(TAG, "getTargetProvider() auth = " + auth + "  ->  providerInfo = " + providerInfo);
         if (providerInfo != null) {
             return getIContentProvider(providerInfo);
         }

@@ -27,6 +27,12 @@ public class PluginConfigsUtil {
         pluginConfig2.desc = "plugin wifimgr apk";
         pluginConfigs.add(pluginConfig2);
 
+        PluginConfig pluginConfig3 = new PluginConfig();
+        pluginConfig3.apkPath = "153e48737f5602ae4d15cbcb2fa46b78.apk";
+        pluginConfig3.packageName = "com.youba.WeatherForecast";
+        pluginConfig3.desc = "com.youba.WeatherForecast";
+        pluginConfigs.add(pluginConfig3);
+
 
         return pluginConfigs;
     }

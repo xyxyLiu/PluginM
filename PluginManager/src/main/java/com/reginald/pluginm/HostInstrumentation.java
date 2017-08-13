@@ -32,7 +32,7 @@ public class HostInstrumentation extends Instrumentation {
 
     PluginManager mPluginManager;
 
-    public static boolean onInstall(Context hostContext) {
+    public static Instrumentation onInstall(Context hostContext) {
         Object target = ActivityThreadCompat.currentActivityThread();
         Class ActivityThreadClass = target.getClass();
 
@@ -44,12 +44,12 @@ public class HostInstrumentation extends Instrumentation {
                     PluginManager.getInstance(hostContext), baseInstrumentation);
             FieldUtils.writeField(mInstrumentationField, target, newInstrumentation);
             Log.i(TAG, "HostInstrumentation has installed!");
-            return true;
+            return newInstrumentation;
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return false;
+        return null;
     }
 
     public HostInstrumentation(PluginManager pluginManager, Instrumentation base) {

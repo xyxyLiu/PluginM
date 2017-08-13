@@ -15,6 +15,8 @@ import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.ActivityStub;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,6 +255,12 @@ public class PluginManager implements ILocalPluginManager {
     public static PluginInfo getPluginInfo(String packageName) {
         synchronized (sLoadedPluginMap) {
             return sLoadedPluginMap.get(packageName);
+        }
+    }
+
+    public static List<PluginInfo> getPluginInfos() {
+        synchronized (sLoadedPluginMap) {
+            return new ArrayList<>(sLoadedPluginMap.values());
         }
     }
 

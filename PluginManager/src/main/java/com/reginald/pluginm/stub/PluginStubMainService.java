@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.reginald.pluginm.PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO;
+
 public class PluginStubMainService extends Service {
 
     public static final String INTENT_EXTRA_START_TYPE_KEY = "extra.plugin.stubservice.start.type";
@@ -47,7 +49,7 @@ public class PluginStubMainService extends Service {
         Log.d(TAG, "onStartCommand() intent = " + intent);
         if (intent != null) {
             String commandType = intent.getStringExtra(INTENT_EXTRA_START_TYPE_KEY);
-            ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+            ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
 
             if (serviceInfo != null && commandType != null) {
                 if (commandType.equals(INTENT_EXTRA_START_TYPE_START)) {
@@ -100,7 +102,7 @@ public class PluginStubMainService extends Service {
         Log.d(TAG, "onBind()");
         showAction(intent);
 
-        ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+        ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
         Intent pluginIntent = getPluginIntent(intent);
         if (serviceInfo != null) {
             ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(serviceInfo);
@@ -139,7 +141,7 @@ public class PluginStubMainService extends Service {
         Log.d(TAG, "onUnbind()");
         showAction(intent);
 
-        ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+        ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
         Intent pluginIntent = getPluginIntent(intent);
         if (serviceInfo != null) {
             ServiceRecord pluginServiceRecord = fetchCachedServiceRecord(serviceInfo);
@@ -216,7 +218,7 @@ public class PluginStubMainService extends Service {
             String[] actions = action.split(INTENT_ACTION_BIND_PREFIX);
             resIntent.setAction(actions[0]);
         }
-        resIntent.removeExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+        resIntent.removeExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
         return resIntent;
     }
 
@@ -333,10 +335,15 @@ public class PluginStubMainService extends Service {
         Log.d(TAG, "ACTION = " + intent.getAction());
     }
 
-    public static String getPluginAppendAction(String packageName, String className) {
+    public static String getPluginAppendAction(Intent pluginIntent) {
+        ServiceInfo serviceInfo = (ServiceInfo) pluginIntent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
+        if (serviceInfo == null) {
+            return null;
+        }
+
         //加上System.nanoTime()是因为让每一次bindService都产生一次onBind()回调
         return PluginStubMainService.INTENT_ACTION_BIND_PREFIX + System.nanoTime() +
-                packageName + "#" + className;
+                serviceInfo.packageName + "#" + serviceInfo.name;
     }
 
 

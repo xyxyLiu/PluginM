@@ -22,7 +22,7 @@ public class HostHCallback {
     private static List<Handler.Callback> sCallbacks = new ArrayList<>(1);
 
 
-    public static void onInstall(Context hostContext) {
+    public static boolean onInstall(Context hostContext) {
         Object target = ActivityThreadCompat.currentActivityThread();
         Class ActivityThreadClass = target.getClass();
 
@@ -45,9 +45,12 @@ public class HostHCallback {
             } else {
                 Log.i(TAG, "HostHCallback has installed,skip");
             }
+            return true;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+
+        return false;
     }
 
 

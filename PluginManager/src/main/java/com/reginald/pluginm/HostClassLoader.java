@@ -1,9 +1,14 @@
 package com.reginald.pluginm;
 
+import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.util.Log;
 
+import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.stub.ActivityStub;
+
+import java.lang.reflect.Field;
 
 /**
  * Created by lxy on 16-6-22.
@@ -13,13 +18,31 @@ public class HostClassLoader extends ClassLoader {
     private ClassLoader mOldClassLoader;
     private Context mContext;
 
-    public HostClassLoader(Context hostContext, ClassLoader oldClassLoader) {
-//        super(oldClassLoader);
+    public static ClassLoader onInstall(Application app) {
+        try {
+            Field mBaseField = FieldUtils.getField(ContextWrapper.class, "mBase");
+            Object mBaseObj = mBaseField.get(app);
+            Field mPackageInfoField = FieldUtils.getField(mBaseObj.getClass(), "mPackageInfo");
+            Object mPackageInfoObj = mPackageInfoField.get(mBaseObj);
+            Field mClassLoaderField = FieldUtils.getField(mPackageInfoObj.getClass(), "mClassLoader");
+            ClassLoader loader = (ClassLoader) mClassLoaderField.get(mPackageInfoObj);
+            ClassLoader newLoader = new HostClassLoader(app, loader);
+            FieldUtils.writeField(mClassLoaderField, mPackageInfoObj, newLoader);
+            return newLoader;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private HostClassLoader(Context hostContext, ClassLoader oldClassLoader) {
         Log.d(TAG, "mOldClassLoader = " + oldClassLoader);
         Log.d(TAG, "HostClassLoader = " + this);
         mContext = hostContext;
         mOldClassLoader = oldClassLoader;
     }
+
+
 
     @Override
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {

@@ -160,7 +160,7 @@ public class HostMainActivity extends AppCompatActivity {
 //                    Intent hostIntent = new Intent("host_broadcast_test");
 //                    sendBroadcast(hostIntent);
 
-                    String wifiPluginPkg = "com.dianxinos.optimizer.plugin.wifimgr";
+                    String wifiPluginPkg = "com.youba.WeatherForecast"; //"com.dianxinos.optimizer.plugin.wifimgr";
                     final PluginInfo installedPluginInfo = mPluginManagerNative.install(wifiPluginPkg);
                     Toast.makeText(HostMainActivity.this, "wifimgr install " + (installedPluginInfo != null ? "ok!":"error!"),
                             Toast.LENGTH_SHORT).show();
@@ -170,6 +170,7 @@ public class HostMainActivity extends AppCompatActivity {
                     }
 
                     Intent pluginIntent = new Intent();
+                    pluginIntent.setPackage(wifiPluginPkg);
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

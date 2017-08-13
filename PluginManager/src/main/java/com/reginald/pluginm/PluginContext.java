@@ -30,6 +30,7 @@ public class PluginContext extends ContextThemeWrapper {
     private PluginInfo mPluginInfo;
     private String mApkPath;
     private AssetManager mAssetManager;
+    private PackageManager mPackageManager;
     private Resources mResources;
     private ClassLoader mClassLoader;
     private ContentResolver mContentResolver;
@@ -41,6 +42,7 @@ public class PluginContext extends ContextThemeWrapper {
         mBaseContext = baseContext;
         mPluginInfo = pluginInfo;
         mApkPath = pluginInfo.apkPath;
+        mPackageManager = pluginInfo.packageManager;
         mAssetManager = pluginInfo.resources.getAssets();
         mResources = pluginInfo.resources;
         mClassLoader = pluginInfo.classLoader;
@@ -60,7 +62,7 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     public PackageManager getPackageManager() {
-        return super.getPackageManager();
+        return mPackageManager;
     }
 
     public ClassLoader getClassLoader() {
@@ -125,10 +127,11 @@ public class PluginContext extends ContextThemeWrapper {
             int flags) {
         Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
-            String action = pluginIntent.getAction();
-            String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(
-                    intent.getComponent().getPackageName(), intent.getComponent().getClassName());
-            String finalAction = (action != null ? action : "") + pluginAppendedAction;
+            String finalAction = pluginIntent.getAction();
+            String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(pluginIntent);
+            if (pluginAppendedAction != null && finalAction != null) {
+                finalAction += pluginAppendedAction;
+            }
             pluginIntent.setAction(finalAction);
             Log.d(TAG, "plugin bindService() intent = " + intent);
             return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
@@ -184,4 +187,5 @@ public class PluginContext extends ContextThemeWrapper {
     public ContentResolver getContentResolver() {
         return mContentResolver;
     }
+
 }

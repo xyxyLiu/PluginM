@@ -1,29 +1,25 @@
 package com.reginald.pluginm;
 
 import android.app.Application;
+import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
-import android.support.v4.app.ActivityManagerCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
-import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.stub.PluginHostProxy;
 import com.reginald.pluginm.stub.StubManager;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,31 +31,19 @@ import dalvik.system.DexClassLoader;
  * Created by lxy on 16-6-1.
  */
 public class PluginManagerNative {
-    private static final String TAG = "PluginManagerNative";
     public static final String PLUGIN_DEX_FOLDER_NAME = "plugin_dexes_2";
     public static final String PLUGIN_LIB_FOLDER_NAME = "plugin_lib_2";
-
+    public static final String EXTRA_INTENT_TARGET_ACTIVITYINFO = "extra.plugin.target.activityinfo";
+    public static final String EXTRA_INTENT_STUB_ACTIVITYINFO = "extra.plugin.stub.activityinfo";
+    public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
+    public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
+    private static final String TAG = "PluginManagerNative";
     private static Map<String, PluginConfig> sPluginConfigs = new HashMap<>();
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
     private static Map<String, PluginPackageParser> sInstalledPkgParser = new HashMap<>();
-
-    public static final String EXTRA_INTENT_TARGET_ACTIVITYINFO = "extra.plugin.target.activityinfo";
-    public static final String EXTRA_INTENT_STUB_ACTIVITYINFO = "extra.plugin.stub.activityinfo";
-
-    public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
-    public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
-
     private static volatile PluginManagerNative sInstance;
 
     private Context mContext;
-
-    public static synchronized PluginManagerNative getInstance(Context hostContext) {
-        if (sInstance == null) {
-            sInstance = new PluginManagerNative(hostContext);
-        }
-
-        return sInstance;
-    }
 
     private PluginManagerNative(Context hostContext) {
         Log.d(TAG, "DexClassLoaderPluginManager() classLoader = " + this.getClass().getClassLoader());
@@ -69,27 +53,23 @@ public class PluginManagerNative {
         StubManager.getInstance(hostContext).init();
     }
 
-    private static void onAttachBaseContext(Application app) {
-        try {
-            Field mBaseField = FieldUtils.getField(ContextWrapper.class, "mBase");
-            Object mBaseObj = mBaseField.get(app);
-            Field mPackageInfoField = FieldUtils.getField(mBaseObj.getClass(), "mPackageInfo");
-            Object mPackageInfoObj = mPackageInfoField.get(mBaseObj);
-            Field mClassLoaderField = FieldUtils.getField(mPackageInfoObj.getClass(), "mClassLoader");
-            ClassLoader loader = (ClassLoader) mClassLoaderField.get(mPackageInfoObj);
-            ClassLoader newLoader = new HostClassLoader(app, loader);
-            FieldUtils.writeField(mClassLoaderField, mPackageInfoObj, newLoader);
-
-            Log.d(TAG, "onAttachBaseContext() replace classloader success! classload = " + newLoader);
-
-            HostInstrumentation.onInstall(app);
-
-            HostHCallback.onInstall(app);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Log.e(TAG, "onAttachBaseContext() replace classloader error!");
+    public static synchronized PluginManagerNative getInstance(Context hostContext) {
+        if (sInstance == null) {
+            sInstance = new PluginManagerNative(hostContext);
         }
+
+        return sInstance;
+    }
+
+    private static void onAttachBaseContext(Application app) {
+        ClassLoader newHostLoader = HostClassLoader.onInstall(app);
+        Log.d(TAG, "onAttachBaseContext() replace host classloader, classloader = " + newHostLoader);
+
+        Instrumentation newInstrumentation = HostInstrumentation.onInstall(app);
+        Log.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
+
+        boolean isSuc = HostHCallback.onInstall(app);
+        Log.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
     }
 
     //test
@@ -138,7 +118,7 @@ public class PluginManagerNative {
     public Intent getPluginActivityIntent(Intent originIntent) {
         Log.d(TAG, "getPluginActivityIntent() originIntent = " + originIntent);
 
-        ActivityInfo activityInfo = resolveActivityInfo(originIntent);
+        ActivityInfo activityInfo = resolveActivityInfo(originIntent, 0);
 
         if (activityInfo == null) {
             return null;
@@ -166,7 +146,7 @@ public class PluginManagerNative {
     public Intent getPluginServiceIntent(Intent originIntent) {
         Log.d(TAG, "getPluginServiceIntent() originIntent = " + originIntent);
 
-        ServiceInfo serviceInfo = resolveServiceInfo(originIntent);
+        ServiceInfo serviceInfo = resolveServiceInfo(originIntent, 0);
 
         if (serviceInfo == null) {
             return null;
@@ -234,6 +214,11 @@ public class PluginManagerNative {
             pluginInfo.apkPath = apkFile.getAbsolutePath();
             pluginInfo.fileSize = apkFile.length();
 
+
+            PluginPackageManager pluginPackageManager = new PluginPackageManager(mContext, mContext.getPackageManager());
+            Log.d(TAG, "install() pluginPackageManager = " + pluginPackageManager);
+            pluginInfo.packageManager = pluginPackageManager;
+
             // install so
             File apkParent = apkFile.getParentFile();
             File tempSoDir = new File(apkParent, "temp");
@@ -283,9 +268,9 @@ public class PluginManagerNative {
 
     }
 
-    private ActivityInfo resolveActivityInfo(Intent intent) {
+    public ActivityInfo resolveActivityInfo(Intent intent, int flags) {
         if (intent.getComponent() != null) {
-            return getActivityInfo(intent.getComponent());
+            return getActivityInfo(intent.getComponent(), flags);
         }
         try {
             List<ResolveInfo> resolveInfos = IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
@@ -302,9 +287,9 @@ public class PluginManagerNative {
         return null;
     }
 
-    private ServiceInfo resolveServiceInfo(Intent intent) {
+    public ServiceInfo resolveServiceInfo(Intent intent, int flags) {
         if (intent.getComponent() != null) {
-            return getServiceInfo(intent.getComponent());
+            return getServiceInfo(intent.getComponent(), flags);
         }
         try {
             List<ResolveInfo> resolveInfos = IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
@@ -321,7 +306,7 @@ public class PluginManagerNative {
         return null;
     }
 
-    private ActivityInfo getActivityInfo(ComponentName componentName) {
+    public ActivityInfo getActivityInfo(ComponentName componentName, int flags) {
         Log.d(TAG, "getActivityInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
@@ -330,7 +315,7 @@ public class PluginManagerNative {
         }
 
         try {
-            return pluginPackageParser.getActivityInfo(componentName, 0);
+            return pluginPackageParser.getActivityInfo(componentName, flags);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -338,7 +323,7 @@ public class PluginManagerNative {
         return null;
     }
 
-    private ServiceInfo getServiceInfo(ComponentName componentName) {
+    public ServiceInfo getServiceInfo(ComponentName componentName, int flags) {
         Log.d(TAG, "getServiceInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
@@ -347,7 +332,7 @@ public class PluginManagerNative {
         }
 
         try {
-            return pluginPackageParser.getServiceInfo(componentName, 0);
+            return pluginPackageParser.getServiceInfo(componentName, flags);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -355,7 +340,7 @@ public class PluginManagerNative {
         return null;
     }
 
-    private ActivityInfo getReceiverInfo(ComponentName componentName) {
+    public ActivityInfo getReceiverInfo(ComponentName componentName, int flags) {
         Log.d(TAG, "getActivityInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
@@ -364,7 +349,7 @@ public class PluginManagerNative {
         }
 
         try {
-            return pluginPackageParser.getReceiverInfo(componentName, 0);
+            return pluginPackageParser.getReceiverInfo(componentName, flags);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -373,7 +358,7 @@ public class PluginManagerNative {
 
     }
 
-    private ProviderInfo getProviderInfo(ComponentName componentName) {
+    public ProviderInfo getProviderInfo(ComponentName componentName, int flags) {
         Log.d(TAG, "getProviderInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
@@ -382,7 +367,7 @@ public class PluginManagerNative {
         }
 
         try {
-            return pluginPackageParser.getProviderInfo(componentName, 0);
+            return pluginPackageParser.getProviderInfo(componentName, flags);
         } catch (Exception e) {
             e.printStackTrace();
         }

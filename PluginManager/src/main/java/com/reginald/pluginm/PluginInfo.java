@@ -3,6 +3,7 @@ package com.reginald.pluginm;
 import android.app.Application;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 
 import com.reginald.pluginm.parser.PluginPackageParser;
@@ -21,6 +22,7 @@ public final class PluginInfo {
     public Context baseContext;
     //    public AssetManager assetManager;
     public Resources resources;
+    public PackageManager packageManager;
     public String apkPath;
     public long fileSize;
     public long lastModified;

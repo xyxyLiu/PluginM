@@ -359,6 +359,8 @@ public class PluginPackageParser {
     }
 
     public PackageInfo getPackageInfo(int flags) throws Exception {
+        //TODO
+        mParser.collectCertificates(flags);
         PackageInfo packageInfo = mParser.generatePackageInfo(mHostPackageInfo.gids, flags, mPluginFile.lastModified(), mPluginFile.lastModified(), new HashSet<String>(getRequestedPermissions()));
         fixPackageInfo(packageInfo);
         return packageInfo;

@@ -2,8 +2,6 @@ package com.reginald.pluginm.parser;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
@@ -13,6 +11,7 @@ import android.util.LogPrinter;
 import com.reginald.pluginm.PluginInfo;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Created by lxy on 16-6-21.
@@ -46,62 +45,50 @@ public class ApkParser {
     }
 
     private static void showPluginInfo(PluginPackageParser pluginPackageParser) {
-
-        PluginInfo pluginInfo = new PluginInfo();
-        pluginInfo.pkgParser = pluginPackageParser;
-
-        PackageInfo packageInfo = null;
-
+        // test
         try {
-            packageInfo = pluginPackageParser.getPackageInfo(
-                    PackageManager.GET_ACTIVITIES | PackageManager.GET_SERVICES | PackageManager.GET_PROVIDERS |
-                            PackageManager.GET_RECEIVERS | PackageManager.GET_META_DATA);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (packageInfo != null) {
-            pluginInfo.packageName = packageInfo.packageName;
-
-            // test
             Log.d(TAG, "\n## packageInfo.packageInfo.applicationInfo: ");
-            packageInfo.applicationInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
+            pluginPackageParser.getApplicationInfo(0).dump(new LogPrinter(Log.DEBUG, TAG), "");
             Log.d(TAG, "\n\n");
 
-            if (packageInfo.activities != null) {
+            List<ActivityInfo> activityInfoList = pluginPackageParser.getActivities();
+            if (activityInfoList != null) {
                 Log.d(TAG, "\n## packageInfo.activities: ");
                 int i = 0;
-                for (ActivityInfo activityInfo : packageInfo.activities) {
+                for (ActivityInfo activityInfo : activityInfoList) {
                     Log.d(TAG, "packageInfo.activitie No." + ++i);
                     activityInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
                     Log.d(TAG, "\n");
                 }
             }
 
-            if (packageInfo.services != null) {
+            List<ServiceInfo> serviceInfos = pluginPackageParser.getServices();
+            if (serviceInfos != null) {
                 Log.d(TAG, "\n## packageInfo.services: ");
                 int i = 0;
-                for (ServiceInfo serviceInfo : packageInfo.services) {
+                for (ServiceInfo serviceInfo : serviceInfos) {
                     Log.d(TAG, "packageInfo.service No." + ++i);
                     serviceInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
                     Log.d(TAG, "\n");
                 }
             }
 
-            if (packageInfo.receivers != null) {
+            List<ActivityInfo> receivers = pluginPackageParser.getReceivers();
+            if (receivers != null) {
                 Log.d(TAG, "\n## packageInfo.receivers: ");
                 int i = 0;
-                for (ActivityInfo receiverInfo : packageInfo.receivers) {
+                for (ActivityInfo receiverInfo : receivers) {
                     Log.d(TAG, "packageInfo.receiver No." + ++i);
                     receiverInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
                     Log.d(TAG, "\n");
                 }
             }
 
-            if (packageInfo.providers != null) {
+            List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
+            if (providerInfos != null) {
                 Log.d(TAG, "\n## packageInfo.providers: ");
                 int i = 0;
-                for (ProviderInfo providerInfo : packageInfo.providers) {
+                for (ProviderInfo providerInfo : providerInfos) {
                     Log.d(TAG, "packageInfo.provider No." + ++i);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                         providerInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
@@ -112,6 +99,8 @@ public class ApkParser {
                 }
             }
 
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

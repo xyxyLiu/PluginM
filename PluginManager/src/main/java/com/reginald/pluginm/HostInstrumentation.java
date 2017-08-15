@@ -4,23 +4,20 @@ import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.ActivityStub;
-import com.reginald.pluginm.stub.StubManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-
-import pluginm.reginald.com.pluginlib.PluginHelper;
 
 /**
  * Created by lxy on 17-8-9.
@@ -95,7 +92,7 @@ public class HostInstrumentation extends Instrumentation {
     @Override
     public Activity newActivity(ClassLoader cl, String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Log.d(TAG, "newActivity() className = " + className);
-        if (className.startsWith(ActivityStub.class.getName())){
+        if (className.startsWith(ActivityStub.class.getName())) {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Log.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
@@ -103,7 +100,7 @@ public class HostInstrumentation extends Instrumentation {
                 Activity activity = mBase.newActivity(pluginInfo.classLoader, activityInfo.name, intent);
                 activity.setIntent(intent);
                 try {
-                    FieldUtils.writeField(activity, "mResources", pluginInfo.resources);
+                    FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
                     Log.d(TAG, "newActivity() replace mResources ok! ");
                 } catch (Exception ignored) {
                     Log.e(TAG, "newActivity() replace mResources error! ");
@@ -126,16 +123,20 @@ public class HostInstrumentation extends Instrumentation {
             Context pluginContext = mPluginManager.createPluginContext(
                     activityInfo.packageName, activity.getBaseContext());
             try {
-                FieldUtils.writeField(activity.getBaseContext(), "mResources", pluginInfo.resources);
+                FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
                 FieldUtils.writeField(activity, "mResources", pluginInfo.resources);
                 FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
+                FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
                 FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
-                FieldUtils.writeField(activity, "mBase", pluginContext);
+
+                FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
                 Log.d(TAG, "callActivityOnCreate() replace context ok! ");
             } catch (IllegalAccessException e) {
                 Log.e(TAG, "callActivityOnCreate() replace context error! ");
                 e.printStackTrace();
             }
+            ComponentName componentName = new ComponentName(activityInfo.packageName, activityInfo.name);
+            activity.setIntent(PluginManagerNative.recoverOriginalIntent(intent, componentName, activity.getClassLoader()));
         }
 
         mBase.callActivityOnCreate(activity, icicle);

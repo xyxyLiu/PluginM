@@ -168,6 +168,14 @@ public class FieldUtils {
         writeField(field, target, value, true);
     }
 
+    public static void writeField(final Class clazz, final String fieldName, final Object target, final Object value) throws IllegalAccessException {
+        Validate.isTrue(target != null, "target object must not be null");
+        final Class<?> cls = clazz;
+        final Field field = getField(cls, fieldName, true);
+        Validate.isTrue(field != null, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
+        writeField(field, target, value, true);
+    }
+
     public static Object readStaticField(final Field field, final boolean forceAccess) throws IllegalAccessException {
         Validate.isTrue(field != null, "The field must not be null");
         Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field '%s' is not static", field.getName());

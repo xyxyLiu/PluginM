@@ -69,6 +69,11 @@ public class PluginActivityA extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plugin_activity_a);
 
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        extras.keySet();
+        Log.d(TAG, "onCreate() intent = " + intent + " , extras = " + extras);
+
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn1.setText("start plugin activity main");
         mBtn1.setOnClickListener(new View.OnClickListener() {
@@ -85,6 +90,7 @@ public class PluginActivityA extends Activity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PluginActivityA.this, PluginService.class);
+                intent.putExtra("plugin_obj", new PluginObject("lavazza"));
                 ComponentName componentName = startService(intent);
                 Log.d(TAG,"startService() return componentName = " + componentName);
             }

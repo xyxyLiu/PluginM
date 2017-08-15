@@ -6,10 +6,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -37,6 +39,7 @@ public class PluginManagerNative {
     public static final String EXTRA_INTENT_STUB_ACTIVITYINFO = "extra.plugin.stub.activityinfo";
     public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
     public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
+    public static final String EXTRA_INTENT_ORIGINAL_EXTRAS = "extra.plugin.origin.extras";
     private static final String TAG = "PluginManagerNative";
     private static Map<String, PluginConfig> sPluginConfigs = new HashMap<>();
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
@@ -129,7 +132,7 @@ public class PluginManagerNative {
         // make a proxy activity for it:
         ActivityInfo stubActivityInfo = StubManager.getInstance(mContext).getStubActivity(activityInfo);
         if (stubActivityInfo != null) {
-            Intent intent = new Intent(originIntent);
+            Intent intent = handleOriginalIntent(originIntent);
             intent.setClassName(stubActivityInfo.packageName, stubActivityInfo.name);
             intent.putExtra(EXTRA_INTENT_TARGET_ACTIVITYINFO, activityInfo);
             intent.putExtra(EXTRA_INTENT_STUB_ACTIVITYINFO, stubActivityInfo);
@@ -155,11 +158,28 @@ public class PluginManagerNative {
         Log.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s", serviceInfo));
 
         // make a proxy activity for it:
-        Intent intent = new Intent(originIntent);
+        Intent intent = handleOriginalIntent(originIntent);
         intent.setClassName(mContext, PluginHostProxy.STUB_SERVICE);
         intent.putExtra(EXTRA_INTENT_TARGET_SERVICEINFO, serviceInfo);
 
         return intent;
+    }
+
+    public static Intent handleOriginalIntent(Intent origIntent) {
+        Bundle extras = origIntent.getExtras();
+        origIntent.replaceExtras((Bundle) null);
+        Intent newIntent = new Intent(origIntent);
+        newIntent.putExtra(EXTRA_INTENT_ORIGINAL_EXTRAS, extras);
+        return newIntent;
+    }
+
+    public static Intent recoverOriginalIntent(Intent pluginIntent, ComponentName componentName, ClassLoader classLoader) {
+        Intent origIntent = new Intent(pluginIntent);
+        origIntent.setComponent(componentName);
+        Bundle origExtras = pluginIntent.getBundleExtra(EXTRA_INTENT_ORIGINAL_EXTRAS);
+        origIntent.replaceExtras(origExtras);
+        origIntent.setExtrasClassLoader(classLoader);
+        return origIntent;
     }
 
 

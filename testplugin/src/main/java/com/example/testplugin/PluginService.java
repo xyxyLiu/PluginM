@@ -3,6 +3,7 @@ package com.example.testplugin;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
@@ -34,7 +35,9 @@ public class PluginService extends Service {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG,"onStartCommand()");
+        Bundle extras = intent.getExtras();
+        extras.keySet();
+        Log.d(TAG, "onStartCommand() intent = " + intent + " , extras = " + extras);
 
         if (intent != null && "killself".equals(intent.getAction())) {
             Log.d(TAG,"onStartCommand() stopself!");

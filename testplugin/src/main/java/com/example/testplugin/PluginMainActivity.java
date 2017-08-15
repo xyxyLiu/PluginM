@@ -51,11 +51,13 @@ public class PluginMainActivity extends Activity {
 
 
         mBtn1 = (Button) findViewById(R.id.btn1);
-        mBtn1.setText("start plugin activity A");
+        mBtn1.setText("start plugin activity A with plugin extras");
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PluginMainActivity.this, PluginActivityA.class);
+                intent.putExtra("plugin_obj", new PluginObject("lavazza"));
+                intent.setData(PluginContentProvider.CONTENT_URI);
                 startActivity(intent);
             }
         });

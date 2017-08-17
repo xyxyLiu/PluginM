@@ -22,7 +22,7 @@ public class HostHCallback {
     private static List<Handler.Callback> sCallbacks = new ArrayList<>(1);
 
 
-    public static boolean onInstall(Context hostContext) {
+    public static boolean install(Context hostContext) {
         Object target = ActivityThreadCompat.currentActivityThread();
         Class ActivityThreadClass = target.getClass();
 
@@ -382,7 +382,7 @@ public class HostHCallback {
 
             Log.d(TAG, "handleLaunchActivity() stubIntent = " + stubIntent);
             String proxyClassName = stubIntent.getComponent().getClassName();
-            ActivityInfo targetActivityInfo = stubIntent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+            ActivityInfo targetActivityInfo = stubIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
 
             Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetActivityInfo = %s", proxyClassName, targetActivityInfo));
 

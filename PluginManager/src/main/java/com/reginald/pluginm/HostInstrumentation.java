@@ -29,7 +29,7 @@ public class HostInstrumentation extends Instrumentation {
 
     PluginManager mPluginManager;
 
-    public static Instrumentation onInstall(Context hostContext) {
+    public static Instrumentation install(Context hostContext) {
         Object target = ActivityThreadCompat.currentActivityThread();
         Class ActivityThreadClass = target.getClass();
 
@@ -93,7 +93,7 @@ public class HostInstrumentation extends Instrumentation {
     public Activity newActivity(ClassLoader cl, String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Log.d(TAG, "newActivity() className = " + className);
         if (className.startsWith(ActivityStub.class.getName())) {
-            ActivityInfo activityInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+            ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Log.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
                 PluginInfo pluginInfo = PluginManager.getPluginInfo(activityInfo.packageName);
@@ -116,7 +116,7 @@ public class HostInstrumentation extends Instrumentation {
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
         Log.d(TAG, "callActivityOnCreate() activity = " + activity);
         Intent intent = activity.getIntent();
-        ActivityInfo activityInfo = intent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+        ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
         Log.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null) {
             PluginInfo pluginInfo = PluginManager.getPluginInfo(activityInfo.packageName);
@@ -136,7 +136,7 @@ public class HostInstrumentation extends Instrumentation {
                 e.printStackTrace();
             }
             ComponentName componentName = new ComponentName(activityInfo.packageName, activityInfo.name);
-            activity.setIntent(PluginManagerNative.recoverOriginalIntent(intent, componentName, activity.getClassLoader()));
+            activity.setIntent(PluginManager.recoverOriginalIntent(intent, componentName, activity.getClassLoader()));
         }
 
         mBase.callActivityOnCreate(activity, icicle);

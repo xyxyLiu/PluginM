@@ -33,6 +33,11 @@ public class PluginConfigsUtil {
         pluginConfig3.desc = "com.youba.WeatherForecast";
         pluginConfigs.add(pluginConfig3);
 
+        PluginConfig pluginConfig4 = new PluginConfig();
+        pluginConfig4.apkPath = "8d12e7277f64db33a6649883e02d04dc.apk";
+        pluginConfig4.packageName = "com.wole56.ishow";
+        pluginConfig4.desc = "com.wole56.ishow";
+        pluginConfigs.add(pluginConfig4);
 
         return pluginConfigs;
     }

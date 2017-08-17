@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.reginald.pluginm.PluginManagerNative;
+import com.reginald.pluginm.PluginManager;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -136,7 +136,7 @@ public class PluginContentResolver extends ContentResolver {
     }
 
     private IContentProvider getTargetProvider(String auth) {
-        ProviderInfo providerInfo = PluginManagerNative.getInstance(mAppContext).resolveProviderInfo(auth);
+        ProviderInfo providerInfo = PluginManager.getInstance(mAppContext).resolveProviderInfo(auth);
         Log.d(TAG, "getTargetProvider() auth = " + auth + "  ->  providerInfo = " + providerInfo);
         if (providerInfo != null) {
             return getIContentProvider(providerInfo);
@@ -149,7 +149,7 @@ public class PluginContentResolver extends ContentResolver {
         Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo);
         final Uri uri = Uri.parse("content://" + PluginStubMainProvider.AUTH_PREFIX);
         Bundle providerBundle = new Bundle();
-        providerBundle.putParcelable(PluginManagerNative.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
+        providerBundle.putParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
         Bundle bundle = mOriginContentResolver.call(uri, providerInfo.packageName, providerInfo.name, providerBundle);
         Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo + " , bundle = " + bundle);
         if (bundle != null) {

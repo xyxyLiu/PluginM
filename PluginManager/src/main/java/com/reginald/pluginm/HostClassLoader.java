@@ -18,7 +18,7 @@ public class HostClassLoader extends ClassLoader {
     private ClassLoader mOldClassLoader;
     private Context mContext;
 
-    public static ClassLoader onInstall(Application app) {
+    public static ClassLoader install(Application app) {
         try {
             Field mBaseField = FieldUtils.getField(ContextWrapper.class, "mBase");
             Object mBaseObj = mBaseField.get(app);

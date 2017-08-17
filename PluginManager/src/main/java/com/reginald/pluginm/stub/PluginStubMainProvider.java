@@ -15,7 +15,7 @@ import android.util.Log;
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
-import com.reginald.pluginm.PluginManagerNative;
+import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 
 import java.util.HashMap;
@@ -56,7 +56,7 @@ public class PluginStubMainProvider extends ContentProvider {
         if (!TextUtils.isEmpty(method) && !TextUtils.isEmpty(arg)) {
             String packageName = method;
             String providerName = arg;
-            ProviderInfo providerInfo = extras.getParcelable(PluginManagerNative.EXTRA_INTENT_TARGET_PROVIDERINFO);
+            ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
 
             PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
 

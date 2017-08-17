@@ -6,20 +6,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.nineoldandroids.animation.AnimatorSet;
+import com.reginald.pluginm.MultiDexPluginManager;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
-import com.reginald.pluginm.PluginManagerNative;
-import com.reginald.pluginm.MultiDexPluginManager;
-import com.nineoldandroids.animation.AnimatorSet;
 
 import java.lang.reflect.Method;
 
@@ -37,7 +36,7 @@ public class HostMainActivity extends AppCompatActivity {
     private Button mBtn3;
     private Button mBtn4;
 
-    private PluginManagerNative mPluginManagerNative;
+    private PluginManager mPluginManager;
 
     public static final String BROADCAST_ACTION_1 = "host_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "host_broadcast_test_2";
@@ -111,16 +110,16 @@ public class HostMainActivity extends AppCompatActivity {
     }
 
     private void testDexCLassLoaderModePlugin() {
-        mPluginManagerNative = PluginManagerNative.getInstance(getApplicationContext());
+        mPluginManager = PluginManager.getInstance(getApplicationContext());
 //
 //        mLoadModeText.setText("loadmode = DexCLassLoader");
         String pluginPackageName = "com.example.testplugin";
-        PluginInfo pluginInfo = mPluginManagerNative.install(pluginPackageName);
+        PluginInfo pluginInfo = mPluginManager.install(pluginPackageName);
 //
         Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (pluginInfo != null ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
 
         try {
-//            Class<?> clazz = mPluginManagerNative.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
+//            Class<?> clazz = mPluginManager.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
 //
 //            Object testUtilsObj = clazz.newInstance();
 //            Method method = clazz.getDeclaredMethod("test");
@@ -135,7 +134,7 @@ public class HostMainActivity extends AppCompatActivity {
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
+                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -146,7 +145,7 @@ public class HostMainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent("action.com.example.testplugin.testA");
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
+                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -161,7 +160,7 @@ public class HostMainActivity extends AppCompatActivity {
 //                    sendBroadcast(hostIntent);
 
                     String wifiPluginPkg =  "com.youba.WeatherForecast"; //"com.dianxinos.optimizer.plugin.wifimgr"; //
-                    final PluginInfo installedPluginInfo = mPluginManagerNative.install(wifiPluginPkg);
+                    final PluginInfo installedPluginInfo = mPluginManager.install(wifiPluginPkg);
                     Toast.makeText(HostMainActivity.this, wifiPluginPkg + " install " + (installedPluginInfo != null ? "ok!":"error!"),
                             Toast.LENGTH_SHORT).show();
 
@@ -174,7 +173,7 @@ public class HostMainActivity extends AppCompatActivity {
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManagerNative.getPluginActivityIntent(pluginIntent);
+                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });

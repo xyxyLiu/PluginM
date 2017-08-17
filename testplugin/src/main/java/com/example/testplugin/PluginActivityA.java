@@ -71,8 +71,7 @@ public class PluginActivityA extends Activity {
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
-        extras.keySet();
-        Log.d(TAG, "onCreate() intent = " + intent + " , extras = " + extras);
+        Log.d(TAG, "onCreate() intent = " + intent + " , extras = " + (extras != null ? extras.keySet() : "null"));
 
         mBtn1 = (Button) findViewById(R.id.btn1);
         mBtn1.setText("start plugin activity main");

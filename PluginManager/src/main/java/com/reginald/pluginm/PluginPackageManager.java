@@ -37,17 +37,17 @@ import java.util.List;
 
 public class PluginPackageManager extends PackageManager {
 
-    private PluginManagerNative mPluginNative;
+    private PluginManager mPluginManager;
     private PackageManager mBase;
 
     public PluginPackageManager(Context hostContext, PackageManager base) {
-        mPluginNative = PluginManagerNative.getInstance(hostContext);
+        mPluginManager = PluginManager.getInstance(hostContext);
         mBase = base;
     }
 
     @Override
     public PackageInfo getPackageInfo(String packageName, int flags) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(packageName);
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(packageName);
         if (pluginInfo != null) {
             try {
                 return pluginInfo.pkgParser.getPackageInfo(flags);
@@ -119,7 +119,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ApplicationInfo getApplicationInfo(String packageName, int flags) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(packageName);
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(packageName);
         if (pluginInfo != null) {
             try {
                 return pluginInfo.pkgParser.getApplicationInfo(flags);
@@ -132,7 +132,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ActivityInfo getActivityInfo(ComponentName component, int flags) throws NameNotFoundException {
-        ActivityInfo activityInfo = mPluginNative.getActivityInfo(component, flags);
+        ActivityInfo activityInfo = mPluginManager.getActivityInfo(component, flags);
 
         if (activityInfo != null) {
             return activityInfo;
@@ -143,7 +143,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ActivityInfo getReceiverInfo(ComponentName component, int flags) throws NameNotFoundException {
-        ActivityInfo receiverInfo = mPluginNative.getReceiverInfo(component, flags);
+        ActivityInfo receiverInfo = mPluginManager.getReceiverInfo(component, flags);
 
         if (receiverInfo != null) {
             return receiverInfo;
@@ -154,7 +154,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ServiceInfo getServiceInfo(ComponentName component, int flags) throws NameNotFoundException {
-        ServiceInfo serviceInfo = mPluginNative.getServiceInfo(component, flags);
+        ServiceInfo serviceInfo = mPluginManager.getServiceInfo(component, flags);
 
         if (serviceInfo != null) {
             return serviceInfo;
@@ -165,7 +165,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ProviderInfo getProviderInfo(ComponentName component, int flags) throws NameNotFoundException {
-        ProviderInfo providerInfo = mPluginNative.getProviderInfo(component, flags);
+        ProviderInfo providerInfo = mPluginManager.getProviderInfo(component, flags);
 
         if (providerInfo != null) {
             return providerInfo;
@@ -261,7 +261,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ResolveInfo resolveActivity(Intent intent, int flags) {
-        ActivityInfo activityInfo = mPluginNative.resolveActivityInfo(intent, flags);
+        ActivityInfo activityInfo = mPluginManager.resolveActivityInfo(intent, flags);
         if (activityInfo != null) {
             ResolveInfo resolveInfo = new ResolveInfo();
             resolveInfo.activityInfo = activityInfo;
@@ -290,7 +290,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ResolveInfo resolveService(Intent intent, int flags) {
-        ServiceInfo serviceInfo = mPluginNative.resolveServiceInfo(intent, flags);
+        ServiceInfo serviceInfo = mPluginManager.resolveServiceInfo(intent, flags);
         if (serviceInfo != null) {
             ResolveInfo resolveInfo = new ResolveInfo();
             resolveInfo.serviceInfo = serviceInfo;
@@ -312,7 +312,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ProviderInfo resolveContentProvider(String name, int flags) {
-        ProviderInfo providerInfo = mPluginNative.resolveProviderInfo(name);
+        ProviderInfo providerInfo = mPluginManager.resolveProviderInfo(name);
         if (providerInfo != null) {
             return providerInfo;
         }
@@ -437,7 +437,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public CharSequence getApplicationLabel(ApplicationInfo info) {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(info.packageName);
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(info.packageName);
         if (pluginInfo != null) {
             return pluginInfo.resources.getText(info.labelRes);
         }
@@ -446,7 +446,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Resources getResourcesForActivity(ComponentName activityName) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(activityName.getPackageName());
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(activityName.getPackageName());
         if (pluginInfo != null) {
             return pluginInfo.resources;
         }
@@ -455,7 +455,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Resources getResourcesForApplication(ApplicationInfo app) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(app.packageName);
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(app.packageName);
         if (pluginInfo != null) {
             return pluginInfo.resources;
         }
@@ -464,7 +464,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Resources getResourcesForApplication(String appPackageName) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginNative.getPluginInfo(appPackageName);
+        PluginInfo pluginInfo = mPluginManager.getPluginInfo(appPackageName);
         if (pluginInfo != null) {
             return pluginInfo.resources;
         }

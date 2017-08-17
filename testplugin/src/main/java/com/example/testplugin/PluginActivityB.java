@@ -1,10 +1,15 @@
 package com.example.testplugin;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -74,6 +79,27 @@ public class PluginActivityB extends Activity {
                     cursor.moveToFirst();
                     Toast.makeText(getApplicationContext(), "host cursor first value: \n" + cursor.getString(0), Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        mBtn3 = (Button) findViewById(R.id.btn3);
+        mBtn3.setText("test PendingIntent notification");
+        mBtn3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PluginActivityB.this, PluginActivityA.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(PluginActivityB.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Notification notification = new NotificationCompat.Builder(PluginActivityB.this)
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setTicker("plugin notification test")
+                        .setColor(getResources().getColor(R.color.notification_color))
+                        .setContentTitle("launch " + intent.getComponent().getShortClassName())
+                        .setContentText("go go go")
+                        .build();
+                notification.contentIntent = pendingIntent;
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(PluginActivityB.this);
+                notificationManager.notify(101, notification);
             }
         });
 

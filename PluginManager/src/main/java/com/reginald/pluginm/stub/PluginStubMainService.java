@@ -18,14 +18,14 @@ import com.example.multidexmodeplugin.IPluginServiceStubBinder;
 import com.reginald.pluginm.PluginContext;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
-import com.reginald.pluginm.PluginManagerNative;
+import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.reflect.FieldUtils;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.reginald.pluginm.PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO;
+import static com.reginald.pluginm.PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO;
 
 public class PluginStubMainService extends Service {
 
@@ -36,13 +36,13 @@ public class PluginStubMainService extends Service {
 
     private static final String TAG = "PluginStubMainService";
 
-    PluginManagerNative mPluginManagerNative;
+    PluginManager mPluginManager;
 
     Map<ComponentName, ServiceRecord> mInstalledServices = new HashMap<>();
 
     public void onCreate() {
         super.onCreate();
-        mPluginManagerNative = PluginManagerNative.getInstance(getApplicationContext());
+        mPluginManager = PluginManager.getInstance(getApplicationContext());
         Log.d(TAG, "onCreate()");
     }
 
@@ -225,7 +225,7 @@ public class PluginStubMainService extends Service {
 
     private Intent getOriginalIntent(Intent pluginIntent, Service service) {
         ComponentName componentName = new ComponentName(service.getPackageName(), service.getClass().getName());
-        Intent origIntent = PluginManagerNative.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());
+        Intent origIntent = PluginManager.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());
 
         String action = origIntent.getAction();
         if (action != null && action.endsWith(INTENT_ACTION_BIND_PREFIX)) {
@@ -285,7 +285,7 @@ public class PluginStubMainService extends Service {
                 Context pluginServiceContext = new PluginContext(loadedPluginInfo, getBaseContext());
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
-                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), getClass().getName(),
+                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), serviceInfo.name,
                         FieldUtils.readField(this, "mToken"), loadedPluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
                 // test

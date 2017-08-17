@@ -58,7 +58,7 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     public String getPackageName() {
-        return mPluginInfo.packageName;/** super.getPackageName(); **/
+        return PluginManager.getPackageNameCompat(mPluginInfo.packageName, super.getPackageName());
     }
 
     public PackageManager getPackageManager() {
@@ -95,11 +95,11 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public ComponentName startService(Intent intent) {
-        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
             if (super.startService(pluginIntent) != null) {
-                ServiceInfo serviceInfo = pluginIntent.getParcelableExtra(PluginManagerNative.EXTRA_INTENT_TARGET_SERVICEINFO);
+                ServiceInfo serviceInfo = pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
                 if (serviceInfo != null) {
                     return new ComponentName(serviceInfo.packageName, serviceInfo.name);
                 }
@@ -112,7 +112,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public boolean stopService(Intent intent) {
-        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
             super.startService(pluginIntent);
@@ -125,7 +125,7 @@ public class PluginContext extends ContextThemeWrapper {
     @Override
     public boolean bindService(Intent intent, ServiceConnection conn,
             int flags) {
-        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
+        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
             String finalAction = pluginIntent.getAction();
             String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(pluginIntent);
@@ -158,7 +158,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public void startActivity(Intent intent, Bundle options) {
-        Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
+        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
         if (pluginIntent != null) {
             super.startActivity(pluginIntent, options);
         } else {
@@ -175,7 +175,7 @@ public class PluginContext extends ContextThemeWrapper {
     public void startActivities(Intent[] intents, Bundle options) {
         for (int i = 0; i < intents.length; i++) {
             Intent intent = intents[i];
-            Intent pluginIntent = PluginManagerNative.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
+            Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
             if (pluginIntent != null) {
                 intents[i] = pluginIntent;
             }

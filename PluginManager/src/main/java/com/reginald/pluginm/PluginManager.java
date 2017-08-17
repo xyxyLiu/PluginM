@@ -23,7 +23,6 @@ import com.reginald.pluginm.hook.IActivityManagerServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
-import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.ActivityStub;
 import com.reginald.pluginm.stub.PluginHostProxy;
 import com.reginald.pluginm.stub.StubManager;
@@ -37,8 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 import dalvik.system.DexClassLoader;
-import pluginm.reginald.com.pluginlib.ILocalPluginManager;
-import pluginm.reginald.com.pluginlib.PluginHelper;
 
 /**
  * Created by lxy on 16-11-1.

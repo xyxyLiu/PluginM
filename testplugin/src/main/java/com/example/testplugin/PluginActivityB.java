@@ -18,8 +18,6 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Toast;
 
-import pluginm.reginald.com.pluginlib.BasePluginActivity;
-
 public class PluginActivityB extends Activity {
 
     private static final String TAG = "PluginActivityB";

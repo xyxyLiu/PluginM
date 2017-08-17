@@ -71,7 +71,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Intent getLaunchIntentForPackage(String packageName) {
-        return getLaunchIntentForPackage(packageName);
+        return mBase.getLaunchIntentForPackage(packageName);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -414,9 +414,10 @@ public class PluginPackageManager extends PackageManager {
         return mBase.getUserBadgedIcon(icon, user);
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public Drawable getUserBadgedDrawableForDensity(Drawable drawable, UserHandle user, Rect badgeLocation, int badgeDensity) {
-        return getUserBadgedDrawableForDensity(drawable, user, badgeLocation, badgeDensity);
+        return mBase.getUserBadgedDrawableForDensity(drawable, user, badgeLocation, badgeDensity);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -521,7 +522,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public int getPreferredActivities(@NonNull List<IntentFilter> outFilters, @NonNull List<ComponentName> outActivities, String packageName) {
-        return getPreferredActivities(outFilters, outActivities, packageName);
+        return mBase.getPreferredActivities(outFilters, outActivities, packageName);
     }
 
     @Override

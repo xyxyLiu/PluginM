@@ -10,7 +10,7 @@ import android.util.Log;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.stub.ActivityStub;
+import com.reginald.pluginm.stub.Stubs;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -392,7 +392,7 @@ public class HostHCallback {
 
             PluginInfo loadedPluginInfo = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.applicationInfo);
 
-            if (loadedPluginInfo != null && proxyClassName.startsWith(ActivityStub.class.getName())) {
+            if (loadedPluginInfo != null && proxyClassName.startsWith(Stubs.Activity.class.getName())) {
                 PluginManager.getInstance(mHostContext).registerActivity(targetActivityInfo);
             }
 

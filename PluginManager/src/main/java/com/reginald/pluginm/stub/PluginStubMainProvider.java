@@ -9,14 +9,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
-import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.ThreadUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,9 +25,9 @@ import java.util.Map;
  * Created by lxy on 16-10-24.
  */
 public class PluginStubMainProvider extends ContentProvider {
-    public static final String AUTH_PREFIX = "com.reginald.pluginm.stub.provider";
     private static final String TAG = "PluginStubMainProvider";
     private static final String EXTRA_BINDER = "extra.binder";
+    public static final String METHOD_GET_PROVIDER = "method.get_provider";
 
     private final Map<String, IContentProvider> mIContentProviderMap = new HashMap<>();
 
@@ -53,30 +53,33 @@ public class PluginStubMainProvider extends ContentProvider {
     Bundle call(@NonNull String method, @Nullable String arg,
             @Nullable Bundle extras) {
         Log.d(TAG, "call() method =" + method + ", arg=" + arg);
-        if (!TextUtils.isEmpty(method) && !TextUtils.isEmpty(arg)) {
-            String packageName = method;
-            String providerName = arg;
-            ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
+        if (METHOD_GET_PROVIDER.equals(method)) {
+            final ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
+            final Bundle resultBundle = new Bundle();
 
-            PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
+            ThreadUtils.ensureRunOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
 
-            if (loadedPluginInfo == null) {
-                return null;
-            }
+                    if (loadedPluginInfo == null) {
+                        return;
+                    }
 
-            try {
-                IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
-                Log.d(TAG, "call() iContentProvider = " + iContentProvider);
-                if (iContentProvider != null) {
-                    Bundle bundle = new Bundle();
-                    BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
-                    bundle.putParcelable(EXTRA_BINDER, binderParcelable);
-                    return bundle;
+                    try {
+                        IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
+                        Log.d(TAG, "call() iContentProvider = " + iContentProvider);
+                        if (iContentProvider != null) {
+                            BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
+                            resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            });
 
+            return resultBundle.isEmpty() ? null : resultBundle;
         }
         return null;
     }

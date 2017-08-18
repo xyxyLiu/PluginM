@@ -6,7 +6,7 @@ import android.content.ContextWrapper;
 import android.util.Log;
 
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.stub.ActivityStub;
+import com.reginald.pluginm.stub.Stubs;
 
 import java.lang.reflect.Field;
 
@@ -47,9 +47,9 @@ public class HostClassLoader extends ClassLoader {
     @Override
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
 
-        Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve + " ,ActivityStub.class.getName() = " + ActivityStub.class.getName());
+        Log.d(TAG, "loadClass() className = " + className + " , resolve = " + resolve);
 
-        if (className.startsWith(ActivityStub.class.getName())) {
+        if (className.startsWith(Stubs.Activity.class.getName())) {
             try {
                 Class<?> clazz = PluginManager.getInstance(mContext).findPluginClass(className);
                 Log.d(TAG, "loadClass() use plugin loaders " + className + " ok! clazz = " + clazz);

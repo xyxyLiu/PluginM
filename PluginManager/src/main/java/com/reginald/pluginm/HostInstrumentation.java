@@ -14,7 +14,7 @@ import android.view.ContextThemeWrapper;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.stub.ActivityStub;
+import com.reginald.pluginm.stub.Stubs;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -92,7 +92,7 @@ public class HostInstrumentation extends Instrumentation {
     @Override
     public Activity newActivity(ClassLoader cl, String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Log.d(TAG, "newActivity() className = " + className);
-        if (className.startsWith(ActivityStub.class.getName())) {
+        if (className.startsWith(Stubs.Activity.class.getName())) {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Log.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {

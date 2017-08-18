@@ -13,19 +13,20 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
+import android.util.Pair;
 
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.hook.IActivityManagerServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
-import com.reginald.pluginm.stub.ActivityStub;
-import com.reginald.pluginm.stub.PluginHostProxy;
 import com.reginald.pluginm.stub.StubManager;
+import com.reginald.pluginm.stub.Stubs;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -235,7 +236,7 @@ public class PluginManager {
 
 
         // replace target class
-        if (className.startsWith(ActivityStub.class.getName()) && mPendingLoadActivity != null) {
+        if (className.startsWith(Stubs.Activity.class.getName()) && mPendingLoadActivity != null) {
             Log.d(TAG, "findPluginClass() mPendingLoadActivity = " + mPendingLoadActivity);
             targetPackage = mPendingLoadActivity.packageName;
             targetClass = mPendingLoadActivity.name;
@@ -361,23 +362,23 @@ public class PluginManager {
     }
 
     public Intent getPluginActivityIntent(Intent originIntent) {
-        Log.d(TAG, "getPluginActivityIntent() originIntent = " + originIntent);
-
         ActivityInfo activityInfo = resolveActivityInfo(originIntent, 0);
+        Log.d(TAG, String.format("getPluginActivityIntent() originIntent = %s, resolved activityInfo = %s",
+                originIntent, activityInfo));
 
         if (activityInfo == null) {
             return null;
         }
 
-        Log.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s", activityInfo));
-
         // make a proxy activity for it:
-        ActivityInfo stubActivityInfo = StubManager.getInstance(mContext).getStubActivity(activityInfo);
+        ActivityInfo stubActivityInfo = StubManager.getInstance(mContext).selectStubActivity(activityInfo);
+        Log.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s -> stub = %s",
+                activityInfo, stubActivityInfo));
+
         if (stubActivityInfo != null) {
             Intent intent = handleOriginalIntent(originIntent);
             intent.setClassName(stubActivityInfo.packageName, stubActivityInfo.name);
             intent.putExtra(EXTRA_INTENT_TARGET_ACTIVITYINFO, activityInfo);
-            intent.putExtra(EXTRA_INTENT_STUB_ACTIVITYINFO, stubActivityInfo);
 
             // register class for it:
 //        registerActivity(activityInfo);
@@ -389,22 +390,48 @@ public class PluginManager {
     }
 
     public Intent getPluginServiceIntent(Intent originIntent) {
-        Log.d(TAG, "getPluginServiceIntent() originIntent = " + originIntent);
-
         ServiceInfo serviceInfo = resolveServiceInfo(originIntent, 0);
+        Log.d(TAG, String.format("getPluginServiceIntent() originIntent = %s, resolved serviceInfo = %s",
+                originIntent, serviceInfo));
 
         if (serviceInfo == null) {
             return null;
         }
 
-        Log.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s", serviceInfo));
+        ServiceInfo stubServiceInfo = StubManager.getInstance(mContext).selectStubService(serviceInfo);
+        Log.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s -> stub = %s",
+                serviceInfo, stubServiceInfo));
+        if (stubServiceInfo != null) {
+            Intent intent = handleOriginalIntent(originIntent);
+            intent.setClassName(stubServiceInfo.packageName, stubServiceInfo.name);
+            intent.putExtra(EXTRA_INTENT_TARGET_SERVICEINFO, serviceInfo);
 
-        // make a proxy activity for it:
-        Intent intent = handleOriginalIntent(originIntent);
-        intent.setClassName(mContext, PluginHostProxy.STUB_SERVICE);
-        intent.putExtra(EXTRA_INTENT_TARGET_SERVICEINFO, serviceInfo);
+            Log.d(TAG, String.format("getPluginServiceIntent() stubServiceInfo = %s", stubServiceInfo));
+            return intent;
+        } else {
+            return null;
+        }
+    }
 
-        return intent;
+    public Pair<Uri, Bundle> getPluginProviderUri(String auth) {
+        ProviderInfo providerInfo = PluginManager.getInstance(mContext).resolveProviderInfo(auth);
+        Log.d(TAG, "getPluginProviderUri() auth = " + auth + ",resolved providerInfo = " + providerInfo);
+
+        if (providerInfo == null) {
+            return null;
+        }
+
+        ProviderInfo stubProvider = StubManager.getInstance(mContext).selectStubProvider(providerInfo);
+        Log.d(TAG, String.format("getPluginProviderUri() providerInfo = %s -> stub = %s",
+                providerInfo, stubProvider));
+
+        if (stubProvider != null) {
+            Bundle providerBundle = new Bundle();
+            providerBundle.putParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
+            return new Pair<>(Uri.parse("content://" + stubProvider.authority), providerBundle);
+        } else {
+            return null;
+        }
     }
 
     public static Intent handleOriginalIntent(Intent origIntent) {
@@ -661,7 +688,7 @@ public class PluginManager {
         Log.d(TAG, "getPackageNameCompat(): ");
         int i = 0;
         int lookupIndex = -1;
-        for (StackTraceElement stackTraceElement: stackTraceElements) {
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
             Log.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();

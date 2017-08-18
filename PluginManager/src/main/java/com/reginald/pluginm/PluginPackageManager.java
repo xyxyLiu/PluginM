@@ -527,21 +527,37 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public void setComponentEnabledSetting(ComponentName componentName, int newState, int flags) {
+        if (mPluginManager.getInstalledPluginInfo(componentName.getPackageName()) != null) {
+            // if plugin
+            return;
+        }
         mBase.setComponentEnabledSetting(componentName, newState, flags);
     }
 
     @Override
     public int getComponentEnabledSetting(ComponentName componentName) {
+        if (mPluginManager.getInstalledPluginInfo(componentName.getPackageName()) != null) {
+            // if plugin
+            return PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+        }
         return mBase.getComponentEnabledSetting(componentName);
     }
 
     @Override
     public void setApplicationEnabledSetting(String packageName, int newState, int flags) {
+        if (mPluginManager.getInstalledPluginInfo(packageName) != null) {
+            // if plugin
+            return ;
+        }
         mBase.setApplicationEnabledSetting(packageName, newState, flags);
     }
 
     @Override
     public int getApplicationEnabledSetting(String packageName) {
+        if (mPluginManager.getInstalledPluginInfo(packageName) != null) {
+            // if plugin
+            return PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+        }
         return mBase.getApplicationEnabledSetting(packageName);
     }
 

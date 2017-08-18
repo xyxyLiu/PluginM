@@ -12,7 +12,7 @@
 
         <!-- process P0 start -->
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$Standard0"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$Standard0"
             android:launchMode="standard"
             android:process=":p0">
             <intent-filter>
@@ -22,7 +22,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTop0"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop0"
             android:launchMode="singleTop"
             android:process=":p0">
             <intent-filter>
@@ -32,7 +32,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTop1"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop1"
             android:launchMode="singleTop"
             android:process=":p0">
             <intent-filter>
@@ -42,7 +42,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTask0"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask0"
             android:launchMode="singleTask"
             android:process=":p0">
             <intent-filter>
@@ -52,7 +52,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleTask1"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask1"
             android:launchMode="singleTask"
             android:process=":p0">
             <intent-filter>
@@ -62,7 +62,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleInstance0"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance0"
             android:launchMode="singleInstance"
             android:process=":p0">
             <intent-filter>
@@ -72,7 +72,7 @@
         </activity>
 
         <activity
-            android:name="com.reginald.pluginm.stub.ActivityStub$P0$SingleInstance1"
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance1"
             android:launchMode="singleInstance"
             android:process=":p0">
             <intent-filter>
@@ -82,7 +82,7 @@
         </activity>
 
         <service
-            android:name="com.reginald.pluginm.stub.PluginStubMainService"
+            android:name="com.reginald.pluginm.stub.Stubs$Service$P0$Service0"
             android:exported="false"
             android:process=":p0">
             <intent-filter>
@@ -92,14 +92,102 @@
         </service>
 
         <provider
-            android:name="com.reginald.pluginm.stub.PluginStubMainProvider"
-            android:authorities="com.reginald.pluginm.stub.provider"
+            android:name="com.reginald.pluginm.stub.Stubs$Provider$P0$Provider0"
+            android:authorities="com.reginald.pluginm.stub.provider.p0"
             android:process=":p0">
         </provider>
+        <!-- process P0 end -->
+
+        <!-- process P1 start -->
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$Standard0"
+            android:launchMode="standard"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop0"
+            android:launchMode="singleTop"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop1"
+            android:launchMode="singleTop"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask0"
+            android:launchMode="singleTask"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask1"
+            android:launchMode="singleTask"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance0"
+            android:launchMode="singleInstance"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance1"
+            android:launchMode="singleInstance"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name="com.reginald.pluginm.stub.Stubs$Service$P1$Service0"
+            android:exported="false"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="com.reginald.pluginm.stub.Stubs$Provider$P1$Provider0"
+            android:authorities="com.reginald.pluginm.stub.provider.p1"
+            android:process=":p1">
+        </provider>
+        <!-- process P1 end -->
+
 
         <!-- end of stub components -->
-
-        <!-- process P0 end -->
     </application>
 
 </manifest>

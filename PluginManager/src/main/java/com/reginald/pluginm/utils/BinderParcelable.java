@@ -1,4 +1,4 @@
-package com.reginald.pluginm.stub;
+package com.reginald.pluginm.utils;
 
 import android.os.IBinder;
 import android.os.Parcel;
@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
 /**
  * Created by lxy on 16-10-26.
  */
-/* package */ class BinderParcelable implements Parcelable {
+public class BinderParcelable implements Parcelable {
 
     public IBinder mIBinder;
 

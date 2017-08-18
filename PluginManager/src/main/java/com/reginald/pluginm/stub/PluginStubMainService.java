@@ -212,17 +212,6 @@ public class PluginStubMainService extends Service {
 //        }
     }
 
-    private Intent getPluginIntent(Intent intent) {
-        Intent resIntent = new Intent(intent);
-        String action = resIntent.getAction();
-        if (action != null && action.endsWith(INTENT_ACTION_BIND_PREFIX)) {
-            String[] actions = action.split(INTENT_ACTION_BIND_PREFIX);
-            resIntent.setAction(actions[0]);
-        }
-        resIntent.removeExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
-        return resIntent;
-    }
-
     private Intent getOriginalIntent(Intent pluginIntent, Service service) {
         ComponentName componentName = new ComponentName(service.getPackageName(), service.getClass().getName());
         Intent origIntent = PluginManager.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());

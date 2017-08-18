@@ -1,10 +1,8 @@
 package com.reginald.pluginm.stub;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -14,6 +12,7 @@ import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,7 +62,7 @@ public class StubManager {
             PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), PackageManager.GET_PROVIDERS);
             if (packageInfo.providers != null && packageInfo.providers.length > 0) {
                 for (ProviderInfo providerInfo : packageInfo.providers) {
-                    if (providerInfo.name != null && providerInfo.name.startsWith(PluginStubMainProvider.class.getName())) {
+                    if (providerInfo.name != null && providerInfo.name.startsWith(Stubs.Provider.class.getName())) {
                         ProcessInfo processInfo = getOrCreateProcess(providerInfo);
                         processInfo.addStubProvider(providerInfo);
                     }
@@ -91,6 +90,23 @@ public class StubManager {
         mContext = context;
     }
 
+    /**
+     * TODO 需要处理重复使用问题
+     * @param activityInfo
+     * @return
+     */
+    public ActivityInfo selectStubActivity(ActivityInfo activityInfo) {
+        ProcessInfo processInfo = selectStubProcess(activityInfo);
+
+        for (ActivityInfo stubActivityInfo : processInfo.getStubActivities()) {
+            if (stubActivityInfo.launchMode == activityInfo.launchMode) {
+                return stubActivityInfo;
+            }
+        }
+
+        return null;
+    }
+
     public void addPluginActivityInfo(ActivityInfo activityInfo) {
 
     }
@@ -99,21 +115,48 @@ public class StubManager {
 
     }
 
-    public ActivityInfo getStubActivity(ActivityInfo activityInfo) {
-        ActivityInfo stubActivityInfo = new ActivityInfo();
-        stubActivityInfo.applicationInfo = new ApplicationInfo();
-        stubActivityInfo.packageName = mContext.getPackageName();
-        stubActivityInfo.name = String.format(PluginHostProxy.STUB_ACTIVITY, "P0", "Standard0");
-        return stubActivityInfo;
-    }
+    public ServiceInfo selectStubService(ServiceInfo serviceInfo) {
+        ProcessInfo processInfo = selectStubProcess(serviceInfo);
 
-    public boolean isStubActivity(Activity activity) {
-        if (activity != null) {
-            return activity.getClass().getName().startsWith("com.reginald.pluginm.stub.ActivityStub");
+        for (ServiceInfo stubServiceInfo : processInfo.getStubServices()) {
+            return stubServiceInfo;
         }
-        return false;
+
+        return null;
     }
 
+    public ProviderInfo selectStubProvider(ProviderInfo providerInfo) {
+        ProcessInfo processInfo = selectStubProcess(providerInfo);
+
+        for (ProviderInfo stubProviderInfo : processInfo.getStubProviders()) {
+            return stubProviderInfo;
+        }
+
+        return null;
+    }
+
+    /**
+     * TODO 考虑插件进程模式的设计
+     * @param componentInfo
+     * @return
+     */
+    public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
+        if (mProcessInfoMap.isEmpty()) {
+            throw new RuntimeException("no registered stub process found");
+        }
+
+        List<ProcessInfo> processInfos = new ArrayList<>(mProcessInfoMap.values());
+
+        if (mProcessInfoMap.size() > 1) {
+            if (getProcessName(componentInfo).equals(componentInfo.packageName)) {
+                return processInfos.get(0);
+            } else {
+                return processInfos.get(1);
+            }
+        } else {
+            return processInfos.get(0);
+        }
+    }
 
     private static class ProcessInfo {
         private final String mProcessName;
@@ -140,12 +183,17 @@ public class StubManager {
             mStubProviderMap.put(providerInfo.name, providerInfo);
         }
 
-//        public ActivityInfo getStubActivity(ActivityInfo activityInfo) {
-//            ActivityInfo stubActivityInfo = new ActivityInfo();
-//            stubActivityInfo.packageName = mContext.getPackageName();
-//            stubActivityInfo.name = String.format(PluginHostProxy.STUB_ACTIVITY, "P0","Standard0");
-//            return stubActivityInfo;
-//        }
+        public List<ActivityInfo> getStubActivities() {
+            return new ArrayList<>(mStubActivityMap.values());
+        }
+
+        public List<ServiceInfo> getStubServices() {
+            return new ArrayList<>(mStubServiceMap.values());
+        }
+
+        public List<ProviderInfo> getStubProviders() {
+            return new ArrayList<>(mStubProviderMap.values());
+        }
 
         @Override
         public String toString() {
@@ -166,5 +214,6 @@ public class StubManager {
             return componentInfo.processName;
         }
     }
+
 
 }

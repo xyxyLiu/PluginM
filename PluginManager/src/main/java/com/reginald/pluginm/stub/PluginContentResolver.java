@@ -7,6 +7,7 @@ import android.content.pm.ProviderInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 
 import com.reginald.pluginm.PluginManager;
 
@@ -136,24 +137,25 @@ public class PluginContentResolver extends ContentResolver {
     }
 
     private IContentProvider getTargetProvider(String auth) {
-        ProviderInfo providerInfo = PluginManager.getInstance(mAppContext).resolveProviderInfo(auth);
-        Log.d(TAG, "getTargetProvider() auth = " + auth + "  ->  providerInfo = " + providerInfo);
-        if (providerInfo != null) {
-            return getIContentProvider(providerInfo);
+        Pair<Uri, Bundle> uriAndBundle = PluginManager.getInstance(mAppContext).getPluginProviderUri(auth);
+        Log.d(TAG, "getTargetProvider() auth = " + auth + "  ->  uriAndBundle = " + uriAndBundle);
+        if (uriAndBundle != null) {
+            return getIContentProvider(uriAndBundle);
         }
 
         return null;
     }
 
-    private IContentProvider getIContentProvider(ProviderInfo providerInfo) {
-        Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo);
-        final Uri uri = Uri.parse("content://" + PluginStubMainProvider.AUTH_PREFIX);
-        Bundle providerBundle = new Bundle();
-        providerBundle.putParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
-        Bundle bundle = mOriginContentResolver.call(uri, providerInfo.packageName, providerInfo.name, providerBundle);
-        Log.d(TAG, "getIContentProvider() providerInfo = " + providerInfo + " , bundle = " + bundle);
-        if (bundle != null) {
-            return PluginStubMainProvider.parseIContentProvider(bundle);
+    private IContentProvider getIContentProvider(Pair<Uri, Bundle> uriAndBundle) {
+        Log.d(TAG, "getIContentProvider() uriAndBundle = " + uriAndBundle);
+        final Uri uri = uriAndBundle.first;
+        if (uri != null) {
+            Bundle providerBundle = uriAndBundle.second;
+            Bundle bundle = mOriginContentResolver.call(uri, PluginStubMainProvider.METHOD_GET_PROVIDER, null, providerBundle);
+            Log.d(TAG, "getIContentProvider() return bundle = " + bundle);
+            if (bundle != null) {
+                return PluginStubMainProvider.parseIContentProvider(bundle);
+            }
         }
 
         return null;

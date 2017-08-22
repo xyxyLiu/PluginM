@@ -24,9 +24,9 @@ package com.reginald.pluginm.parser;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
-import android.util.Log;
 
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -55,7 +55,7 @@ class PackageParserApi22Preview1 extends PackageParserApi21 {
         try {
             return super.generatePackageInfo(gids, flags, firstInstallTime, lastUpdateTime, grantedPermissions);
         } catch (Exception e) {
-            Log.i(TAG, "generatePackageInfo fail", e);
+            Logger.w(TAG, "generatePackageInfo fail", e);
         }
         Method method = MethodUtils.getAccessibleMethod(sPackageParserClass, "generatePackageInfo",
                 mPackage.getClass(),

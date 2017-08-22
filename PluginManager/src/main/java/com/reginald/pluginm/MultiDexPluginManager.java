@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
 
 import com.reginald.pluginm.multidex.MultiDexApplication;
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,9 +71,9 @@ public final class MultiDexPluginManager {
      * extension.
      */
     public static boolean install(Context context, String pluginApkName) {
-        Log.i(TAG, "loadPlugin");
+        Logger.i(TAG, "loadPlugin");
 //        if (IS_VM_MULTIDEX_CAPABLE) {
-//            Log.i(TAG, "VM has multidex support, MultiDex support library is disabled.");
+//            Logger.i(TAG, "VM has multidex support, MultiDex support library is disabled.");
 //            return;
 //        }
 //
@@ -112,13 +112,13 @@ public final class MultiDexPluginManager {
                      * a android.test.mock.MockContext or a android.content.ContextWrapper with a
                      * null base Context.
                      */
-                    Log.w(TAG, "Failure while trying to obtain Context class loader. " +
+                    Logger.w(TAG, "Failure while trying to obtain Context class loader. " +
                             "Must be running in test mode. Skip patching.", e);
                     return false;
                 }
                 if (loader == null) {
                     // Note, the context class loader is null when running Robolectric tests.
-                    Log.e(TAG,
+                    Logger.e(TAG,
                             "Context class loader is null. Must be running in test mode. "
                                     + "Skip patching.");
                     return false;
@@ -131,18 +131,18 @@ public final class MultiDexPluginManager {
                 List apkList = new ArrayList();
                 apkList.add(apkFile);
 
-                Log.i(TAG, "before loadPlugin \nclassloader = " + loader);
+                Logger.i(TAG, "before loadPlugin \nclassloader = " + loader);
 
                 installPluginDexes(loader, pluginDexPath, apkList);
 
-                Log.i(TAG, "after loadPlugin \nclassloader = " + loader);
+                Logger.i(TAG, "after loadPlugin \nclassloader = " + loader);
                 return true;
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Multidex installation failure", e);
+            Logger.e(TAG, "Multidex installation failure", e);
         }
-        Log.i(TAG, "loadPlugin done");
+        Logger.i(TAG, "loadPlugin done");
         return false;
     }
 
@@ -158,7 +158,7 @@ public final class MultiDexPluginManager {
              * a android.test.mock.MockContext or a android.content.ContextWrapper with a null
              * base Context.
              */
-            Log.w(TAG, "Failure while trying to obtain ApplicationInfo from Context. " +
+            Logger.w(TAG, "Failure while trying to obtain ApplicationInfo from Context. " +
                     "Must be running in test mode. Skip patching.", e);
             return null;
         }
@@ -174,7 +174,7 @@ public final class MultiDexPluginManager {
     private static void installPluginDexes(ClassLoader loader, File dexDir, List<File> files)
             throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException,
             InvocationTargetException, NoSuchMethodException, IOException {
-        Log.d(TAG, String.format("installPluginDexes(%s, %s, %s)", loader, dexDir.getAbsolutePath(), files.size()));
+        Logger.d(TAG, String.format("installPluginDexes(%s, %s, %s)", loader, dexDir.getAbsolutePath(), files.size()));
         if (!files.isEmpty()) {
             if (Build.VERSION.SDK_INT >= 19) {
                 V19.install(loader, files, dexDir);
@@ -283,7 +283,7 @@ public final class MultiDexPluginManager {
                     suppressedExceptions));
             if (suppressedExceptions.size() > 0) {
                 for (IOException e : suppressedExceptions) {
-                    Log.w(TAG, "Exception in makeDexElement", e);
+                    Logger.w(TAG, "Exception in makeDexElement", e);
                 }
                 Field suppressedExceptionsField =
                         findField(loader, "dexElementsSuppressedExceptions");

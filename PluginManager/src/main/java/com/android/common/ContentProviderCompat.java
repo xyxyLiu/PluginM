@@ -5,7 +5,8 @@ import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.IContentProvider;
 import android.net.Uri;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 
@@ -26,8 +27,7 @@ public class ContentProviderCompat {
                     arrayOfClass);
             sGetIContentProviderMethod = ContentProvider.class.getMethod("getIContentProvider");
         } catch (Exception e) {
-            if (DEBUG)
-                Log.d(TAG, "can not find acquireProvider or getIContentProvider");
+            Logger.d(TAG, "can not find acquireProvider or getIContentProvider");
             sAcquireProviderMethod = null;
             sGetIContentProviderMethod = null;
         }

@@ -13,9 +13,25 @@ android {
 
         buildConfigField("boolean", "DEBUG_LOG", rootProject.ext.DEBUG_LOG)
     }
-    buildTypes {
+
+    signingConfigs {
         release {
+            storeFile file("../pluginm-test.keystore")
+            storePassword "pluginm"
+            keyAlias "pluginm"
+            keyPassword "pluginm"
+        }
+    }
+
+    buildTypes {
+        debug {
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

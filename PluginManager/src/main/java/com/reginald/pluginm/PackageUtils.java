@@ -3,7 +3,8 @@ package com.reginald.pluginm;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -59,17 +60,17 @@ public class PackageUtils {
                     in = assetManager.open(fileName);
                     File f = new File(dex, fileName);
                     if (f.exists() && f.length() == in.available()) {
-                        Log.i(TAG, fileName + "no change");
+                        Logger.i(TAG, fileName + "no change");
                         return f;
                     }
-                    Log.i(TAG, fileName + " chaneged");
+                    Logger.i(TAG, fileName + " chaneged");
 
                     copyFile(in, f.getAbsolutePath());
-                    Log.i(TAG, fileName + " copy over");
+                    Logger.i(TAG, fileName + " copy over");
                     return f;
                 }
             }
-            Log.i(TAG, "###copyAssets time = " + (System.currentTimeMillis() - startTime));
+            Logger.i(TAG, "###copyAssets time = " + (System.currentTimeMillis() - startTime));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -90,7 +91,7 @@ public class PackageUtils {
     }
 
     public static boolean copyFile(final InputStream inputStream, String dest) {
-        Log.d(TAG, "copyFile to " + dest);
+        Logger.d(TAG, "copyFile to " + dest);
         FileOutputStream oputStream = null;
         try {
             File destFile = new File(dest);
@@ -137,12 +138,12 @@ public class PackageUtils {
                 String[] abis = Build.SUPPORTED_ABIS;
                 if (abis != null) {
                     for (String abi : abis) {
-                        Log.d(TAG, "try supported abi: " + abi);
+                        Logger.d(TAG, "try supported abi: " + abi);
                         String name = "lib" + File.separator + abi + File.separator + so;
                         File sourceFile = new File(sourceDir, name);
                         if (sourceFile.exists()) {
                             if (copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
-                                Log.d(TAG, "use " + name);
+                                Logger.d(TAG, "use " + name);
                                 return true;
                             }
                             //api21 64位系统的目录可能有些不同
@@ -152,13 +153,13 @@ public class PackageUtils {
                     }
                 }
             } else {
-                Log.d(TAG, "supported api: " + Build.CPU_ABI + " , " + Build.CPU_ABI2);
+                Logger.d(TAG, "supported api: " + Build.CPU_ABI + " , " + Build.CPU_ABI2);
 
                 String name = "lib" + File.separator + Build.CPU_ABI + File.separator + so;
                 File sourceFile = new File(sourceDir, name);
 
                 if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
-                    Log.d(TAG, "use " + name);
+                    Logger.d(TAG, "use " + name);
                     return true;
                 }
 
@@ -167,7 +168,7 @@ public class PackageUtils {
                     sourceFile = new File(sourceDir, name);
 
                     if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
-                        Log.d(TAG, "use " + name);
+                        Logger.d(TAG, "use " + name);
                         return true;
                     }
                 }
@@ -183,13 +184,13 @@ public class PackageUtils {
         for (File file : sourceDir.listFiles()) {
             if (file.isDirectory()) {
                 if (copyFile(file.getAbsolutePath() + File.separator + so, soDestPath)) {
-                    Log.w(TAG, "can not found matched abi for " + so + ", use " + file.getName() + " instead!");
+                    Logger.w(TAG, "can not found matched abi for " + so + ", use " + file.getName() + " instead!");
                     return true;
                 }
             }
         }
 
-        Log.e(TAG, "can not found matched abi for " + so);
+        Logger.e(TAG, "can not found matched abi for " + so);
         return false;
     }
 
@@ -202,7 +203,7 @@ public class PackageUtils {
             tempDir.mkdirs();
         }
 
-        Log.d(TAG, "unZipSo " + tempDir.getAbsolutePath());
+        Logger.d(TAG, "unZipSo " + tempDir.getAbsolutePath());
 
         ZipFile zfile = null;
         boolean isSuccess = false;
@@ -218,7 +219,7 @@ public class PackageUtils {
 
                 if (!relativePath.startsWith("lib" + File.separator)) {
                     if (DEBUG) {
-                        Log.d(TAG, "skip " + relativePath);
+                        Logger.d(TAG, "skip " + relativePath);
                     }
                     continue;
                 }
@@ -226,7 +227,7 @@ public class PackageUtils {
                 if (ze.isDirectory()) {
                     File folder = new File(tempDir, relativePath);
                     if (DEBUG) {
-                        Log.d(TAG, "create dir " + folder.getAbsolutePath());
+                        Logger.d(TAG, "create dir " + folder.getAbsolutePath());
                     }
                     if (!folder.exists()) {
                         folder.mkdirs();
@@ -239,7 +240,7 @@ public class PackageUtils {
                     }
 
                     File targetFile = new File(tempDir, relativePath);
-                    Log.d(TAG, "unzip so " + targetFile.getAbsolutePath());
+                    Logger.d(TAG, "unzip so " + targetFile.getAbsolutePath());
                     if (!targetFile.getParentFile().exists()) {
                         targetFile.getParentFile().mkdirs();
                     }
@@ -288,7 +289,7 @@ public class PackageUtils {
             }
         }
 
-        Log.d(TAG, "unZipSo finish. isSuccess = " + isSuccess);
+        Logger.d(TAG, "unZipSo finish. isSuccess = " + isSuccess);
         return result;
     }
 
@@ -301,7 +302,7 @@ public class PackageUtils {
                 }
             }
         }
-        Log.d(TAG, "delete " + file.getAbsolutePath());
+        Logger.d(TAG, "delete " + file.getAbsolutePath());
         return file.delete();
     }
 

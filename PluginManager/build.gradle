@@ -10,7 +10,9 @@ android {
         versionCode 1
         versionName "1.0"
 
-        buildConfigField("boolean", "DEBUG_LOG", rootProject.ext.DEBUG_LOG)
+        buildConfigField("boolean", "DEBUG_LOG", "true")
+
+        consumerProguardFiles 'consumer-proguard-rules.pro'
     }
     buildTypes {
         release {

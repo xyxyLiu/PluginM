@@ -32,6 +32,7 @@
         </service>
         <service
             android:name=".PluginServiceA"
+            android:process=":remote"
             android:exported="false">
         </service>
 
@@ -47,6 +48,19 @@
         <provider
             android:name=".PluginContentProvider"
             android:authorities="com.example.testplugin.testprovider"
+            android:exported="false">
+        </provider>
+
+        <provider
+            android:name=".PluginContentProvider"
+            android:authorities="com.example.testplugin.testprovider"
+            android:exported="false">
+        </provider>
+
+        <provider
+            android:name=".PluginBackContentProvider"
+            android:authorities="com.example.testplugin.testprovider.remote"
+            android:process=":remote"
             android:exported="false">
         </provider>
 

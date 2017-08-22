@@ -9,12 +9,12 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.stub.Stubs;
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -40,7 +40,7 @@ public class HostInstrumentation extends Instrumentation {
             Instrumentation newInstrumentation = new HostInstrumentation(
                     PluginManager.getInstance(hostContext), baseInstrumentation);
             FieldUtils.writeField(mInstrumentationField, target, newInstrumentation);
-            Log.i(TAG, "HostInstrumentation has installed!");
+            Logger.i(TAG, "HostInstrumentation has installed!");
             return newInstrumentation;
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,21 +91,23 @@ public class HostInstrumentation extends Instrumentation {
 
     @Override
     public Activity newActivity(ClassLoader cl, String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        Log.d(TAG, "newActivity() className = " + className);
+        Logger.d(TAG, "newActivity() className = " + className);
         if (className.startsWith(Stubs.Activity.class.getName())) {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
-            Log.d(TAG, "newActivity() target activityInfo = " + activityInfo);
+            Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
                 PluginInfo pluginInfo = PluginManager.getPluginInfo(activityInfo.packageName);
                 Activity activity = mBase.newActivity(pluginInfo.classLoader, activityInfo.name, intent);
                 activity.setIntent(intent);
                 try {
                     FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
-                    Log.d(TAG, "newActivity() replace mResources ok! ");
+                    Logger.d(TAG, "newActivity() replace mResources ok! ");
                 } catch (Exception ignored) {
-                    Log.e(TAG, "newActivity() replace mResources error! ");
+                    Logger.e(TAG, "newActivity() replace mResources error! ");
                     ignored.printStackTrace();
                 }
+
+                return activity;
             }
         }
 
@@ -114,10 +116,10 @@ public class HostInstrumentation extends Instrumentation {
 
     @Override
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
-        Log.d(TAG, "callActivityOnCreate() activity = " + activity);
+        Logger.d(TAG, "callActivityOnCreate() activity = " + activity);
         Intent intent = activity.getIntent();
         ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
-        Log.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
+        Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null) {
             PluginInfo pluginInfo = PluginManager.getPluginInfo(activityInfo.packageName);
             Context pluginContext = mPluginManager.createPluginContext(
@@ -130,9 +132,9 @@ public class HostInstrumentation extends Instrumentation {
                 FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
 
                 FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
-                Log.d(TAG, "callActivityOnCreate() replace context ok! ");
+                Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
             } catch (IllegalAccessException e) {
-                Log.e(TAG, "callActivityOnCreate() replace context error! ");
+                Logger.e(TAG, "callActivityOnCreate() replace context error! ");
                 e.printStackTrace();
             }
             ComponentName componentName = new ComponentName(activityInfo.packageName, activityInfo.name);

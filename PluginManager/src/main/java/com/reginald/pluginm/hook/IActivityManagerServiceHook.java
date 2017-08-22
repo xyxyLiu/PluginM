@@ -3,12 +3,12 @@ package com.reginald.pluginm.hook;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.Utils;
 import com.reginald.pluginm.stub.PluginStubMainService;
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -33,7 +33,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
 
     @Override
     public boolean install() {
-        Log.d(TAG, "install() ");
+        Logger.d(TAG, "install() ");
         // hook
         try {
             Class activityManagerNativeCls = Class.forName("android.app.ActivityManagerNative");
@@ -58,17 +58,17 @@ public class IActivityManagerServiceHook extends ServiceHook {
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, "install() hook error! " + e);
+            Logger.e(TAG, "install() hook error! " + e);
             e.printStackTrace();
             return false;
         }
-        Log.d(TAG, "install() hook ok!");
+        Logger.d(TAG, "install() hook ok!");
 
         // register method handlers
         addMethodHandler(new getIntentSender());
         addMethodHandler(new stopServiceToken());
 
-        Log.d(TAG, "install() install ok!");
+        Logger.d(TAG, "install() install ok!");
         return true;
     }
 
@@ -105,13 +105,18 @@ public class IActivityManagerServiceHook extends ServiceHook {
          */
         public static final int INTENT_SENDER_SERVICE = 4;
 
+        @Override
+        public String getName() {
+            return "getIntentSender";
+        }
+
         public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
             int type = (int) args[0];
             Intent pluginIntent = ((Intent[]) args[5])[0];
             Intent newIntent = null;
             args[1] = mPluginManager.getHostContext().getPackageName();
 
-            Log.d(TAG, "getIntentSender() onStartInvoke : pluginIntent = " + pluginIntent);
+            Logger.d(TAG, "getIntentSender() onStartInvoke : pluginIntent = " + pluginIntent);
 
             switch (type) {
                 case INTENT_SENDER_ACTIVITY:
@@ -122,7 +127,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
                     break;
             }
 
-            Log.d(TAG, "getIntentSender() onStartInvoke : newIntent = " + newIntent);
+            Logger.d(TAG, "getIntentSender() onStartInvoke : newIntent = " + newIntent);
 
             if (newIntent != null) {
                 ((Intent[]) args[5])[0] = newIntent;
@@ -141,13 +146,18 @@ public class IActivityManagerServiceHook extends ServiceHook {
      */
     private class stopServiceToken extends ServiceHook.MethodHandler {
 
+        @Override
+        public String getName() {
+            return "stopServiceToken";
+        }
+
         public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
             ComponentName component = (ComponentName) args[0];
-            Log.d(TAG, "stopServiceToken() onStartInvoke : component = " + component);
+            Logger.d(TAG, "stopServiceToken() onStartInvoke : component = " + component);
             Intent pluginIntent = new Intent();
             pluginIntent.setComponent(component);
             Intent newIntent = mPluginManager.getPluginServiceIntent(pluginIntent);
-            Log.d(TAG, "stopServiceToken() onStartInvoke : newIntent = " + newIntent);
+            Logger.d(TAG, "stopServiceToken() onStartInvoke : newIntent = " + newIntent);
             if (newIntent != null) {
                 newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
                 mPluginManager.getHostContext().startService(newIntent);

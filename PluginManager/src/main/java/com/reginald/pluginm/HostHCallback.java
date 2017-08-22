@@ -6,11 +6,10 @@ import android.content.pm.ActivityInfo;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.stub.Stubs;
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -41,9 +40,9 @@ public class HostHCallback {
                 pluginCallback.setEnable(true);
                 sCallbacks.add(pluginCallback);
                 FieldUtils.writeField(mCallbackField, handler, pluginCallback);
-                Log.i(TAG, "HostHCallback has installed!");
+                Logger.i(TAG, "HostHCallback has installed!");
             } else {
-                Log.i(TAG, "HostHCallback has installed,skip");
+                Logger.i(TAG, "HostHCallback has installed,skip");
             }
             return true;
         } catch (IllegalAccessException e) {
@@ -246,7 +245,7 @@ public class HostHCallback {
 //                    if (!PluginManager.getInstance().isConnected()) {
 //                        //这里必须要这么做。如果当前进程是插件进程，并且，还没有绑定上插件管理服务，我们则把消息延迟一段时间再处理。
 //                        //这样虽然会降低启动速度，但是可以解决在没绑定服务就启动，会导致的一系列时序问题。
-//                        Log.i(TAG, "handleMessage not isConnected post and wait,msg=%s", msg);
+//                        Logger.i(TAG, "handleMessage not isConnected post and wait,msg=%s", msg);
 //                        mOldHandle.sendMessageDelayed(Message.obtain(msg), 5);
 //                        //返回true，告诉下面的handle不要处理了。
 //                        return true;
@@ -277,7 +276,7 @@ public class HostHCallback {
                     return false;
                 }
             } finally {
-                Log.i(TAG, String.format("handleMessage(%s,%s) cost %s ms", msg.what, codeToString(msg.what), (System.currentTimeMillis() - b)));
+                Logger.i(TAG, String.format("handleMessage(%s,%s) cost %s ms", msg.what, codeToString(msg.what), (System.currentTimeMillis() - b)));
 
             }
         }
@@ -292,14 +291,14 @@ public class HostHCallback {
 //                Intent originPluginIntent = intent.getParcelableExtra(Env.EXTRA_TARGET_INTENT);
 //                if (originPluginIntent != null) {
 //                    FieldUtils.writeDeclaredField(msg.obj, "args", originPluginIntent, true);
-//                    Log.i(TAG, "handleServiceArgs OK");
+//                    Logger.i(TAG, "handleServiceArgs OK");
 //                } else {
-//                    Log.w(TAG, "handleServiceArgs pluginInfo==null");
+//                    Logger.w(TAG, "handleServiceArgs pluginInfo==null");
 //                }
 //            }
 //
 //        } catch (Exception e) {
-//            Log.e(TAG, "handleServiceArgs", e);
+//            Logger.e(TAG, "handleServiceArgs", e);
 //        }
 //        return false;
 //    }
@@ -313,12 +312,12 @@ public class HostHCallback {
 //            Intent originPluginIntent = intent.getParcelableExtra(Env.EXTRA_TARGET_INTENT);
 //            if (originPluginIntent != null) {
 //                FieldUtils.writeDeclaredField(msg.obj, "intent", originPluginIntent, true);
-//                Log.i(TAG, "handleUnbindService OK");
+//                Logger.i(TAG, "handleUnbindService OK");
 //            } else {
-//                Log.w(TAG, "handleUnbindService pluginInfo==null");
+//                Logger.w(TAG, "handleUnbindService pluginInfo==null");
 //            }
 //        } catch (Exception e) {
-//            Log.e(TAG, "handleUnbindService", e);
+//            Logger.e(TAG, "handleUnbindService", e);
 //        }
 //        return false;
 //    }
@@ -335,12 +334,12 @@ public class HostHCallback {
 //
 //
 //                FieldUtils.writeDeclaredField(msg.obj, "intent", originPluginIntent, true);
-//                Log.i(TAG, "handleBindService OK");
+//                Logger.i(TAG, "handleBindService OK");
 //            } else {
-//                Log.w(TAG, "handleBindService pluginInfo==null");
+//                Logger.w(TAG, "handleBindService pluginInfo==null");
 //            }
 //        } catch (Exception e) {
-//            Log.e(TAG, "handleBindService", e);
+//            Logger.e(TAG, "handleBindService", e);
 //        }
 //        return false;
 //    }
@@ -357,13 +356,13 @@ public class HostHCallback {
 //                }
 //            }
 //        } catch (Exception e) {
-//            Log.e(TAG, "handleCreateService", e);
+//            Logger.e(TAG, "handleCreateService", e);
 //        }
 //        return false;
 //    }
 
         private void handleLaunchActivity(Message msg) {
-            Log.d(TAG, "handleLaunchActivity() msg = " + msg);
+            Logger.d(TAG, "handleLaunchActivity() msg = " + msg);
 
             Object obj = msg.obj;
             Intent stubIntent = null;
@@ -380,34 +379,30 @@ public class HostHCallback {
                 return;
             }
 
-            Log.d(TAG, "handleLaunchActivity() stubIntent = " + stubIntent);
+            Logger.d(TAG, "handleLaunchActivity() stubIntent = " + stubIntent);
             String proxyClassName = stubIntent.getComponent().getClassName();
             ActivityInfo targetActivityInfo = stubIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
 
-            Log.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetActivityInfo = %s", proxyClassName, targetActivityInfo));
+            Logger.d(TAG, String.format("handleLaunchActivity() proxyClassName = %s, targetActivityInfo = %s", proxyClassName, targetActivityInfo));
 
             if (targetActivityInfo == null) {
                 return;
             }
 
-            PluginInfo loadedPluginInfo = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.applicationInfo);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance(mHostContext).loadPlugin(targetActivityInfo.packageName);
 
-            if (loadedPluginInfo != null && proxyClassName.startsWith(Stubs.Activity.class.getName())) {
-                PluginManager.getInstance(mHostContext).registerActivity(targetActivityInfo);
-            }
-
-            Log.d(TAG, "handleLaunchActivity() rawActivityInfo = " + rawActivityInfo);
+            Logger.d(TAG, "handleLaunchActivity() rawActivityInfo = " + rawActivityInfo);
             if (rawActivityInfo != null) {
                 rawActivityInfo.theme = targetActivityInfo.theme != 0 ? targetActivityInfo.theme :
                         targetActivityInfo.applicationInfo.theme;
-                Log.d(TAG, "handleLaunchActivity() set theme = " + rawActivityInfo.theme);
+                Logger.d(TAG, "handleLaunchActivity() set theme = " + rawActivityInfo.theme);
             }
         }
 
 
         //test
         private void handleCreateService(Message msg) {
-            Log.d(TAG, "handleCreateService() msg = " + msg);
+            Logger.d(TAG, "handleCreateService() msg = " + msg);
 
             Object obj = msg.obj;
             IBinder token = null;
@@ -418,7 +413,7 @@ public class HostHCallback {
                 return;
             }
 
-            Log.d(TAG, "handleCreateService() server token = " + token);
+            Logger.d(TAG, "handleCreateService() server token = " + token);
 
         }
 

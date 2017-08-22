@@ -35,11 +35,11 @@ import android.content.pm.ServiceInfo;
 import android.content.pm.Signature;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.util.Log;
 
 import com.android.common.UserHandleCompat;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -191,7 +191,7 @@ class PackageParserApi21 extends PackageParser {
                     int[].class, int.class, long.class, long.class, Set.class, sPackageUserStateClass, int.class);
             return (PackageInfo) method.invoke(null, mPackage, gids, flags, firstInstallTime, lastUpdateTime, grantedPermissions, mDefaultPackageUserState, mUserId);
         } catch (NoSuchMethodException e) {
-            Log.i(TAG, "get generatePackageInfo 1 fail", e);
+            Logger.w(TAG, "get generatePackageInfo 1 fail", e);
         }
 
         try {
@@ -200,7 +200,7 @@ class PackageParserApi21 extends PackageParser {
                     int[].class, int.class, long.class, long.class, HashSet.class, sPackageUserStateClass, int.class);
             return (PackageInfo) method.invoke(null, mPackage, gids, flags, firstInstallTime, lastUpdateTime, grantedPermissions, mDefaultPackageUserState, mUserId);
         } catch (NoSuchMethodException e) {
-            Log.i(TAG, "get generatePackageInfo 2 fail", e);
+            Logger.w(TAG, "get generatePackageInfo 2 fail", e);
         }
 
         try {
@@ -219,7 +219,7 @@ class PackageParserApi21 extends PackageParser {
             }
             return (PackageInfo) method.invoke(null, mPackage, gids, flags, firstInstallTime, lastUpdateTime, grantedPermissionsArray, mDefaultPackageUserState, mUserId);
         } catch (NoSuchMethodException e) {
-            Log.i(TAG, "get generatePackageInfo 3 fail", e);
+            Logger.w(TAG, "get generatePackageInfo 3 fail", e);
         }
 
         throw new NoSuchMethodException("Can not found method generatePackageInfo");

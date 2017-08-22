@@ -15,3 +15,28 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+-dontwarn com.reginald.pluginm.**
+
+-keep class android.os.* {
+    <methods>;
+    <fields>;
+}
+-keep class android.util.* {
+    <methods>;
+    <fields>;
+}
+-keep class android.content.** {
+    <methods>;
+    <fields>;
+}
+
+### Disable known warnings ###
+-dontwarn android.os.**
+-dontwarn android.util.**
+-dontwarn android.content.**
+-dontwarn com.android.internal.**
+-dontwarn android.app.**
+
+
+-keep class com.reginald.pluginm.HostInstrumentation { *; }
+-keep class com.reginald.pluginm.stub.PluginContentResolver { *; }

@@ -10,7 +10,8 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,18 +73,8 @@ public class StubManager {
             e.printStackTrace();
         }
 
-        Log.d(TAG, "init() " + this);
+        Logger.d(TAG, "init() " + this);
 
-    }
-
-    private ProcessInfo getOrCreateProcess(ComponentInfo componentInfo) {
-        String processName = getProcessName(componentInfo);
-        ProcessInfo processInfo = mProcessInfoMap.get(processName);
-        if (processInfo == null) {
-            processInfo = new ProcessInfo(processName);
-            mProcessInfoMap.put(processName, processInfo);
-        }
-        return processInfo;
     }
 
     private StubManager(Context context) {
@@ -135,6 +126,16 @@ public class StubManager {
         return null;
     }
 
+    private ProcessInfo getOrCreateProcess(ComponentInfo componentInfo) {
+        String processName = getProcessName(componentInfo);
+        ProcessInfo processInfo = mProcessInfoMap.get(processName);
+        if (processInfo == null) {
+            processInfo = new ProcessInfo(processName);
+            mProcessInfoMap.put(processName, processInfo);
+        }
+        return processInfo;
+    }
+
     /**
      * TODO 考虑插件进程模式的设计
      * @param componentInfo
@@ -158,8 +159,8 @@ public class StubManager {
         }
     }
 
-    private static class ProcessInfo {
-        private final String mProcessName;
+    public static class ProcessInfo {
+        public final String processName;
 
         private Map<String, ActivityInfo> mStubActivityMap = new HashMap<>();
         private Map<String, ServiceInfo> mStubServiceMap = new HashMap<>();
@@ -168,7 +169,7 @@ public class StubManager {
         private Map<String, HashSet<ActivityInfo>> mStubTargetActivityMap = new HashMap<>();
 
         public ProcessInfo(String packageName) {
-            mProcessName = packageName;
+            processName = packageName;
         }
 
         public void addStubActivity(ActivityInfo activityInfo) {
@@ -198,7 +199,7 @@ public class StubManager {
         @Override
         public String toString() {
             return String.format("ProcessInfo[ mProcessName = %s, mStubActivityMap = %s, mStubServiceMap = %s, mStubProviderMap = %s ]",
-                    mProcessName, mStubActivityMap, mStubServiceMap, mStubProviderMap);
+                    processName, mStubActivityMap, mStubServiceMap, mStubProviderMap);
         }
     }
 

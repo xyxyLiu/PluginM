@@ -20,7 +20,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -80,7 +81,7 @@ final class MultiDexExtractor {
      */
     static List<File> load(Context context, ApplicationInfo applicationInfo, File dexDir,
             boolean forceReload) throws IOException {
-        Log.i(TAG, "MultiDexExtractor.load(" + applicationInfo.sourceDir + ", " + forceReload + ")");
+        Logger.i(TAG, "MultiDexExtractor.load(" + applicationInfo.sourceDir + ", " + forceReload + ")");
         final File sourceApk = new File(applicationInfo.sourceDir);
 
         long currentCrc = getZipCrc(sourceApk);
@@ -90,25 +91,25 @@ final class MultiDexExtractor {
             try {
                 files = loadExistingExtractions(context, sourceApk, dexDir);
             } catch (IOException ioe) {
-                Log.w(TAG, "Failed to reload existing extracted secondary dex files,"
+                Logger.w(TAG, "Failed to reload existing extracted secondary dex files,"
                         + " falling back to fresh extraction", ioe);
                 files = performExtractions(sourceApk, dexDir);
                 putStoredApkInfo(context, getTimeStamp(sourceApk), currentCrc, files.size() + 1);
 
             }
         } else {
-            Log.i(TAG, "Detected that extraction must be performed.");
+            Logger.i(TAG, "Detected that extraction must be performed.");
             files = performExtractions(sourceApk, dexDir);
             putStoredApkInfo(context, getTimeStamp(sourceApk), currentCrc, files.size() + 1);
         }
 
-        Log.i(TAG, "load found " + files.size() + " secondary dex files");
+        Logger.i(TAG, "load found " + files.size() + " secondary dex files");
         return files;
     }
 
     private static List<File> loadExistingExtractions(Context context, File sourceApk, File dexDir)
             throws IOException {
-        Log.i(TAG, "loading existing secondary dex files");
+        Logger.i(TAG, "loading existing secondary dex files");
 
         final String extractedFilePrefix = sourceApk.getName() + EXTRACTED_NAME_EXT;
         int totalDexNumber = getMultiDexPreferences(context).getInt(KEY_DEX_NUMBER, 1);
@@ -120,7 +121,7 @@ final class MultiDexExtractor {
             if (extractedFile.isFile()) {
                 files.add(extractedFile);
                 if (!verifyZipFile(extractedFile)) {
-                    Log.i(TAG, "Invalid zip file: " + extractedFile);
+                    Logger.i(TAG, "Invalid zip file: " + extractedFile);
                     throw new IOException("Invalid ZIP file.");
                 }
             } else {
@@ -181,7 +182,7 @@ final class MultiDexExtractor {
                 File extractedFile = new File(dexDir, fileName);
                 files.add(extractedFile);
 
-                Log.i(TAG, "Extraction is needed for file " + extractedFile);
+                Logger.i(TAG, "Extraction is needed for file " + extractedFile);
                 int numAttempts = 0;
                 boolean isExtractionSuccessful = false;
                 while (numAttempts < MAX_EXTRACT_ATTEMPTS && !isExtractionSuccessful) {
@@ -195,14 +196,14 @@ final class MultiDexExtractor {
                     isExtractionSuccessful = verifyZipFile(extractedFile);
 
                     // Log the sha1 of the extracted zip file
-                    Log.i(TAG, "Extraction " + (isExtractionSuccessful ? "success" : "failed") +
+                    Logger.i(TAG, "Extraction " + (isExtractionSuccessful ? "success" : "failed") +
                             " - length " + extractedFile.getAbsolutePath() + ": " +
                             extractedFile.length());
                     if (!isExtractionSuccessful) {
                         // Delete the extracted file
                         extractedFile.delete();
                         if (extractedFile.exists()) {
-                            Log.w(TAG, "Failed to delete corrupted secondary dex '" +
+                            Logger.w(TAG, "Failed to delete corrupted secondary dex '" +
                                     extractedFile.getPath() + "'");
                         }
                     }
@@ -219,7 +220,7 @@ final class MultiDexExtractor {
             try {
                 apk.close();
             } catch (IOException e) {
-                Log.w(TAG, "Failed to close resource", e);
+                Logger.w(TAG, "Failed to close resource", e);
             }
         }
 
@@ -267,16 +268,16 @@ final class MultiDexExtractor {
         };
         File[] files = dexDir.listFiles(filter);
         if (files == null) {
-            Log.w(TAG, "Failed to list secondary dex dir content (" + dexDir.getPath() + ").");
+            Logger.w(TAG, "Failed to list secondary dex dir content (" + dexDir.getPath() + ").");
             return;
         }
         for (File oldFile : files) {
-            Log.i(TAG, "Trying to delete old file " + oldFile.getPath() + " of size " +
+            Logger.i(TAG, "Trying to delete old file " + oldFile.getPath() + " of size " +
                     oldFile.length());
             if (!oldFile.delete()) {
-                Log.w(TAG, "Failed to delete old file " + oldFile.getPath());
+                Logger.w(TAG, "Failed to delete old file " + oldFile.getPath());
             } else {
-                Log.i(TAG, "Deleted old file " + oldFile.getPath());
+                Logger.i(TAG, "Deleted old file " + oldFile.getPath());
             }
         }
     }
@@ -288,7 +289,7 @@ final class MultiDexExtractor {
         ZipOutputStream out = null;
         File tmp = File.createTempFile(extractedFilePrefix, EXTRACTED_SUFFIX,
                 extractTo.getParentFile());
-        Log.i(TAG, "Extracting " + tmp.getPath());
+        Logger.i(TAG, "Extracting " + tmp.getPath());
         try {
             out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmp)));
             try {
@@ -307,7 +308,7 @@ final class MultiDexExtractor {
             } finally {
                 out.close();
             }
-            Log.i(TAG, "Renaming to " + extractTo.getPath());
+            Logger.i(TAG, "Renaming to " + extractTo.getPath());
             if (!tmp.renameTo(extractTo)) {
                 throw new IOException("Failed to rename \"" + tmp.getAbsolutePath() +
                         "\" to \"" + extractTo.getAbsolutePath() + "\"");
@@ -328,12 +329,12 @@ final class MultiDexExtractor {
                 zipFile.close();
                 return true;
             } catch (IOException e) {
-                Log.w(TAG, "Failed to close zip file: " + file.getAbsolutePath());
+                Logger.w(TAG, "Failed to close zip file: " + file.getAbsolutePath());
             }
         } catch (ZipException ex) {
-            Log.w(TAG, "File " + file.getAbsolutePath() + " is not a valid zip file.", ex);
+            Logger.w(TAG, "File " + file.getAbsolutePath() + " is not a valid zip file.", ex);
         } catch (IOException ex) {
-            Log.w(TAG, "Got an IOException trying to open zip file: " + file.getAbsolutePath(), ex);
+            Logger.w(TAG, "Got an IOException trying to open zip file: " + file.getAbsolutePath(), ex);
         }
         return false;
     }
@@ -345,7 +346,7 @@ final class MultiDexExtractor {
         try {
             closeable.close();
         } catch (IOException e) {
-            Log.w(TAG, "Failed to close resource", e);
+            Logger.w(TAG, "Failed to close resource", e);
         }
     }
 

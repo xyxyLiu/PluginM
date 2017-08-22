@@ -9,6 +9,7 @@ import android.util.Log;
 import android.util.LogPrinter;
 
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.File;
 import java.util.List;
@@ -30,7 +31,6 @@ public class ApkParser {
                 pluginInfo.pkgParser = pluginPackageParser;
                 pluginInfo.packageName = pluginPackageParser.getPackageName();
                 pluginInfo.applicationInfo = pluginPackageParser.getApplicationInfo(0);
-
                 //test:
                 showPluginInfo(pluginInfo.pkgParser);
 
@@ -47,55 +47,55 @@ public class ApkParser {
     private static void showPluginInfo(PluginPackageParser pluginPackageParser) {
         // test
         try {
-            Log.d(TAG, "\n## packageInfo.packageInfo.applicationInfo: ");
+            Logger.d(TAG, "\n## packageInfo.packageInfo.applicationInfo: ");
             pluginPackageParser.getApplicationInfo(0).dump(new LogPrinter(Log.DEBUG, TAG), "");
-            Log.d(TAG, "\n\n");
+            Logger.d(TAG, "\n\n");
 
             List<ActivityInfo> activityInfoList = pluginPackageParser.getActivities();
             if (activityInfoList != null) {
-                Log.d(TAG, "\n## packageInfo.activities: ");
+                Logger.d(TAG, "\n## packageInfo.activities: ");
                 int i = 0;
                 for (ActivityInfo activityInfo : activityInfoList) {
-                    Log.d(TAG, "packageInfo.activitie No." + ++i);
+                    Logger.d(TAG, "packageInfo.activitie No." + ++i);
                     activityInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
-                    Log.d(TAG, "\n");
+                    Logger.d(TAG, "\n");
                 }
             }
 
             List<ServiceInfo> serviceInfos = pluginPackageParser.getServices();
             if (serviceInfos != null) {
-                Log.d(TAG, "\n## packageInfo.services: ");
+                Logger.d(TAG, "\n## packageInfo.services: ");
                 int i = 0;
                 for (ServiceInfo serviceInfo : serviceInfos) {
-                    Log.d(TAG, "packageInfo.service No." + ++i);
+                    Logger.d(TAG, "packageInfo.service No." + ++i);
                     serviceInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
-                    Log.d(TAG, "\n");
+                    Logger.d(TAG, "\n");
                 }
             }
 
             List<ActivityInfo> receivers = pluginPackageParser.getReceivers();
             if (receivers != null) {
-                Log.d(TAG, "\n## packageInfo.receivers: ");
+                Logger.d(TAG, "\n## packageInfo.receivers: ");
                 int i = 0;
                 for (ActivityInfo receiverInfo : receivers) {
-                    Log.d(TAG, "packageInfo.receiver No." + ++i);
+                    Logger.d(TAG, "packageInfo.receiver No." + ++i);
                     receiverInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
-                    Log.d(TAG, "\n");
+                    Logger.d(TAG, "\n");
                 }
             }
 
             List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
             if (providerInfos != null) {
-                Log.d(TAG, "\n## packageInfo.providers: ");
+                Logger.d(TAG, "\n## packageInfo.providers: ");
                 int i = 0;
                 for (ProviderInfo providerInfo : providerInfos) {
-                    Log.d(TAG, "packageInfo.provider No." + ++i);
+                    Logger.d(TAG, "packageInfo.provider No." + ++i);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                         providerInfo.dump(new LogPrinter(Log.DEBUG, TAG), "");
                     } else {
-                        Log.d(TAG, " " + providerInfo);
+                        Logger.d(TAG, " " + providerInfo);
                     }
-                    Log.d(TAG, "\n");
+                    Logger.d(TAG, "\n");
                 }
             }
 

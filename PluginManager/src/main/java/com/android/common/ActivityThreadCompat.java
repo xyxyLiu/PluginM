@@ -1,6 +1,5 @@
 package com.android.common;
 
-import android.content.ContentProvider;
 import android.content.Context;
 import android.content.pm.ProviderInfo;
 import android.os.Build;
@@ -9,8 +8,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
-import android.util.Log;
 
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,7 +29,7 @@ public class ActivityThreadCompat {
         try {
             sClass_ActivityThread = Class.forName("android.app.ActivityThread");
         } catch (ClassNotFoundException e) {
-            if (DEBUG) Log.w(TAG, "class not found", e);
+            Logger.w(TAG, "class not found", e);
         }
     }
 
@@ -47,7 +46,7 @@ public class ActivityThreadCompat {
             // public static ActivityThread currentActivityThread()
             sMtd_currentActivityThread = sClass_ActivityThread.getMethod("currentActivityThread");
         } catch (NoSuchMethodException e) {
-            if (DEBUG) Log.w(TAG, "method not found", e);
+            Logger.w(TAG, "method not found", e);
         }
     }
 
@@ -73,9 +72,9 @@ public class ActivityThreadCompat {
             try {
                 return sMtd_currentActivityThread.invoke(null);
             } catch (IllegalAccessException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #currentActivityThread()", e);
+                Logger.w(TAG, "failed to invoke #currentActivityThread()", e);
             } catch (InvocationTargetException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #currentActivityThread() more", e);
+                Logger.w(TAG, "failed to invoke #currentActivityThread() more", e);
             }
         }
         return null;
@@ -90,7 +89,7 @@ public class ActivityThreadCompat {
             // public String getProcessName()
             sMtd_getProcessName = sClass_ActivityThread.getMethod("getProcessName");
         } catch (NoSuchMethodException e) {
-            if (DEBUG) Log.w(TAG, "method not found", e);
+            Logger.w(TAG, "method not found", e);
         }
     }
 
@@ -108,9 +107,9 @@ public class ActivityThreadCompat {
             try {
                 return (String) sMtd_getProcessName.invoke(activityThread);
             } catch (IllegalAccessException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #getProcessName()", e);
+                Logger.w(TAG, "failed to invoke #getProcessName()", e);
             } catch (InvocationTargetException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #getProcessName() more", e);
+                Logger.w(TAG, "failed to invoke #getProcessName() more", e);
             }
         }
         return null;
@@ -129,7 +128,7 @@ public class ActivityThreadCompat {
             // public static String currentProcessName()
             sMtd_currentProcessName = sClass_ActivityThread.getMethod("currentProcessName");
         } catch (NoSuchMethodException e) {
-            if (DEBUG) Log.w(TAG, "method not found", e);
+            Logger.w(TAG, "method not found", e);
         }
     }
 
@@ -151,9 +150,9 @@ public class ActivityThreadCompat {
             try {
                 return (String) sMtd_currentProcessName.invoke(null);
             } catch (IllegalAccessException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #getProcessName()", e);
+                Logger.w(TAG, "failed to invoke #getProcessName()", e);
             } catch (InvocationTargetException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #getProcessName() more", e);
+                Logger.w(TAG, "failed to invoke #getProcessName() more", e);
             }
         }
         return null;
@@ -191,7 +190,7 @@ public class ActivityThreadCompat {
             sMtd_installContentProviders = sClass_ActivityThread.getDeclaredMethod("installContentProviders", Context.class, List.class);
             sMtd_installContentProviders.setAccessible(true);
         } catch (NoSuchMethodException e) {
-            if (DEBUG) Log.w(TAG, "method not found", e);
+            Logger.w(TAG, "method not found", e);
         }
     }
 
@@ -201,9 +200,9 @@ public class ActivityThreadCompat {
             try {
                 sMtd_installContentProviders.invoke(currentActivityThread(), context, providers);
             } catch (IllegalAccessException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #installContentProviders()", e);
+                Logger.w(TAG, "failed to invoke #installContentProviders()", e);
             } catch (InvocationTargetException e) {
-                if (DEBUG) Log.w(TAG, "failed to invoke #installContentProviders() more", e);
+                Logger.w(TAG, "failed to invoke #installContentProviders() more", e);
             }
         }
     }

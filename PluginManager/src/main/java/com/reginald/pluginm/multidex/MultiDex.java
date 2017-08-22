@@ -22,7 +22,8 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,9 +90,9 @@ public final class MultiDex {
      * extension.
      */
     public static void install(Context context) {
-        Log.i(TAG, "loadPlugin");
+        Logger.i(TAG, "loadPlugin");
         if (IS_VM_MULTIDEX_CAPABLE) {
-            Log.i(TAG, "VM has multidex support, MultiDex support library is disabled.");
+            Logger.i(TAG, "VM has multidex support, MultiDex support library is disabled.");
             return;
         }
 
@@ -115,7 +116,7 @@ public final class MultiDex {
                 installedApk.add(apkPath);
 
                 if (Build.VERSION.SDK_INT > MAX_SUPPORTED_SDK_VERSION) {
-                    Log.w(TAG, "MultiDex is not guaranteed to work in SDK version "
+                    Logger.w(TAG, "MultiDex is not guaranteed to work in SDK version "
                             + Build.VERSION.SDK_INT + ": SDK version higher than "
                             + MAX_SUPPORTED_SDK_VERSION + " should be backed by "
                             + "runtime with built-in multidex capabilty but it's not the "
@@ -136,13 +137,13 @@ public final class MultiDex {
                      * a android.test.mock.MockContext or a android.content.ContextWrapper with a
                      * null base Context.
                      */
-                    Log.w(TAG, "Failure while trying to obtain Context class loader. " +
+                    Logger.w(TAG, "Failure while trying to obtain Context class loader. " +
                             "Must be running in test mode. Skip patching.", e);
                     return;
                 }
                 if (loader == null) {
                     // Note, the context class loader is null when running Robolectric tests.
-                    Log.e(TAG,
+                    Logger.e(TAG,
                             "Context class loader is null. Must be running in test mode. "
                                     + "Skip patching.");
                     return;
@@ -151,7 +152,7 @@ public final class MultiDex {
                 try {
                     clearOldDexDir(context);
                 } catch (Throwable t) {
-                    Log.w(TAG, "Something went wrong when trying to clear old MultiDex extraction, "
+                    Logger.w(TAG, "Something went wrong when trying to clear old MultiDex extraction, "
                             + "continuing without cleaning.", t);
                 }
 
@@ -160,7 +161,7 @@ public final class MultiDex {
                 if (checkValidZipFiles(files)) {
                     installSecondaryDexes(loader, dexDir, files);
                 } else {
-                    Log.w(TAG, "Files were not valid zip files.  Forcing a reload.");
+                    Logger.w(TAG, "Files were not valid zip files.  Forcing a reload.");
                     // Try again, but this time force a reload of the zip file.
                     files = MultiDexExtractor.load(context, applicationInfo, dexDir, true);
 
@@ -174,10 +175,10 @@ public final class MultiDex {
             }
 
         } catch (Exception e) {
-            Log.e(TAG, "Multidex installation failure", e);
+            Logger.e(TAG, "Multidex installation failure", e);
             throw new RuntimeException("Multi dex installation failed (" + e.getMessage() + ").");
         }
-        Log.i(TAG, "loadPlugin done");
+        Logger.i(TAG, "loadPlugin done");
     }
 
     private static ApplicationInfo getApplicationInfo(Context context)
@@ -192,7 +193,7 @@ public final class MultiDex {
              * a android.test.mock.MockContext or a android.content.ContextWrapper with a null
              * base Context.
              */
-            Log.w(TAG, "Failure while trying to obtain ApplicationInfo from Context. " +
+            Logger.w(TAG, "Failure while trying to obtain ApplicationInfo from Context. " +
                     "Must be running in test mode. Skip patching.", e);
             return null;
         }
@@ -227,7 +228,7 @@ public final class MultiDex {
                 }
             }
         }
-        Log.i(TAG, "VM with version " + versionString +
+        Logger.i(TAG, "VM with version " + versionString +
                 (isMultidexCapable ?
                         " has multidex support" :
                         " does not have multidex support"));
@@ -338,25 +339,25 @@ public final class MultiDex {
     private static void clearOldDexDir(Context context) throws Exception {
         File dexDir = new File(context.getFilesDir(), OLD_SECONDARY_FOLDER_NAME);
         if (dexDir.isDirectory()) {
-            Log.i(TAG, "Clearing old secondary dex dir (" + dexDir.getPath() + ").");
+            Logger.i(TAG, "Clearing old secondary dex dir (" + dexDir.getPath() + ").");
             File[] files = dexDir.listFiles();
             if (files == null) {
-                Log.w(TAG, "Failed to list secondary dex dir content (" + dexDir.getPath() + ").");
+                Logger.w(TAG, "Failed to list secondary dex dir content (" + dexDir.getPath() + ").");
                 return;
             }
             for (File oldFile : files) {
-                Log.i(TAG, "Trying to delete old file " + oldFile.getPath() + " of size "
+                Logger.i(TAG, "Trying to delete old file " + oldFile.getPath() + " of size "
                         + oldFile.length());
                 if (!oldFile.delete()) {
-                    Log.w(TAG, "Failed to delete old file " + oldFile.getPath());
+                    Logger.w(TAG, "Failed to delete old file " + oldFile.getPath());
                 } else {
-                    Log.i(TAG, "Deleted old file " + oldFile.getPath());
+                    Logger.i(TAG, "Deleted old file " + oldFile.getPath());
                 }
             }
             if (!dexDir.delete()) {
-                Log.w(TAG, "Failed to delete secondary dex dir " + dexDir.getPath());
+                Logger.w(TAG, "Failed to delete secondary dex dir " + dexDir.getPath());
             } else {
-                Log.i(TAG, "Deleted old secondary dex dir " + dexDir.getPath());
+                Logger.i(TAG, "Deleted old secondary dex dir " + dexDir.getPath());
             }
         }
     }
@@ -383,7 +384,7 @@ public final class MultiDex {
                     suppressedExceptions));
             if (suppressedExceptions.size() > 0) {
                 for (IOException e : suppressedExceptions) {
-                    Log.w(TAG, "Exception in makeDexElement", e);
+                    Logger.w(TAG, "Exception in makeDexElement", e);
                 }
                 Field suppressedExceptionsField =
                         findField(loader, "dexElementsSuppressedExceptions");

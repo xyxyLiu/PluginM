@@ -10,14 +10,13 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.stub.PluginContentResolver;
 import com.reginald.pluginm.stub.PluginServiceConnection;
 import com.reginald.pluginm.stub.PluginStubMainService;
+import com.reginald.pluginm.utils.Logger;
 
 /**
  * Created by lxy on 16-6-28.
@@ -38,7 +37,7 @@ public class PluginContext extends ContextThemeWrapper {
     public PluginContext(PluginInfo pluginInfo, Context baseContext) {
         // test theme
         super(baseContext, pluginInfo.applicationInfo.theme);
-        Log.d(TAG, "PluginActivityContext() pluginInfo = " + pluginInfo);
+        Logger.d(TAG, "PluginActivityContext() pluginInfo = " + pluginInfo);
         mBaseContext = baseContext;
         mPluginInfo = pluginInfo;
         mApkPath = pluginInfo.apkPath;
@@ -79,7 +78,7 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public Resources.Theme getTheme() {
-        Log.d(TAG, "getTheme()");
+        Logger.d(TAG, "getTheme()");
         Resources.Theme theme = mPluginInfo.resources.newTheme();
         theme.applyStyle(mPluginInfo.applicationInfo.theme, false);
         return theme;
@@ -133,7 +132,7 @@ public class PluginContext extends ContextThemeWrapper {
                 finalAction += pluginAppendedAction;
             }
             pluginIntent.setAction(finalAction);
-            Log.d(TAG, "plugin bindService() intent = " + intent);
+            Logger.d(TAG, "plugin bindService() intent = " + intent);
             return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
         } else {
             return super.bindService(intent, conn, flags);

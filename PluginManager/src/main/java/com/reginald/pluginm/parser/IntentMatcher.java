@@ -34,7 +34,8 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
-import android.util.Log;
+
+import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -437,9 +438,9 @@ public class IntentMatcher {
     }
 
     private static void queryIntentServiceForPackage(Context context, PluginPackageParser packageParser, Intent intent, int flags, List<ResolveInfo> outList) throws Exception {
-        Log.d(TAG, "queryIntentServiceForPackage() intent = " + intent);
+        Logger.d(TAG, "queryIntentServiceForPackage() intent = " + intent);
         List<ServiceInfo> serviceInfos = packageParser.getServices();
-        Log.d(TAG, "queryIntentServiceForPackage() serviceInfos = " + serviceInfos);
+        Logger.d(TAG, "queryIntentServiceForPackage() serviceInfos = " + serviceInfos);
         if (serviceInfos != null && serviceInfos.size() >= 0) {
             for (ServiceInfo serviceInfo : serviceInfos) {
                 ComponentName className = new ComponentName(serviceInfo.packageName, serviceInfo.name);

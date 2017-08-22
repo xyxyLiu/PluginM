@@ -1,6 +1,6 @@
 package com.reginald.pluginm;
 
-import android.util.Log;
+import com.reginald.pluginm.utils.Logger;
 
 import dalvik.system.DexClassLoader;
 
@@ -15,27 +15,27 @@ public class PluginDexClassLoader extends DexClassLoader {
 
     public PluginDexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent) {
         super(dexPath, optimizedDirectory, libraryPath, parent);
-        Log.d(TAG, "PluginDexClassLoader() " + this);
-        Log.d(TAG, "PluginDexClassLoader() parent = " + parent);
+        Logger.d(TAG, "PluginDexClassLoader() " + this);
+        Logger.d(TAG, "PluginDexClassLoader() parent = " + parent);
 //        try {
-//            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager = " + parent.loadClass("com.example.multidexmodeplugin.DexClassLoaderPluginManager"));
+//            Logger.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager = " + parent.loadClass("com.example.multidexmodeplugin.DexClassLoaderPluginManager"));
 //        } catch (Exception e) {
-//            Log.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
+//            Logger.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
 //        }
         testparent = parent;
     }
 
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
-        Log.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
+        Logger.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
 //        try {
-//            Log.d(TAG, "loadClass() try parent load = " + testparent.loadClass(className));
+//            Logger.d(TAG, "loadClass() try parent load = " + testparent.loadClass(className));
 //        } catch (Exception e ){
 //            e.printStackTrace();
-//            Log.d(TAG, "loadClass() try parent load error! ");
+//            Logger.d(TAG, "loadClass() try parent load error! ");
 //        }
 
 //        Class<?> clazz = findLoadedClass(className);
-//        Log.d(TAG, "loadClass() findLoadedClass = " +clazz);
+//        Logger.d(TAG, "loadClass() findLoadedClass = " +clazz);
 //        if (clazz == null) {
 //            ClassNotFoundException suppressed = null;
 //            try {
@@ -45,11 +45,11 @@ public class PluginDexClassLoader extends DexClassLoader {
 //            }
 //
 //
-//            Log.d(TAG, "loadClass() parent didn't found " +clazz);
+//            Logger.d(TAG, "loadClass() parent didn't found " +clazz);
 //
 //            if (clazz == null) {
 //                try {
-//                    Log.d(TAG, "loadClass() findclass " +clazz);
+//                    Logger.d(TAG, "loadClass() findclass " +clazz);
 //                    clazz = findClass(className);
 //                } catch (ClassNotFoundException e) {
 ////                    e.addSuppressed(suppressed);
@@ -62,10 +62,10 @@ public class PluginDexClassLoader extends DexClassLoader {
 
         try {
             Class<?> clazz = super.loadClass(className, resolve);
-            Log.d(TAG, "loadClass() classname = " + className + " ok!");
+            Logger.d(TAG, "loadClass() classname = " + className + " ok!");
             return clazz;
         } catch (Exception e) {
-            Log.e(TAG, "loadClass() classname = " + className + " fail!");
+            Logger.e(TAG, "loadClass() classname = " + className + " fail!");
             throw e;
         }
     }

@@ -2,8 +2,8 @@ package com.android.common;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.util.Log;
 
+import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 
@@ -33,7 +33,7 @@ public class ContextCompat {
                 if (context instanceof ContextWrapper) {
                     context = ((ContextWrapper)context).getBaseContext();
                 } else {
-                    if (DEBUG) Log.e(TAG, "setOuterContext error context=" + context);
+                    Logger.e(TAG, "setOuterContext error context=" + context);
                     return;
                 }
             }
@@ -41,7 +41,7 @@ public class ContextCompat {
             try {
                 sMethodSetOuterContext.invoke(context, outerContext);
             } catch (Exception e) {
-                if (DEBUG) Log.e(TAG, "setOuterContext fail context=" + context, e);
+                Logger.e(TAG, "setOuterContext fail context=" + context, e);
             }
         }
     }

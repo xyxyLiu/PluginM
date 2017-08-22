@@ -4,9 +4,9 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.example.multidexmodeplugin.IPluginServiceStubBinder;
+import com.reginald.pluginm.utils.Logger;
 
 import java.util.HashMap;
 import java.util.WeakHashMap;
@@ -28,7 +28,7 @@ public class PluginServiceConnection implements ServiceConnection {
     public static PluginServiceConnection getConnection(ServiceConnection conn) {
         synchronized (sConnectionMap) {
             PluginServiceConnection pluginConn = sConnectionMap.get(conn);
-            Log.d(TAG, String.format("getConnection(%s) return %s", conn, pluginConn));
+            Logger.d(TAG, String.format("getConnection(%s) return %s", conn, pluginConn));
             return pluginConn;
         }
     }
@@ -40,7 +40,7 @@ public class PluginServiceConnection implements ServiceConnection {
                 pluginConn = new PluginServiceConnection(conn);
                 sConnectionMap.put(conn, pluginConn);
             }
-            Log.d(TAG, String.format("fetchConnection(%s) return %s", conn, pluginConn));
+            Logger.d(TAG, String.format("fetchConnection(%s) return %s", conn, pluginConn));
             return pluginConn;
         }
     }
@@ -54,7 +54,7 @@ public class PluginServiceConnection implements ServiceConnection {
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        Log.d(TAG, String.format("onServiceConnected(%s, %s)", name, service));
+        Logger.d(TAG, String.format("onServiceConnected(%s, %s)", name, service));
         if (service != null && service.isBinderAlive()) {
             IPluginServiceStubBinder stubBinder = IPluginServiceStubBinder.Stub.asInterface(service);
             try {
@@ -62,9 +62,9 @@ public class PluginServiceConnection implements ServiceConnection {
                 IBinder iBinder = stubBinder.getBinder();
                 if (mBase != null && componentName != null) {
                     ConnectionInfo oldConnectionInfo = mBinderMap.get(componentName);
-                    Log.d(TAG, String.format("onServiceConnected() oldConnectionInfo = %s", oldConnectionInfo));
+                    Logger.d(TAG, String.format("onServiceConnected() oldConnectionInfo = %s", oldConnectionInfo));
                     if (oldConnectionInfo != null && oldConnectionInfo.binder != null && oldConnectionInfo.binder == iBinder) {
-                        Log.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!", componentName, iBinder));
+                        Logger.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!", componentName, iBinder));
                         return;
                     }
 
@@ -79,7 +79,7 @@ public class PluginServiceConnection implements ServiceConnection {
                         death(componentName, oldConnectionInfo.binder, oldConnectionInfo.deathMonitor);
                     }
 
-                    Log.d(TAG, String.format("call %s onServiceConnected(%s , %s)", mBase, componentName, iBinder));
+                    Logger.d(TAG, String.format("call %s onServiceConnected(%s , %s)", mBase, componentName, iBinder));
                     mBase.onServiceConnected(componentName, iBinder);
 
                 }
@@ -96,7 +96,7 @@ public class PluginServiceConnection implements ServiceConnection {
 
     private void death(ComponentName name, IBinder service, IBinder.DeathRecipient deathRecipient) {
         if (mBase != null && name != null) {
-            Log.d(TAG, String.format("call %s onServiceDisconnected(%s , %s, %s)", mBase, name, service, deathRecipient));
+            Logger.d(TAG, String.format("call %s onServiceDisconnected(%s , %s, %s)", mBase, name, service, deathRecipient));
             mBase.onServiceDisconnected(name);
             if (service != null && deathRecipient != null) {
                 service.unlinkToDeath(deathRecipient, 0);
@@ -111,7 +111,7 @@ public class PluginServiceConnection implements ServiceConnection {
         }
 
         public void binderDied() {
-            Log.d(TAG, String.format("binderDied() name = %s, service = %s", mName, mService));
+            Logger.d(TAG, String.format("binderDied() name = %s, service = %s", mName, mService));
             death(mName, mService, this);
             mBinderMap.remove(mName);
         }

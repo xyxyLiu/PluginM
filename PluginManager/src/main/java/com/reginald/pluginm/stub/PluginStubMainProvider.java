@@ -2,23 +2,29 @@ package com.reginald.pluginm.stub;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.IContentProvider;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.text.TextUtils;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.CommonUtils;
+import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.ThreadUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,7 +35,8 @@ public class PluginStubMainProvider extends ContentProvider {
     private static final String EXTRA_BINDER = "extra.binder";
     public static final String METHOD_GET_PROVIDER = "method.get_provider";
 
-    private final Map<String, IContentProvider> mIContentProviderMap = new HashMap<>();
+    private static PluginStubMainProvider sInstance;
+    private final Map<String, ContentProvider> mContentProviderMap = new HashMap<>();
 
     private static Class sContentProviderNativeClass;
 
@@ -43,8 +50,39 @@ public class PluginStubMainProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        Log.d(TAG, "onCreate() ");
+        Logger.d(TAG, "onCreate() ");
+        sInstance = this;
         return true;
+    }
+
+    public static void installProviders(Context hostContext, PluginInfo pluginInfo) {
+        Logger.d(TAG, "installProviders() sInstance = " + sInstance);
+        if (sInstance == null) {
+            throw new RuntimeException("CAN NOT found running stub provider!");
+        }
+
+        List<ProviderInfo> providerInfos = null;
+        try {
+            providerInfos = pluginInfo.pkgParser.getProviders();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        List<ProviderInfo> targetProviderInfos = new ArrayList<>();
+        if (providerInfos != null) {
+            for (ProviderInfo providerInfo : providerInfos) {
+                String currentProcessName = CommonUtils.getProcessName(hostContext, Process.myPid());
+                StubManager.ProcessInfo processInfo = StubManager.getInstance(hostContext).selectStubProcess(providerInfo);
+                if (!TextUtils.isEmpty(currentProcessName) && currentProcessName.equals(processInfo.processName)) {
+                    targetProviderInfos.add(providerInfo);
+                }
+            }
+        }
+
+        Logger.d(TAG, "installProviders() targetProviderInfos = " + targetProviderInfos);
+
+        if (targetProviderInfos != null) {
+            sInstance.installProviders(pluginInfo, targetProviderInfos);
+        }
     }
 
 
@@ -52,7 +90,7 @@ public class PluginStubMainProvider extends ContentProvider {
     @Nullable
     Bundle call(@NonNull String method, @Nullable String arg,
             @Nullable Bundle extras) {
-        Log.d(TAG, "call() method =" + method + ", arg=" + arg);
+        Logger.d(TAG, "call() method =" + method + ", arg=" + arg);
         if (METHOD_GET_PROVIDER.equals(method)) {
             final ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
             final Bundle resultBundle = new Bundle();
@@ -60,7 +98,7 @@ public class PluginStubMainProvider extends ContentProvider {
             ThreadUtils.ensureRunOnMainThread(new Runnable() {
                 @Override
                 public void run() {
-                    PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.applicationInfo);
+                    PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.packageName);
 
                     if (loadedPluginInfo == null) {
                         return;
@@ -68,7 +106,7 @@ public class PluginStubMainProvider extends ContentProvider {
 
                     try {
                         IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
-                        Log.d(TAG, "call() iContentProvider = " + iContentProvider);
+                        Logger.d(TAG, "call() iContentProvider = " + iContentProvider);
                         if (iContentProvider != null) {
                             BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
                             resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
@@ -114,30 +152,36 @@ public class PluginStubMainProvider extends ContentProvider {
 
     private IContentProvider getIContentProvider(@NonNull PluginInfo pluginInfo, @NonNull ProviderInfo providerInfo) {
         if (pluginInfo != null && providerInfo != null) {
-            try {
-                IContentProvider iContentProvider;
-                synchronized (mIContentProviderMap) {
-                    iContentProvider = mIContentProviderMap.get(providerInfo.name);
-                }
-                if (iContentProvider != null) {
-                    return iContentProvider;
-                }
-
-                Log.d(TAG, "getIContentProvider() loadPlugin provider " + providerInfo.name);
-                Class clazz = pluginInfo.classLoader.loadClass(providerInfo.name);
-                ContentProvider contentProvider = (ContentProvider) clazz.newInstance();
-                contentProvider.attachInfo(pluginInfo.baseContext, providerInfo);
-                iContentProvider = ContentProviderCompat.getIContentProvider(contentProvider);
-                synchronized (mIContentProviderMap) {
-                    mIContentProviderMap.put(providerInfo.name, iContentProvider);
-                }
-                return iContentProvider;
-
-            } catch (Exception e) {
-                e.printStackTrace();
+            ContentProvider contentProvider;
+            synchronized (mContentProviderMap) {
+                contentProvider = mContentProviderMap.get(providerInfo.name);
+            }
+            if (contentProvider != null) {
+                return ContentProviderCompat.getIContentProvider(contentProvider);
+            } else {
+                throw new RuntimeException("CAN NOT get IContentProvider for " + providerInfo);
             }
         }
         return null;
+    }
+
+    private void installProviders(PluginInfo pluginInfo, List<ProviderInfo> providerInfos) {
+        if (providerInfos != null) {
+            for (ProviderInfo providerInfo : providerInfos) {
+                try {
+                    Logger.d(TAG, "installProviders() providerInfo = " + providerInfo);
+                    Class clazz = pluginInfo.classLoader.loadClass(providerInfo.name);
+                    ContentProvider contentProvider = (ContentProvider) clazz.newInstance();
+                    contentProvider.attachInfo(pluginInfo.baseContext, providerInfo);
+                    synchronized (mContentProviderMap) {
+                        mContentProviderMap.put(providerInfo.name, contentProvider);
+                    }
+                    Logger.d(TAG, "installProviders() providerInfo ok!");
+                } catch (Exception e) {
+                    Logger.e(TAG, "installProviders() error! providerInfo = " + providerInfo, e);
+                }
+            }
+        }
     }
 
     public static IContentProvider parseIContentProvider(Bundle bundle) {

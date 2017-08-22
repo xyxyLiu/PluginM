@@ -15,6 +15,7 @@ import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Process;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
@@ -25,8 +26,10 @@ import com.reginald.pluginm.hook.IActivityManagerServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
+import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.stub.StubManager;
-import com.reginald.pluginm.stub.Stubs;
+import com.reginald.pluginm.utils.CommonUtils;
+import com.reginald.pluginm.utils.Logger;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -57,8 +60,6 @@ public class PluginManager {
     private static Map<String, PluginPackageParser> sInstalledPkgParser = new HashMap<>();
     private static Map<String, PluginInfo> sLoadedPluginMap = new HashMap<>();
 
-    //TODO 考虑修改实现方式
-    private ActivityInfo mPendingLoadActivity;
     private Context mContext;
 
     public static synchronized PluginManager getInstance(Context hostContext) {
@@ -80,26 +81,26 @@ public class PluginManager {
         return mContext;
     }
 
-    public PluginInfo loadPlugin(ApplicationInfo applicationInfo) {
-        Log.d(TAG, "loadPlugin() applicationInfo = " + applicationInfo);
+    public PluginInfo loadPlugin(String packageName) {
+        Logger.d(TAG, "loadPlugin() packageName = " + packageName);
         try {
-            String pluginPackageName = applicationInfo.packageName;
+            String pluginPackageName = packageName;
             PluginInfo pluginInfo = null;
-            Log.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName);
+            Logger.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName);
             synchronized (sLoadedPluginMap) {
                 pluginInfo = sLoadedPluginMap.get(pluginPackageName);
                 if (pluginInfo != null) {
-                    Log.d(TAG, "loadPlugin() found loaded pluginInfo " + pluginInfo);
+                    Logger.d(TAG, "loadPlugin() found loaded pluginInfo " + pluginInfo);
                     return pluginInfo;
                 }
             }
 
-            pluginInfo = install(applicationInfo.packageName);
+            pluginInfo = install(packageName);
 
-            Log.d(TAG, "loadPlugin() pluginInfo = " + pluginInfo);
+            Logger.d(TAG, "loadPlugin() pluginInfo = " + pluginInfo);
 
             if (pluginInfo == null) {
-                Log.e(TAG, "loadPlugin() install error with " + pluginInfo);
+                Logger.e(TAG, "loadPlugin() install error with " + pluginInfo);
                 return null;
             }
 
@@ -109,29 +110,29 @@ public class PluginManager {
 
 
             if (!initPlugin(pluginInfo, mContext)) {
-                Log.e(TAG, "loadPlugin() initPlugin error!");
+                Logger.e(TAG, "loadPlugin() initPlugin error!");
                 return null;
             }
 
 
-            Log.d(TAG, "loadPlugin() ok!");
+            Logger.d(TAG, "loadPlugin() ok!");
             return pluginInfo;
         } catch (Exception e) {
-            Log.e(TAG, "loadPlugin() error! exception: " + e);
+            Logger.e(TAG, "loadPlugin() error! exception: " + e);
             e.printStackTrace();
             return null;
         }
     }
 
     private static boolean initPlugin(PluginInfo pluginInfo, Context hostContext) {
-        Log.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
+        Logger.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
 //        if (!initPluginHelper(pluginInfo, hostContext)) {
-//            Log.e(TAG, "initPlugin() initPluginHelper error! ");
+//            Logger.e(TAG, "initPlugin() initPluginHelper error! ");
 //            return false;
 //        }
 
-        if (!initPluginApplication(pluginInfo, hostContext)) {
-            Log.e(TAG, "initPlugin() initPluginApplication error! ");
+        if (!loadPluginApplication(pluginInfo, hostContext)) {
+            Logger.e(TAG, "initPlugin() initPluginApplication error! ");
             return false;
         }
 
@@ -139,7 +140,7 @@ public class PluginManager {
     }
 
 //    private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
-//        Log.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
+//        Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
 //        Class<?> pluginHelperClazz;
 //        try {
 //            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
@@ -156,14 +157,14 @@ public class PluginManager {
 //        return false;
 //    }
 
-    private static boolean initPluginApplication(PluginInfo pluginInfo, Context hostContext) {
-        Log.d(TAG, "initPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
+    private static boolean loadPluginApplication(PluginInfo pluginInfo, Context hostContext) {
+        Logger.d(TAG, "loadPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
         try {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
             pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
 
             ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
-            Log.d(TAG, "initPluginApplication() applicationInfo.name = " + applicationInfo.name);
+            Logger.d(TAG, "loadPluginApplication() applicationInfo.name = " + applicationInfo.name);
 
             if (applicationInfo.className == null) {
                 applicationInfo.className = Application.class.getName();//BasePluginApplication.class.getName();
@@ -176,9 +177,12 @@ public class PluginManager {
             attachMethod.setAccessible(true);
             attachMethod.invoke(pluginInfo.application, pluginInfo.baseContext);
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
+
+            installProviders(hostContext, pluginInfo);
+
             pluginInfo.application.onCreate();
 
-            initStaticReceivers(pluginInfo);
+            loadStaticReceivers(hostContext, pluginInfo);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -186,7 +190,11 @@ public class PluginManager {
         return false;
     }
 
-    private static void initStaticReceivers(PluginInfo pluginInfo) {
+    private static void installProviders(Context hostContext, PluginInfo pluginInfo) {
+        PluginStubMainProvider.installProviders(hostContext, pluginInfo);
+    }
+
+    private static void loadStaticReceivers(Context hostContext, PluginInfo pluginInfo) {
         Map<ActivityInfo, List<IntentFilter>> receiverIntentFilters = pluginInfo.pkgParser.getReceiverIntentFilter();
 
         if (receiverIntentFilters != null) {
@@ -194,61 +202,26 @@ public class PluginManager {
                 ActivityInfo receiverInfo = entry.getKey();
                 List<IntentFilter> intentFilters = entry.getValue();
 
-                try {
-                    BroadcastReceiver receiver = (BroadcastReceiver) pluginInfo.classLoader.loadClass(receiverInfo.name).newInstance();
-                    for (IntentFilter filter : intentFilters) {
-                        pluginInfo.application.registerReceiver(receiver, filter);
+                String currentProcessName = CommonUtils.getProcessName(hostContext, Process.myPid());
+                StubManager.ProcessInfo processInfo = StubManager.getInstance(hostContext).selectStubProcess(receiverInfo);
+
+                if (!TextUtils.isEmpty(currentProcessName) && currentProcessName.equals(processInfo.processName)) {
+                    try {
+                        Logger.d(TAG, "loadStaticReceivers() receiverInfo = " + receiverInfo);
+                        BroadcastReceiver receiver = (BroadcastReceiver) pluginInfo.classLoader.loadClass(receiverInfo.name).newInstance();
+                        int i = 1;
+                        for (IntentFilter filter : intentFilters) {
+                            pluginInfo.application.registerReceiver(receiver, filter);
+                            Logger.d(TAG, "loadStaticReceivers() IntentFilter No." + i++ + " :");
+                            filter.dump(new LogPrinter(Log.DEBUG, "loadStaticReceivers() "), "");
+                            Logger.d(TAG, "loadStaticReceivers() \n");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-
-
-                //test;
-                Log.d(TAG, "initStaticReceivers() receiverInfo = " + receiverInfo);
-                int i = 1;
-                for (IntentFilter intentFilter : intentFilters) {
-                    Log.d(TAG, "initStaticReceivers() IntentFilter No." + i++ + " :");
-                    intentFilter.dump(new LogPrinter(Log.DEBUG, "initStaticReceivers() "), "");
-                    Log.d(TAG, "initStaticReceivers() \n");
-                }
-
             }
         }
-    }
-
-
-    public void registerActivity(ActivityInfo activityInfo) {
-        mPendingLoadActivity = activityInfo;
-    }
-
-    /**
-     * only called by classloader
-     * 目前只有创建插件Activity时有效
-     * @param className
-     * @return
-     * @throws ClassNotFoundException
-     */
-    public Class<?> findPluginClass(String className) throws ClassNotFoundException {
-        Log.d(TAG, "findPluginClass() className = " + className + " ,mPendingLoadActivity = " + mPendingLoadActivity);
-        String targetPackage = null;
-        String targetClass = className;
-
-
-        // replace target class
-        if (className.startsWith(Stubs.Activity.class.getName()) && mPendingLoadActivity != null) {
-            Log.d(TAG, "findPluginClass() mPendingLoadActivity = " + mPendingLoadActivity);
-            targetPackage = mPendingLoadActivity.packageName;
-            targetClass = mPendingLoadActivity.name;
-        }
-
-        Log.d(TAG, "findPluginClass() targetPackage = " + targetPackage + " ,targetClass = " + className);
-
-        if (targetPackage != null && targetClass != null) {
-            return loadPluginClass(targetPackage, targetClass);
-        }
-
-        throw new ClassNotFoundException(className);
     }
 
     /**
@@ -259,7 +232,7 @@ public class PluginManager {
      * @throws ClassNotFoundException
      */
     public static Class<?> loadPluginClass(String packageName, String className) throws ClassNotFoundException {
-        Log.d(TAG, "loadPluginClass() className = " + className);
+        Logger.d(TAG, "loadPluginClass() className = " + className);
         PluginInfo pluginInfo;
         synchronized (sLoadedPluginMap) {
             pluginInfo = sLoadedPluginMap.get(packageName);
@@ -267,16 +240,16 @@ public class PluginManager {
 
         if (pluginInfo != null) {
             ClassLoader pluginClassLoader = pluginInfo.classLoader;
-            Log.d(TAG, "loadPluginClass() pluginClassLoader = " + pluginClassLoader);
+            Logger.d(TAG, "loadPluginClass() pluginClassLoader = " + pluginClassLoader);
             try {
                 Class<?> clazz = pluginClassLoader.loadClass(className);
                 if (clazz != null) {
-                    Log.d(TAG, "loadPluginClass() className = " + className + " success!");
+                    Logger.d(TAG, "loadPluginClass() className = " + className + " success!");
                     return clazz;
                 }
             } catch (Exception e) {
 //                    e.printStackTrace();
-                Log.e(TAG, "loadPluginClass() className = " + className + " fail!");
+                Logger.e(TAG, "loadPluginClass() className = " + className + " fail!");
             }
         }
         throw new ClassNotFoundException(className);
@@ -305,17 +278,14 @@ public class PluginManager {
 
 
     private static void onAttachBaseContext(Application app) {
-        ClassLoader newHostLoader = HostClassLoader.install(app);
-        Log.d(TAG, "onAttachBaseContext() replace host classloader, classloader = " + newHostLoader);
-
         boolean isSuc = IActivityManagerServiceHook.init(app);
-        Log.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
+        Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
 
         Instrumentation newInstrumentation = HostInstrumentation.install(app);
-        Log.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
+        Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
 
         isSuc = HostHCallback.install(app);
-        Log.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
+        Logger.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
     }
 
     //test
@@ -343,27 +313,10 @@ public class PluginManager {
         return install(pluginPackageName, true);
     }
 
-    public ProviderInfo resolveProviderInfo(String name) {
-        Log.d(TAG, "resolveProviderInfo() name = " + name + " ,sInstalledPkgParser = " + sInstalledPkgParser);
-        try {
-            for (PluginPackageParser pluginPackageParser : sInstalledPkgParser.values()) {
-                List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
-                for (ProviderInfo providerInfo : providerInfos) {
-                    Log.d(TAG, "resolveProviderInfo() check providerInfo " + providerInfo);
-                    if (TextUtils.equals(providerInfo.authority, name)) {
-                        return providerInfo;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public Intent getPluginActivityIntent(Intent originIntent) {
         ActivityInfo activityInfo = resolveActivityInfo(originIntent, 0);
-        Log.d(TAG, String.format("getPluginActivityIntent() originIntent = %s, resolved activityInfo = %s",
+        Logger.d(TAG, String.format("getPluginActivityIntent() originIntent = %s, resolved activityInfo = %s",
                 originIntent, activityInfo));
 
         if (activityInfo == null) {
@@ -372,7 +325,7 @@ public class PluginManager {
 
         // make a proxy activity for it:
         ActivityInfo stubActivityInfo = StubManager.getInstance(mContext).selectStubActivity(activityInfo);
-        Log.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s -> stub = %s",
+        Logger.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s -> stub = %s",
                 activityInfo, stubActivityInfo));
 
         if (stubActivityInfo != null) {
@@ -382,7 +335,7 @@ public class PluginManager {
 
             // register class for it:
 //        registerActivity(activityInfo);
-            Log.d(TAG, String.format("getPluginActivityIntent() stubActivityInfo = %s", stubActivityInfo));
+            Logger.d(TAG, String.format("getPluginActivityIntent() stubActivityInfo = %s", stubActivityInfo));
             return intent;
         } else {
             return null;
@@ -391,7 +344,7 @@ public class PluginManager {
 
     public Intent getPluginServiceIntent(Intent originIntent) {
         ServiceInfo serviceInfo = resolveServiceInfo(originIntent, 0);
-        Log.d(TAG, String.format("getPluginServiceIntent() originIntent = %s, resolved serviceInfo = %s",
+        Logger.d(TAG, String.format("getPluginServiceIntent() originIntent = %s, resolved serviceInfo = %s",
                 originIntent, serviceInfo));
 
         if (serviceInfo == null) {
@@ -399,14 +352,14 @@ public class PluginManager {
         }
 
         ServiceInfo stubServiceInfo = StubManager.getInstance(mContext).selectStubService(serviceInfo);
-        Log.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s -> stub = %s",
+        Logger.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s -> stub = %s",
                 serviceInfo, stubServiceInfo));
         if (stubServiceInfo != null) {
             Intent intent = handleOriginalIntent(originIntent);
             intent.setClassName(stubServiceInfo.packageName, stubServiceInfo.name);
             intent.putExtra(EXTRA_INTENT_TARGET_SERVICEINFO, serviceInfo);
 
-            Log.d(TAG, String.format("getPluginServiceIntent() stubServiceInfo = %s", stubServiceInfo));
+            Logger.d(TAG, String.format("getPluginServiceIntent() stubServiceInfo = %s", stubServiceInfo));
             return intent;
         } else {
             return null;
@@ -415,14 +368,14 @@ public class PluginManager {
 
     public Pair<Uri, Bundle> getPluginProviderUri(String auth) {
         ProviderInfo providerInfo = PluginManager.getInstance(mContext).resolveProviderInfo(auth);
-        Log.d(TAG, "getPluginProviderUri() auth = " + auth + ",resolved providerInfo = " + providerInfo);
+        Logger.d(TAG, "getPluginProviderUri() auth = " + auth + ",resolved providerInfo = " + providerInfo);
 
         if (providerInfo == null) {
             return null;
         }
 
         ProviderInfo stubProvider = StubManager.getInstance(mContext).selectStubProvider(providerInfo);
-        Log.d(TAG, String.format("getPluginProviderUri() providerInfo = %s -> stub = %s",
+        Logger.d(TAG, String.format("getPluginProviderUri() providerInfo = %s -> stub = %s",
                 providerInfo, stubProvider));
 
         if (stubProvider != null) {
@@ -454,6 +407,8 @@ public class PluginManager {
 
     private PluginInfo install(String pluginPackageName, boolean isStandAlone) {
         try {
+            Logger.d(TAG, "install() pluginPackageName = " + pluginPackageName);
+
             PluginInfo pluginInfo = null;
             synchronized (sInstalledPluginMap) {
                 pluginInfo = sInstalledPluginMap.get(pluginPackageName);
@@ -467,7 +422,7 @@ public class PluginManager {
                 pluginConfig = sPluginConfigs.get(pluginPackageName);
             }
             if (pluginConfig == null) {
-                Log.d(TAG, "install() pluginPackageName = " + pluginPackageName + " error! no config found!");
+                Logger.d(TAG, "install() pluginPackageName = " + pluginPackageName + " error! no config found!");
                 return null;
             }
 
@@ -478,14 +433,14 @@ public class PluginManager {
             File pluginNativeLibPath = new File(pluginLibPath, pluginPackageName);
 
             if (!apkFile.exists()) {
-                Log.e(TAG, "install() apkFile = " + apkFile.getAbsolutePath() + " NOT exist!");
+                Logger.e(TAG, "install() apkFile = " + apkFile.getAbsolutePath() + " NOT exist!");
                 return null;
             }
 
             ClassLoader parentClassLoader;
 
             // create classloader
-            Log.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
+            Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
 
             if (isStandAlone) {
                 parentClassLoader = mContext.getClassLoader().getParent();
@@ -494,18 +449,19 @@ public class PluginManager {
             }
             DexClassLoader dexClassLoader = new PluginDexClassLoader(
                     apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginNativeLibPath.getAbsolutePath(), parentClassLoader);
-            Log.d(TAG, "install() dexClassLoader = " + dexClassLoader);
-            Log.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
+            Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
+            Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
 
             pluginInfo = ApkParser.parsePluginInfo(mContext, apkFile.getAbsolutePath());
             pluginInfo.classLoader = dexClassLoader;
             pluginInfo.parentClassLoader = parentClassLoader;
+            pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
             pluginInfo.apkPath = apkFile.getAbsolutePath();
             pluginInfo.fileSize = apkFile.length();
-
+            pluginInfo.lastModified = apkFile.lastModified();
 
             PluginPackageManager pluginPackageManager = new PluginPackageManager(mContext, mContext.getPackageManager());
-            Log.d(TAG, "install() pluginPackageManager = " + pluginPackageManager);
+            Logger.d(TAG, "install() pluginPackageManager = " + pluginPackageManager);
             pluginInfo.packageManager = pluginPackageManager;
 
             // install so
@@ -526,31 +482,31 @@ public class PluginManager {
             if (resources != null) {
                 pluginInfo.resources = resources;
             } else {
-                Log.e(TAG, "install() error! resources is null!");
+                Logger.e(TAG, "install() error! resources is null!");
                 return null;
             }
 
 
-            Log.d(TAG, "install() pluginInfo = " + pluginInfo);
+            Logger.d(TAG, "install() pluginInfo = " + pluginInfo);
 
             if (pluginInfo == null) {
-                Log.e(TAG, "install() error! pluginInfo is null!");
+                Logger.e(TAG, "install() error! pluginInfo is null!");
                 return null;
             }
 
             synchronized (sInstalledPkgParser) {
-                Log.d(TAG, "install() sInstalledPkgParser add " + pluginInfo.packageName);
+                Logger.d(TAG, "install() sInstalledPkgParser add " + pluginInfo.packageName);
                 sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
             }
 
             synchronized (sInstalledPluginMap) {
-                Log.d(TAG, "install() sInstalledPluginMap add " + pluginInfo.packageName);
+                Logger.d(TAG, "install() sInstalledPluginMap add " + pluginInfo.packageName);
                 sInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
 
             return pluginInfo;
         } catch (Exception e) {
-            Log.e(TAG, "install() error! exception: " + e);
+            Logger.e(TAG, "install() error! exception: " + e);
             e.printStackTrace();
             return null;
         }
@@ -595,8 +551,26 @@ public class PluginManager {
         return null;
     }
 
+    public ProviderInfo resolveProviderInfo(String name) {
+        Logger.d(TAG, "resolveProviderInfo() name = " + name + " ,sInstalledPkgParser = " + sInstalledPkgParser);
+        try {
+            for (PluginPackageParser pluginPackageParser : sInstalledPkgParser.values()) {
+                List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
+                for (ProviderInfo providerInfo : providerInfos) {
+                    Logger.d(TAG, "resolveProviderInfo() check providerInfo " + providerInfo);
+                    if (TextUtils.equals(providerInfo.authority, name)) {
+                        return providerInfo;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public ActivityInfo getActivityInfo(ComponentName componentName, int flags) {
-        Log.d(TAG, "getActivityInfo() componentName = " + componentName);
+        Logger.d(TAG, "getActivityInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
         if (pluginPackageParser == null) {
@@ -613,7 +587,7 @@ public class PluginManager {
     }
 
     public ServiceInfo getServiceInfo(ComponentName componentName, int flags) {
-        Log.d(TAG, "getServiceInfo() componentName = " + componentName);
+        Logger.d(TAG, "getServiceInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
         if (pluginPackageParser == null) {
@@ -630,7 +604,7 @@ public class PluginManager {
     }
 
     public ActivityInfo getReceiverInfo(ComponentName componentName, int flags) {
-        Log.d(TAG, "getActivityInfo() componentName = " + componentName);
+        Logger.d(TAG, "getActivityInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
         if (pluginPackageParser == null) {
@@ -648,7 +622,7 @@ public class PluginManager {
     }
 
     public ProviderInfo getProviderInfo(ComponentName componentName, int flags) {
-        Log.d(TAG, "getProviderInfo() componentName = " + componentName);
+        Logger.d(TAG, "getProviderInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
         if (pluginPackageParser == null) {
@@ -685,11 +659,11 @@ public class PluginManager {
 
         // 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        Log.d(TAG, "getPackageNameCompat(): ");
+        Logger.d(TAG, "getPackageNameCompat(): ");
         int i = 0;
         int lookupIndex = -1;
         for (StackTraceElement stackTraceElement : stackTraceElements) {
-            Log.d(TAG, "#  " + stackTraceElement.toString());
+            Logger.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();
             if (i >= lookupIndex && className.equals("android.content.ContextWrapper") &&
@@ -712,7 +686,7 @@ public class PluginManager {
             i++;
         }
 
-        Log.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
+        Logger.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
         return pkg;
     }
 }

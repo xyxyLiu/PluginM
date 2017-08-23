@@ -16,11 +16,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.nineoldandroids.animation.AnimatorSet;
-import com.reginald.pluginm.MultiDexPluginManager;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.core.MultiDexPluginManager;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class HostMainActivity extends AppCompatActivity {
 
@@ -36,10 +37,10 @@ public class HostMainActivity extends AppCompatActivity {
     private Button mBtn3;
     private Button mBtn4;
 
-    private PluginManager mPluginManager;
-
     public static final String BROADCAST_ACTION_1 = "host_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "host_broadcast_test_2";
+
+    private static Map<String, PluginConfig> sPluginConfigs = PluginConfigsUtil.getPluginConfigs();
 
     private static BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -110,13 +111,13 @@ public class HostMainActivity extends AppCompatActivity {
     }
 
     private void testDexCLassLoaderModePlugin() {
-        mPluginManager = PluginManager.getInstance(getApplicationContext());
-//
-//        mLoadModeText.setText("loadmode = DexCLassLoader");
+        PluginInfo pluginInfo = null;
         String pluginPackageName = "com.example.testplugin";
-        PluginInfo pluginInfo = mPluginManager.install(pluginPackageName);
-//
-        Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (pluginInfo != null ? "ok!":"error!"), Toast.LENGTH_SHORT).show();
+        PluginConfig pluginConfig = sPluginConfigs.get(pluginPackageName);
+        if (pluginConfig != null) {
+            pluginInfo = PluginM.install(pluginConfig.apkPath);
+        }
+        Toast.makeText(this, "plugin " + pluginPackageName + " loadPlugin " + (pluginInfo != null ? "ok!" : "error!"), Toast.LENGTH_SHORT).show();
 
         try {
 //            Class<?> clazz = mPluginManager.loadPluginClass("com.example.testplugin", "com.example.testplugin.TestUtils");
@@ -134,7 +135,7 @@ public class HostMainActivity extends AppCompatActivity {
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
+                    Intent intent = PluginM.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -145,7 +146,7 @@ public class HostMainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent("action.com.example.testplugin.testA");
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
+                    Intent intent = PluginM.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -159,21 +160,26 @@ public class HostMainActivity extends AppCompatActivity {
 //                    Intent hostIntent = new Intent("host_broadcast_test");
 //                    sendBroadcast(hostIntent);
 
-                    String wifiPluginPkg =  "com.youba.WeatherForecast"; // "com.dianxinos.optimizer.plugin.wifimgr";
-                    final PluginInfo installedPluginInfo = mPluginManager.install(wifiPluginPkg);
-                    Toast.makeText(HostMainActivity.this, wifiPluginPkg + " install " + (installedPluginInfo != null ? "ok!":"error!"),
+                    PluginInfo pluginInfo = null;
+                    String pluginPkg = "com.youba.WeatherForecast";// "com.dianxinos.optimizer.plugin.wifimgr";
+                    PluginConfig pluginConfig = sPluginConfigs.get(pluginPkg);
+                    if (pluginConfig != null) {
+                        pluginInfo = PluginM.install(pluginConfig.apkPath);
+                    }
+                    Toast.makeText(HostMainActivity.this, pluginPkg + (pluginConfig != null ? " install " : " config ") +
+                                    (pluginInfo != null ? "ok!" : "error!"),
                             Toast.LENGTH_SHORT).show();
 
-                    if (installedPluginInfo == null) {
+                    if (pluginInfo == null) {
                         return;
                     }
 
                     Intent pluginIntent = new Intent();
-                    pluginIntent.setPackage(wifiPluginPkg);
+                    pluginIntent.setPackage(pluginPkg);
                     pluginIntent.setAction(Intent.ACTION_MAIN);
                     pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = mPluginManager.getPluginActivityIntent(pluginIntent);
+                    Intent intent = PluginM.getPluginActivityIntent(pluginIntent);
                     HostMainActivity.this.startActivity(intent);
                 }
             });
@@ -213,12 +219,12 @@ public class HostMainActivity extends AppCompatActivity {
                     bindService(intent, new ServiceConnection() {
                         @Override
                         public void onServiceConnected(ComponentName name, IBinder service) {
-                            Log.d(TAG,"onServiceConnected() " + this);
+                            Log.d(TAG, "onServiceConnected() " + this);
                         }
 
                         @Override
                         public void onServiceDisconnected(ComponentName name) {
-                            Log.d(TAG,"onServiceDisconnected()" + this);
+                            Log.d(TAG, "onServiceDisconnected()" + this);
                         }
                     }, BIND_AUTO_CREATE);
                 }

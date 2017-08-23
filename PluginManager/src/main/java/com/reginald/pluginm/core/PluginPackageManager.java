@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.core;
 
 import android.annotation.TargetApi;
 import android.content.ComponentName;
@@ -28,6 +28,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.annotation.XmlRes;
+
+import com.reginald.pluginm.PluginInfo;
 
 import java.util.List;
 

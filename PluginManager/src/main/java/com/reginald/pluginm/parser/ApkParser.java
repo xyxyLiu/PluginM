@@ -2,6 +2,7 @@ package com.reginald.pluginm.parser;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
@@ -23,7 +24,7 @@ public class ApkParser {
 
 
     public static PluginInfo parsePluginInfo(Context context, String apkFile) {
-        PluginPackageParser pluginPackageParser = parsePackage(context, apkFile);
+        PluginPackageParser pluginPackageParser = getPackageParser(context, apkFile);
 
         if (pluginPackageParser != null) {
             try {
@@ -31,6 +32,13 @@ public class ApkParser {
                 pluginInfo.pkgParser = pluginPackageParser;
                 pluginInfo.packageName = pluginPackageParser.getPackageName();
                 pluginInfo.applicationInfo = pluginPackageParser.getApplicationInfo(0);
+
+                PackageInfo packageInfo = pluginPackageParser.getPackageInfo(0);
+                if (packageInfo != null) {
+                    pluginInfo.versionName = packageInfo.versionName;
+                    pluginInfo.versionCode = packageInfo.versionCode;
+                }
+
                 //test:
                 showPluginInfo(pluginInfo.pkgParser);
 
@@ -42,6 +50,10 @@ public class ApkParser {
         }
 
         return null;
+    }
+
+    public static PluginPackageParser getPackageParser(Context context, String apkFile) {
+        return parsePackage(context, apkFile);
     }
 
     private static void showPluginInfo(PluginPackageParser pluginPackageParser) {

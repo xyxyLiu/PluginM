@@ -12,18 +12,16 @@ import android.os.RemoteException;
 
 import com.android.common.ActivityThreadCompat;
 import com.android.common.ContextCompat;
-import com.example.multidexmodeplugin.IPluginServiceStubBinder;
-import com.reginald.pluginm.PluginContext;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.core.PluginContext;
+import com.reginald.pluginm.core.PluginManager;
+import com.reginald.pluginm.core.PluginManagerService;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.reginald.pluginm.PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO;
 
 public class PluginStubMainService extends Service {
 
@@ -48,7 +46,7 @@ public class PluginStubMainService extends Service {
         Logger.d(TAG, "onStartCommand() intent = " + intent);
         if (intent != null) {
             String commandType = intent.getStringExtra(INTENT_EXTRA_START_TYPE_KEY);
-            ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
+            ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
 
             if (serviceInfo != null && commandType != null) {
                 if (commandType.equals(INTENT_EXTRA_START_TYPE_START)) {
@@ -101,7 +99,7 @@ public class PluginStubMainService extends Service {
         Logger.d(TAG, "onBind()");
         showAction(intent);
 
-        ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
+        ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
         if (serviceInfo != null) {
             ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(serviceInfo);
             Logger.d(TAG, "onBind() before pluginServiceRecord = " + pluginServiceRecord);
@@ -140,7 +138,7 @@ public class PluginStubMainService extends Service {
         Logger.d(TAG, "onUnbind()");
         showAction(intent);
 
-        ServiceInfo serviceInfo = intent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
+        ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
         if (serviceInfo != null) {
             ServiceRecord pluginServiceRecord = fetchCachedServiceRecord(serviceInfo);
             Logger.d(TAG, "onUnbind() before pluginServiceRecord = " + pluginServiceRecord);
@@ -212,7 +210,7 @@ public class PluginStubMainService extends Service {
 
     private Intent getOriginalIntent(Intent pluginIntent, Service service) {
         ComponentName componentName = new ComponentName(service.getPackageName(), service.getClass().getName());
-        Intent origIntent = PluginManager.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());
+        Intent origIntent = PluginManagerService.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());
 
         String action = origIntent.getAction();
         if (action != null && action.endsWith(INTENT_ACTION_BIND_PREFIX)) {
@@ -337,7 +335,7 @@ public class PluginStubMainService extends Service {
     }
 
     public static String getPluginAppendAction(Intent pluginIntent) {
-        ServiceInfo serviceInfo = (ServiceInfo) pluginIntent.getParcelableExtra(EXTRA_INTENT_TARGET_SERVICEINFO);
+        ServiceInfo serviceInfo = (ServiceInfo) pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
         if (serviceInfo == null) {
             return null;
         }

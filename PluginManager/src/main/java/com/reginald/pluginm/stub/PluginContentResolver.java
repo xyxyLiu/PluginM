@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Pair;
 
-import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;

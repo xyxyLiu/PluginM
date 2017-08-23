@@ -1,9 +1,7 @@
 package com.example.testhost;
 
-import com.reginald.pluginm.PluginConfig;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by lxy on 16-6-28.
@@ -11,35 +9,35 @@ import java.util.List;
 public class PluginConfigsUtil {
 
 
-    public static List<PluginConfig> getPluginConfigs() {
-        List<PluginConfig> pluginConfigs = new ArrayList<>();
+    public static Map<String, PluginConfig> getPluginConfigs() {
+        Map<String, PluginConfig> pluginConfigsMap = new HashMap<>();
 
 
         PluginConfig pluginConfig1 = new PluginConfig();
         pluginConfig1.apkPath = "testplugin-debug.apk";
         pluginConfig1.packageName = "com.example.testplugin";
         pluginConfig1.desc = "plugin test apk";
-        pluginConfigs.add(pluginConfig1);
+        pluginConfigsMap.put(pluginConfig1.packageName, pluginConfig1);
 
         PluginConfig pluginConfig2 = new PluginConfig();
         pluginConfig2.apkPath = "wifimgr-plugin-test.apk";
         pluginConfig2.packageName = "com.dianxinos.optimizer.plugin.wifimgr";
         pluginConfig2.desc = "plugin wifimgr apk";
-        pluginConfigs.add(pluginConfig2);
+        pluginConfigsMap.put(pluginConfig2.packageName, pluginConfig2);
 
         PluginConfig pluginConfig3 = new PluginConfig();
         pluginConfig3.apkPath = "153e48737f5602ae4d15cbcb2fa46b78.apk";
         pluginConfig3.packageName = "com.youba.WeatherForecast";
         pluginConfig3.desc = "com.youba.WeatherForecast";
-        pluginConfigs.add(pluginConfig3);
+        pluginConfigsMap.put(pluginConfig3.packageName, pluginConfig3);
 
         PluginConfig pluginConfig4 = new PluginConfig();
         pluginConfig4.apkPath = "8d12e7277f64db33a6649883e02d04dc.apk";
         pluginConfig4.packageName = "com.wole56.ishow";
         pluginConfig4.desc = "com.wole56.ishow";
-        pluginConfigs.add(pluginConfig4);
+        pluginConfigsMap.put(pluginConfig4.packageName, pluginConfig4);
 
-        return pluginConfigs;
+        return pluginConfigsMap;
     }
 
 }

@@ -2,27 +2,22 @@ package com.reginald.pluginm.stub;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.IContentProvider;
 import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Process;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
-import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.ThreadUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,31 +50,11 @@ public class PluginStubMainProvider extends ContentProvider {
         return true;
     }
 
-    public static void installProviders(Context hostContext, PluginInfo pluginInfo) {
+    public static void loadProviders(PluginInfo pluginInfo, List<ProviderInfo> targetProviderInfos) {
         Logger.d(TAG, "installProviders() sInstance = " + sInstance);
         if (sInstance == null) {
             throw new RuntimeException("CAN NOT found running stub provider!");
         }
-
-        List<ProviderInfo> providerInfos = null;
-        try {
-            providerInfos = pluginInfo.pkgParser.getProviders();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        List<ProviderInfo> targetProviderInfos = new ArrayList<>();
-        if (providerInfos != null) {
-            for (ProviderInfo providerInfo : providerInfos) {
-                String currentProcessName = CommonUtils.getProcessName(hostContext, Process.myPid());
-                StubManager.ProcessInfo processInfo = StubManager.getInstance(hostContext).selectStubProcess(providerInfo);
-                if (!TextUtils.isEmpty(currentProcessName) && currentProcessName.equals(processInfo.processName)) {
-                    targetProviderInfos.add(providerInfo);
-                }
-            }
-        }
-
-        Logger.d(TAG, "installProviders() targetProviderInfos = " + targetProviderInfos);
-
         if (targetProviderInfos != null) {
             sInstance.installProviders(pluginInfo, targetProviderInfos);
         }
@@ -189,7 +164,7 @@ public class PluginStubMainProvider extends ContentProvider {
             bundle.setClassLoader(BinderParcelable.class.getClassLoader());
             BinderParcelable binderParcelable = bundle.getParcelable(EXTRA_BINDER);
             try {
-                return (IContentProvider) MethodUtils.invokeStaticMethod(sContentProviderNativeClass, "asInterface", binderParcelable.mIBinder);
+                return (IContentProvider) MethodUtils.invokeStaticMethod(sContentProviderNativeClass, "asInterface", binderParcelable.iBinder);
             } catch (Exception e) {
                 e.printStackTrace();
             }

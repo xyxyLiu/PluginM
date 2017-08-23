@@ -127,7 +127,7 @@ public class StubManager {
     }
 
     private ProcessInfo getOrCreateProcess(ComponentInfo componentInfo) {
-        String processName = getProcessName(componentInfo);
+        String processName = getProcessName(componentInfo.processName, componentInfo.packageName);
         ProcessInfo processInfo = mProcessInfoMap.get(processName);
         if (processInfo == null) {
             processInfo = new ProcessInfo(processName);
@@ -136,12 +136,14 @@ public class StubManager {
         return processInfo;
     }
 
+    public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
+        return selectStubProcess(componentInfo.processName, componentInfo.packageName);
+    }
+
     /**
      * TODO 考虑插件进程模式的设计
-     * @param componentInfo
-     * @return
      */
-    public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
+    public ProcessInfo selectStubProcess(String processName, String pkgName) {
         if (mProcessInfoMap.isEmpty()) {
             throw new RuntimeException("no registered stub process found");
         }
@@ -149,7 +151,7 @@ public class StubManager {
         List<ProcessInfo> processInfos = new ArrayList<>(mProcessInfoMap.values());
 
         if (mProcessInfoMap.size() > 1) {
-            if (getProcessName(componentInfo).equals(componentInfo.packageName)) {
+            if (getProcessName(processName, pkgName).equals(pkgName)) {
                 return processInfos.get(0);
             } else {
                 return processInfos.get(1);
@@ -208,11 +210,11 @@ public class StubManager {
         return String.format("StubManager[ mProcessInfoMap = %s ]", mProcessInfoMap);
     }
 
-    public static String getProcessName(ComponentInfo componentInfo) {
-        if (TextUtils.isEmpty(componentInfo.processName)) {
-            return componentInfo.packageName;
+    public static String getProcessName(String processName, String pkgName) {
+        if (TextUtils.isEmpty(processName)) {
+            return pkgName;
         } else {
-            return componentInfo.processName;
+            return processName;
         }
     }
 

@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.core;
 
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -13,6 +13,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
 
+import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.stub.PluginContentResolver;
 import com.reginald.pluginm.stub.PluginServiceConnection;
 import com.reginald.pluginm.stub.PluginStubMainService;

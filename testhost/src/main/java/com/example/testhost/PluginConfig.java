@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.example.testhost;
 
 /**
  * Created by lxy on 16-6-28.

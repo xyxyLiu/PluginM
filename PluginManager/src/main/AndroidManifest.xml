@@ -7,8 +7,15 @@
         android:label="@string/app_name"
         android:supportsRtl="true">
 
-        <!-- begin of stub components -->
+        <provider
+            android:name="com.reginald.pluginm.core.PluginManagerServiceProvider"
+            android:authorities="com.reginald.pluginm.provider.core"
+            android:exported="false"
+            android:process=":daemon"
+            />
 
+
+        <!-- begin of stub components -->
 
         <!-- process P0 start -->
         <activity

@@ -4,7 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
-import com.reginald.pluginm.PluginManager;
+import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.Utils;
 import com.reginald.pluginm.stub.PluginStubMainService;

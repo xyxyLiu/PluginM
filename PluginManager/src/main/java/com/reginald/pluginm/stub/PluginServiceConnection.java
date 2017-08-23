@@ -5,7 +5,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
 
-import com.example.multidexmodeplugin.IPluginServiceStubBinder;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.HashMap;

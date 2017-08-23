@@ -1,10 +1,8 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.utils;
 
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Build;
-
-import com.reginald.pluginm.utils.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

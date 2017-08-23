@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.core;
 
 import com.reginald.pluginm.utils.Logger;
 

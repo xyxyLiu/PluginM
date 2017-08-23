@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.core;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +8,7 @@ import android.os.IBinder;
 import android.os.Message;
 
 import com.android.common.ActivityThreadCompat;
+import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.utils.Logger;
 

@@ -5,21 +5,26 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.reginald.pluginm.parser.PluginPackageParser;
 
 /**
  * Created by lxy on 16-6-21.
  */
-public final class PluginInfo {
+public final class PluginInfo implements Parcelable{
     // install info
     public String packageName;
     public String apkPath;
+    public String versionName;
+    public int versionCode;
     public long fileSize;
     public long lastModified;
     public String dataDir;
     public String dexDir;
     public String nativeLibDir;
+    public boolean isStandAlone;
 
     // loaded info
     public PluginPackageParser pkgParser;
@@ -31,11 +36,60 @@ public final class PluginInfo {
     public Resources resources;
     public PackageManager packageManager;
 
+    public PluginInfo() {
 
+    }
+
+    protected PluginInfo(Parcel in) {
+        packageName = in.readString();
+        apkPath = in.readString();
+        versionName = in.readString();
+        versionCode = in.readInt();
+        fileSize = in.readLong();
+        lastModified = in.readLong();
+        dataDir = in.readString();
+        dexDir = in.readString();
+        nativeLibDir = in.readString();
+        isStandAlone = in.readByte() != 0;
+        applicationInfo = in.readParcelable(ApplicationInfo.class.getClassLoader());
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(packageName);
+        dest.writeString(apkPath);
+        dest.writeString(versionName);
+        dest.writeInt(versionCode);
+        dest.writeLong(fileSize);
+        dest.writeLong(lastModified);
+        dest.writeString(dataDir);
+        dest.writeString(dexDir);
+        dest.writeString(nativeLibDir);
+        dest.writeByte((byte) (isStandAlone ? 1 : 0));
+        dest.writeParcelable(applicationInfo, flags);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<PluginInfo> CREATOR = new Creator<PluginInfo>() {
+        @Override
+        public PluginInfo createFromParcel(Parcel in) {
+            return new PluginInfo(in);
+        }
+
+        @Override
+        public PluginInfo[] newArray(int size) {
+            return new PluginInfo[size];
+        }
+    };
 
     public String toString() {
-        return "PluginInfo[ packageName = " + packageName + " , pkgParser = " + pkgParser + " , classLoader = " +
-                classLoader + " , resources = " + resources + " , apkPath = " + apkPath + "]";
+        return String.format("PluginInfo[ packageName = %s, apkPath = %s, versionName = %s, versionCode = %d, fileSize = %d, " +
+                "lastModified = %d, dataDir = %s, dexDir = %s, nativeLibDir = %s, isStandAlone = %b ]",
+                packageName, apkPath, versionName, versionCode, fileSize, lastModified, dataDir, dexDir, nativeLibDir, isStandAlone);
     }
 
 }

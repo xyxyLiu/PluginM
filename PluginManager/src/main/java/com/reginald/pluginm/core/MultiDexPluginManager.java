@@ -1,4 +1,4 @@
-package com.reginald.pluginm;
+package com.reginald.pluginm.core;
 
 import android.app.Application;
 import android.content.Context;
@@ -8,6 +8,7 @@ import android.os.Build;
 
 import com.reginald.pluginm.multidex.MultiDexApplication;
 import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.PackageUtils;
 
 import java.io.File;
 import java.io.IOException;

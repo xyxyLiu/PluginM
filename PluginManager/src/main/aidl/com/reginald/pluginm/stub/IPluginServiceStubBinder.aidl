@@ -1,5 +1,5 @@
 // IPluginServiceStubBinder.aidl
-package com.example.multidexmodeplugin;
+package com.reginald.pluginm.stub;
 
 // Declare any non-default types here with import statements
 

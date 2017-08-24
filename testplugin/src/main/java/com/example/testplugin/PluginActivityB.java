@@ -22,7 +22,7 @@ public class PluginActivityB extends Activity {
 
     private static final String TAG = "PluginActivityB";
     public static final String HOST_PROVIDER_AUTHORITY = "com.example.testhost.provider";
-    public static final Uri HOST_CONTENT_URI = Uri.parse("content://"+ HOST_PROVIDER_AUTHORITY + "/pluginfirst");
+    public static final Uri HOST_CONTENT_URI = Uri.parse("content://" + HOST_PROVIDER_AUTHORITY + "/pluginfirst");
 
     private Button mBtn1;
     private Button mBtn2;
@@ -107,7 +107,7 @@ public class PluginActivityB extends Activity {
             @Override
             public void onClick(View v) {
                 try {
-                    JniUtils.loadTestJni();
+                    JniUtils.loadTestJni(PluginActivityB.this);
                     Toast.makeText(PluginActivityB.this, "load library ok!", Toast.LENGTH_SHORT).show();
                 } catch (Throwable t) {
                     Log.e(TAG, "loadLibrary() error " + t);
@@ -115,6 +115,7 @@ public class PluginActivityB extends Activity {
 
             }
         });
+
 
         mWebView = (WebView) findViewById(R.id.webview);
         mWebView.setWebViewClient(new WebViewClient() {
@@ -127,7 +128,7 @@ public class PluginActivityB extends Activity {
             }
         });
 
-        mWebView.loadUrl("http://www.baidu.com");
+        mWebView.loadUrl("https://github.com/xyxyLiu");
     }
 
     @Override

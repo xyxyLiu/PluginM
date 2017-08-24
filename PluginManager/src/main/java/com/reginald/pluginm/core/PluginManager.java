@@ -51,11 +51,11 @@ public class PluginManager {
     public static final String EXTRA_INTENT_TARGET_ACTIVITYINFO = "extra.plugin.target.activityinfo";
     public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
     public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
-    public static final String EXTRA_INTENT_ORIGINAL_EXTRAS = "extra.plugin.origin.extras";
+    public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
     private static Map<String, PluginInfo> sLoadedPluginMap = new HashMap<>();
 
     private Context mContext;
-    private IPluginManager mService;
+    private volatile IPluginManager mService;
 
     public static synchronized PluginManager getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -100,8 +100,8 @@ public class PluginManager {
                 BinderParcelable bp = bundle.getParcelable(PluginManagerServiceProvider.KEY_SERVICE);
                 if (bp != null) {
                     IBinder iBinder = bp.iBinder;
-                    if (bp.iBinder != null) {
-                        bp.iBinder.linkToDeath(new IBinder.DeathRecipient() {
+                    if (iBinder != null) {
+                        iBinder.linkToDeath(new IBinder.DeathRecipient() {
                             @Override
                             public void binderDied() {
                                 initCoreService();
@@ -514,6 +514,17 @@ public class PluginManager {
         return null;
     }
 
+    public List<PluginInfo> getAllInstalledPlugins() {
+        if (mService != null) {
+            try {
+                return mService.getAllInstalledPlugins();
+            } catch (RemoteException e) {
+                Logger.e(TAG, "getInstalledPluginInfo() error!", e);
+            }
+        }
+        return null;
+    }
+
     public static String getPackageNameCompat(String plugin, String host) {
         String pkg = host;
 
@@ -531,8 +542,13 @@ public class PluginManager {
                 lookupIndex = i + 1;
             }
 
-            if (i > lookupIndex) {
-                if (className.startsWith("android.content.Intent") ||
+            if (i == lookupIndex) {
+                if (!className.startsWith("android.")) {
+                    pkg = plugin;
+                    break;
+                }
+
+                if (className.startsWith("android.content.ComponentName") ||
                         methodName.equals("<init>")) {
                     pkg = plugin;
                     break;

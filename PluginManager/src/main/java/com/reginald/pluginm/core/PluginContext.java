@@ -127,13 +127,9 @@ public class PluginContext extends ContextThemeWrapper {
             int flags) {
         Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
         if (pluginIntent != null) {
-            String finalAction = pluginIntent.getAction();
+            // pluginIntent 中的extras和action会被清空，可以直接利用
             String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(pluginIntent);
-            if (pluginAppendedAction != null && finalAction != null) {
-                finalAction += pluginAppendedAction;
-            }
-            pluginIntent.setAction(finalAction);
-            Logger.d(TAG, "plugin bindService() intent = " + intent);
+            pluginIntent.setAction(pluginAppendedAction);
             return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
         } else {
             return super.bindService(intent, conn, flags);

@@ -30,6 +30,7 @@ import android.support.annotation.StringRes;
 import android.support.annotation.XmlRes;
 
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.reflect.MethodUtils;
 
 import java.util.List;
 
@@ -416,6 +417,15 @@ public class PluginPackageManager extends PackageManager {
         return mBase.getUserBadgedIcon(icon, user);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    public Drawable getUserBadgeForDensity(UserHandle user, int density) {
+        try {
+            return (Drawable) MethodUtils.invokeMethod(mBase, "getUserBadgeForDensity", user, density);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @Override
     public Drawable getUserBadgedDrawableForDensity(Drawable drawable, UserHandle user, Rect badgeLocation, int badgeDensity) {
@@ -549,7 +559,7 @@ public class PluginPackageManager extends PackageManager {
     public void setApplicationEnabledSetting(String packageName, int newState, int flags) {
         if (mPluginManager.getInstalledPluginInfo(packageName) != null) {
             // if plugin
-            return ;
+            return;
         }
         mBase.setApplicationEnabledSetting(packageName, newState, flags);
     }

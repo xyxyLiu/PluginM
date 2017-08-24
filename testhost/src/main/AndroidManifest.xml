@@ -151,25 +151,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".HostMainActivity">
+
+        <activity android:name=".DemoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
-                <action android:name="action.com.example.testplugin.HostMainActivity" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
-
-        <!-- <activity android:name="com.example.testplugin.PluginMainActivity"> -->
-        <!-- </activity> -->
-        <activity android:name=".HostActivityA">
-        </activity>
-        <activity
-            android:name=".HostActivityB"
-            android:process=":b">
         </activity>
 
         <service

@@ -127,7 +127,7 @@ public class PluginActivityA extends Activity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PluginActivityA.this, PluginService.class);
-//                intent.setAction("asdasd");
+                intent.setAction("asdasd");
                 bindService(intent, mConn2, BIND_AUTO_CREATE);
             }
         });
@@ -151,23 +151,23 @@ public class PluginActivityA extends Activity {
         });
 
         mBtn9 = (Button) findViewById(R.id.btn9);
-        mBtn9.setText("start plugin serviceA start act");
+        mBtn9.setText("start plugin serviceA");
         mBtn9.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
-                intent.setAction("killself");
                 startService(intent);
             }
         });
 
         mBtn10 = (Button) findViewById(R.id.btn10);
-        mBtn10.setText("stop plugin serviceA");
+        mBtn10.setText("stop plugin serviceA with service.stopSelf");
         mBtn10.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PluginActivityA.this, PluginServiceA.class);
-                stopService(intent);
+                intent.setAction("killself");
+                startService(intent);
             }
         });
 

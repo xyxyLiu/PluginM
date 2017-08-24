@@ -79,6 +79,14 @@ public class PackageUtils {
         return context.getDir(APK_DIR, Context.MODE_PRIVATE).getAbsolutePath() + "/" + apkName;
     }
 
+    public static File getOrMakeDir(String root, String dir) {
+        File dirFile = new File(root, dir);
+        if (!dirFile.exists()) {
+            dirFile.mkdir();
+        }
+        return dirFile;
+    }
+
     public static boolean copyFile(String source, String dest) {
         try {
             return copyFile(new FileInputStream(new File(source)), dest);
@@ -103,8 +111,10 @@ public class PackageUtils {
                 oputStream.write(bb, 0, len);
             }
             oputStream.flush();
+            Logger.d(TAG, "copyFile to " + dest + " success!");
             return true;
         } catch (Exception e) {
+            Logger.e(TAG, "copyFile to " + dest + " error! ", e);
             e.printStackTrace();
         } finally {
             if (oputStream != null) {

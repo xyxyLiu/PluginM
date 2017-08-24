@@ -23,22 +23,12 @@ import java.util.Map;
  * Created by lxy on 16-10-31.
  */
 public class StubManager {
-
-    private static StubManager sInstance;
     private static final String TAG = "StubManager";
     private static final String CATEGORY_ACTIVITY_PROXY_STUB = "com.reginald.pluginm.category.STUB";
     private Context mContext;
 
     private final Map<String, ProcessInfo> mProcessInfoMap = new HashMap<String, ProcessInfo>(10);
 
-
-    public static synchronized StubManager getInstance(Context hostContext) {
-        if (sInstance == null) {
-            sInstance = new StubManager(hostContext);
-        }
-
-        return sInstance;
-    }
 
     public void init() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
@@ -77,7 +67,7 @@ public class StubManager {
 
     }
 
-    private StubManager(Context context) {
+    public StubManager(Context context) {
         mContext = context;
     }
 

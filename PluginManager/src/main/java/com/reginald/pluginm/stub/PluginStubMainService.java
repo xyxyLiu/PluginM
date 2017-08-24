@@ -113,10 +113,10 @@ public class PluginStubMainService extends Service {
                     bindRecord.needOnbind = false;
                     bindRecord.needUnbind = true;
                     pluginServiceRecord.addBindRecord(origIntent, bindRecord);
-//                pluginServiceRecord.bindCount++;
                     Logger.d(TAG, "onBind() return " + bindRecord.iBinder);
                 } else if (bindRecord.needRebind) {
                     pluginServiceRecord.service.onRebind(origIntent);
+                    bindRecord.needRebind = false;
                     bindRecord.needUnbind = true;
                 } else if (bindRecord.needOnbind) {
                     bindRecord.iBinder = pluginServiceRecord.service.onBind(origIntent);
@@ -209,16 +209,7 @@ public class PluginStubMainService extends Service {
     }
 
     private Intent getOriginalIntent(Intent pluginIntent, Service service) {
-        ComponentName componentName = new ComponentName(service.getPackageName(), service.getClass().getName());
-        Intent origIntent = PluginManagerService.recoverOriginalIntent(pluginIntent, componentName, service.getClassLoader());
-
-        String action = origIntent.getAction();
-        if (action != null && action.endsWith(INTENT_ACTION_BIND_PREFIX)) {
-            String[] actions = action.split(INTENT_ACTION_BIND_PREFIX);
-            origIntent.setAction(actions[0]);
-        }
-
-        return origIntent;
+        return PluginManagerService.recoverOriginalIntent(pluginIntent, service.getClassLoader());
     }
 
     private ServiceRecord fetchCachedOrCreateServiceRecord(ServiceInfo serviceInfo) {
@@ -336,6 +327,7 @@ public class PluginStubMainService extends Service {
 
     public static String getPluginAppendAction(Intent pluginIntent) {
         ServiceInfo serviceInfo = (ServiceInfo) pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
+        Logger.d(TAG, "getPluginAppendAction() for intent " + pluginIntent + " , serviceInfo = " + serviceInfo);
         if (serviceInfo == null) {
             return null;
         }

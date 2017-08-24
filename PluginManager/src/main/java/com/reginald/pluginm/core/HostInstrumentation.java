@@ -103,9 +103,9 @@ public class HostInstrumentation extends Instrumentation {
                 try {
                     FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
                     Logger.d(TAG, "newActivity() replace mResources ok! ");
-                } catch (Exception ignored) {
+                } catch (Exception e) {
                     Logger.e(TAG, "newActivity() replace mResources error! ");
-                    ignored.printStackTrace();
+                    e.printStackTrace();
                 }
 
                 return activity;
@@ -127,7 +127,6 @@ public class HostInstrumentation extends Instrumentation {
                     activityInfo.packageName, activity.getBaseContext());
             try {
                 FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
-                FieldUtils.writeField(activity, "mResources", pluginInfo.resources);
                 FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
                 FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
                 FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
@@ -138,8 +137,7 @@ public class HostInstrumentation extends Instrumentation {
                 Logger.e(TAG, "callActivityOnCreate() replace context error! ");
                 e.printStackTrace();
             }
-            ComponentName componentName = new ComponentName(activityInfo.packageName, activityInfo.name);
-            activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, componentName, activity.getClassLoader()));
+            activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
         }
 
         mBase.callActivityOnCreate(activity, icicle);

@@ -77,7 +77,7 @@ public class PluginMainActivity extends Activity {
         mBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent("action.com.example.testplugin.HostMainActivity");
+                Intent intent = new Intent("action.com.example.testplugin.DemoActivity");
                 startActivity(intent);
             }
         });

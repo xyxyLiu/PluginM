@@ -8,6 +8,8 @@ import android.content.Intent;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.stub.PluginContentResolver;
 
+import java.util.List;
+
 /**
  * Created by lxy on 17-8-23.
  */
@@ -22,6 +24,10 @@ public class PluginM {
 
     public static PluginInfo install(String apkPath) {
         return PluginManager.getInstance(sAppContext).installPlugin(apkPath);
+    }
+
+    public static List<PluginInfo> getAllInstalledPlugins() {
+        return PluginManager.getInstance(sAppContext).getAllInstalledPlugins();
     }
 
     public static Intent getPluginActivityIntent(Intent pluginIntent) {

@@ -8,6 +8,7 @@ import com.reginald.pluginm.PluginInfo;
 interface IPluginManager {
     PluginInfo install(in String pluginPackageName);
     PluginInfo getInstalledPluginInfo(in String packageName);
+    List<PluginInfo> getAllInstalledPlugins();
     Intent getPluginActivityIntent(in Intent originIntent);
     Intent getPluginServiceIntent(in Intent originIntent);
     Bundle getPluginProviderUri(in String auth);

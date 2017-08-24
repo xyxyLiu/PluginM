@@ -4,6 +4,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -21,6 +23,7 @@ import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.PackageUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +41,10 @@ public class PluginManagerService extends IPluginManager.Stub {
     private static final String TAG = "PluginManagerService";
     private static volatile PluginManagerService sInstance;
 
-    public static final String PLUGIN_DEX_FOLDER_NAME = "pluginm_dexes";
-    public static final String PLUGIN_LIB_FOLDER_NAME = "pluginm_lib";
+    public static final String PLUGIN_ROOT = "pluginm";
+    public static final String PLUGIN_APK_FOLDER_NAME = "apk";
+    public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
+    public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
     private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
     private static Map<String, PluginPackageParser> sInstalledPkgParser = new HashMap<>();
 
@@ -57,7 +62,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     private PluginManagerService(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
-        mStubManager = StubManager.getInstance(mContext);
+        mStubManager = new StubManager(mContext);
         mStubManager.init();
     }
 
@@ -73,16 +78,46 @@ public class PluginManagerService extends IPluginManager.Stub {
         try {
             Logger.d(TAG, "install() pluginPath = " + pluginPath);
             PluginInfo pluginInfo = null;
-            File apkFile = PackageUtils.copyAssetsApk(mContext, pluginPath);
-            if (!apkFile.exists()) {
-                Logger.e(TAG, "install() apkFile = " + apkFile.getAbsolutePath() + " NOT exist!");
+            File originApk = new File(pluginPath);
+            if (!originApk.exists()) {
+                Logger.e(TAG, "install() apk " + originApk.getAbsolutePath() + " NOT found!");
                 return null;
             }
 
-            pluginInfo = ApkParser.parsePluginInfo(mContext, apkFile.getAbsolutePath());
-            pluginInfo.apkPath = apkFile.getAbsolutePath();
-            pluginInfo.fileSize = apkFile.length();
-            pluginInfo.lastModified = apkFile.lastModified();
+            PackageManager pm = mContext.getPackageManager();
+            PackageInfo apkInfo = pm.getPackageArchiveInfo(originApk.getAbsolutePath(), 0);
+            if (apkInfo == null) {
+                Logger.e(TAG, "install() apk " + originApk.getAbsolutePath() + " parse error!");
+                return null;
+            }
+
+            String pluginPkgName = apkInfo.packageName;
+            String rootDir = mContext.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE).getAbsolutePath();
+            File pluginDir = PackageUtils.getOrMakeDir(rootDir, pluginPkgName);
+
+            if (!pluginDir.exists()) {
+                Logger.e(TAG, "install() pluginDir for " + pluginPkgName + " init error!");
+                return null;
+            }
+
+            File pluginApkDir = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_APK_FOLDER_NAME);
+            if (!pluginApkDir.exists()) {
+                Logger.e(TAG, "install() pluginDir " + pluginApkDir.getAbsolutePath() + " NOT found!");
+                return null;
+            }
+
+            File pluginApk = new File(pluginApkDir, "base.apk");
+
+            boolean isSuccess = PackageUtils.copyFile(originApk.getAbsolutePath(), pluginApk.getAbsolutePath());
+            if (!isSuccess) {
+                Logger.e(TAG, "install() pluginApk = " + pluginApk.getAbsolutePath() + " copy error!");
+                return null;
+            }
+
+            pluginInfo = ApkParser.parsePluginInfo(mContext, pluginApk.getAbsolutePath());
+            pluginInfo.apkPath = pluginApk.getAbsolutePath();
+            pluginInfo.fileSize = pluginApk.length();
+            pluginInfo.lastModified = pluginApk.lastModified();
 
             synchronized (sInstalledPluginMap) {
                 PluginInfo installedPluginInfo = sInstalledPluginMap.get(pluginInfo.packageName);
@@ -100,11 +135,11 @@ public class PluginManagerService extends IPluginManager.Stub {
             } else {
                 parentClassLoader = mContext.getClassLoader();
             }
-            File pluginDexPath = mContext.getDir(PLUGIN_DEX_FOLDER_NAME, Context.MODE_PRIVATE);
-            File pluginLibPath = mContext.getDir(PLUGIN_LIB_FOLDER_NAME, Context.MODE_PRIVATE);
-            File pluginNativeLibPath = new File(pluginLibPath, pluginInfo.packageName);
+
+            File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
+            File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
             DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    apkFile.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginNativeLibPath.getAbsolutePath(), parentClassLoader);
+                    pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginNativeLibPath.getAbsolutePath(), parentClassLoader);
             Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
             Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
             pluginInfo.isStandAlone = isStandAlone;
@@ -113,9 +148,9 @@ public class PluginManagerService extends IPluginManager.Stub {
             pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
 
             // install so
-            File apkParent = apkFile.getParentFile();
+            File apkParent = pluginApk.getParentFile();
             File tempSoDir = new File(apkParent, "temp");
-            Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
+            Set<String> soList = PackageUtils.unZipSo(pluginApk, tempSoDir);
             if (soList != null) {
                 for (String soName : soList) {
                     PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
@@ -374,6 +409,13 @@ public class PluginManagerService extends IPluginManager.Stub {
         }
     }
 
+    @Override
+    public List<PluginInfo> getAllInstalledPlugins() {
+        synchronized (sInstalledPluginMap) {
+            return new ArrayList<>(sInstalledPluginMap.values());
+        }
+    }
+
     private PluginPackageParser getPackageParserForComponent(ComponentName componentName) {
         PluginInfo pluginInfo = getInstalledPluginInfo(componentName.getPackageName());
         if (pluginInfo == null) {
@@ -384,18 +426,15 @@ public class PluginManagerService extends IPluginManager.Stub {
     }
 
     public static Intent handleOriginalIntent(Intent origIntent) {
-        Bundle extras = origIntent.getExtras();
-        origIntent.replaceExtras((Bundle) null);
         Intent newIntent = new Intent(origIntent);
-        newIntent.putExtra(PluginManager.EXTRA_INTENT_ORIGINAL_EXTRAS, extras);
+        newIntent.replaceExtras((Bundle) null);
+        newIntent.setAction(null);
+        newIntent.putExtra(PluginManager.EXTRA_INTENT_ORIGINAL_INTENT, origIntent);
         return newIntent;
     }
 
-    public static Intent recoverOriginalIntent(Intent pluginIntent, ComponentName componentName, ClassLoader classLoader) {
-        Intent origIntent = new Intent(pluginIntent);
-        origIntent.setComponent(componentName);
-        Bundle origExtras = pluginIntent.getBundleExtra(PluginManager.EXTRA_INTENT_ORIGINAL_EXTRAS);
-        origIntent.replaceExtras(origExtras);
+    public static Intent recoverOriginalIntent(Intent pluginIntent, ClassLoader classLoader) {
+        Intent origIntent = pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_ORIGINAL_INTENT);
         origIntent.setExtrasClassLoader(classLoader);
         return origIntent;
     }

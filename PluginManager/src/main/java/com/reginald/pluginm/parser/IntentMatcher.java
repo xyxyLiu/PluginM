@@ -99,21 +99,18 @@ public class IntentMatcher {
             }
         }
 
-        if (comp != null && comp.getPackageName() != null) {
+        if (comp != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
-                queryIntentReceiverForPackage(context, parser, intent, flags, list);
-                if (list.size() > 0) {
-                    Collections.sort(list, mResolvePrioritySorter);
-                    return list;
+                final ActivityInfo receiverInfo = parser.getReceiverInfo(comp, flags);
+                if (receiverInfo != null) {
+                    final ResolveInfo ri = new ResolveInfo();
+                    ri.activityInfo = receiverInfo;
+                    list.add(ri);
                 }
-            } else {
-                //intent指定的包名不在我们的插件列表中。
+                return list;
             }
-            Collections.sort(list, mResolvePrioritySorter);
-            return list;
         }
-
 
         final String pkgName = intent.getPackage();
         if (pkgName != null) {
@@ -150,23 +147,18 @@ public class IntentMatcher {
             }
         }
 
-        if (comp != null && comp.getPackageName() != null) {
+        if (comp != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
-
-                queryIntentServiceForPackage(context, parser, intent, flags, list);
-                if (list.size() > 0) {
-                    Collections.sort(list, mResolvePrioritySorter);
-                    return list;
+                final ServiceInfo serviceInfo = parser.getServiceInfo(comp, flags);
+                if (serviceInfo != null) {
+                    final ResolveInfo ri = new ResolveInfo();
+                    ri.serviceInfo = serviceInfo;
+                    list.add(ri);
                 }
-
-            } else {
-                //intent指定的包名不在我们的插件列表中。
+                return list;
             }
-            Collections.sort(list, mResolvePrioritySorter);
-            return list;
         }
-
 
         final String pkgName = intent.getPackage();
         if (pkgName != null) {
@@ -186,6 +178,7 @@ public class IntentMatcher {
     }
 
 
+    @TargetApi(VERSION_CODES.KITKAT)
     public static final List<ResolveInfo> resolveProviderIntent(Context context, Map<String, PluginPackageParser> pluginPackages, Intent intent, String resolvedType, int flags) throws Exception {
         if (intent == null || context == null) {
             return null;
@@ -202,19 +195,17 @@ public class IntentMatcher {
             }
         }
 
-        if (comp != null && comp.getPackageName() != null) {
+        if (comp != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
-                queryIntentProviderForPackage(context, parser, intent, flags, list);
-                if (list.size() > 0) {
-                    Collections.sort(list, mResolvePrioritySorter);
-                    return list;
+                final ProviderInfo providerInfo = parser.getProviderInfo(comp, flags);
+                if (providerInfo != null) {
+                    final ResolveInfo ri = new ResolveInfo();
+                    ri.providerInfo = providerInfo;
+                    list.add(ri);
                 }
-            } else {
-                //intent指定的包名不在我们的插件列表中。
+                return list;
             }
-            Collections.sort(list, mResolvePrioritySorter);
-            return list;
         }
 
 
@@ -253,21 +244,18 @@ public class IntentMatcher {
             }
         }
 
-        if (comp != null && comp.getPackageName() != null) {
+        if (comp != null) {
             PluginPackageParser parser = pluginPackages.get(comp.getPackageName());
             if (parser != null) {
-                queryIntentActivityForPackage(context, parser, intent, flags, list);
-                if (list.size() > 0) {
-                    Collections.sort(list, mResolvePrioritySorter);
-                    return list;
+                final ActivityInfo activityInfo = parser.getActivityInfo(comp, flags);
+                if (activityInfo != null) {
+                    final ResolveInfo ri = new ResolveInfo();
+                    ri.activityInfo = activityInfo;
+                    list.add(ri);
                 }
-            } else {
-                //intent指定的包名不在我们的插件列表中。
+                return list;
             }
-            Collections.sort(list, mResolvePrioritySorter);
-            return list;
         }
-
 
         final String pkgName = intent.getPackage();
         if (pkgName != null) {

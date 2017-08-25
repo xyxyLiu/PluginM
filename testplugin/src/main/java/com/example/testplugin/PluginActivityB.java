@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -98,6 +99,34 @@ public class PluginActivityB extends Activity {
                 notification.contentIntent = pendingIntent;
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(PluginActivityB.this);
                 notificationManager.notify(101, notification);
+            }
+        });
+
+        mBtn4 = (Button) findViewById(R.id.btn4);
+        mBtn4.setText("test PackageManager");
+        mBtn4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PackageManager pm = getPackageManager();
+                Log.d(TAG, "testPackageManager pm = " + pm);
+                try {
+                    Log.d(TAG, "testPackageManager pm.getPackageInfo() = " + pm.getPackageInfo(getPackageName(), 0));
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    Log.d(TAG, "testPackageManager pm.getApplicationInfo() = " + pm.getApplicationInfo(getPackageName(), 0));
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+                Log.d(TAG, "testPackageManager pm.getInstallerPackageName() = " + pm.getInstallerPackageName(getPackageName()));
+                Log.d(TAG, "testPackageManager pm.queryIntentActivities() = " +
+                        pm.queryIntentActivities(new Intent(PluginActivityB.this, PluginActivityA.class), 0));
+                Log.d(TAG, "testPackageManager pm.queryIntentActivities() action= " +
+                        pm.queryIntentActivities(new Intent("action.com.example.testplugin.testA"), 0));
+                Log.d(TAG, "testPackageManager pm.getText() = " +
+                        pm.getText(getPackageName(), R.string.app_name, null));
             }
         });
 

@@ -97,7 +97,7 @@ public class HostInstrumentation extends Instrumentation {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
-                PluginInfo pluginInfo = mPluginManager.getPluginInfo(activityInfo.packageName);
+                PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
                 Activity activity = mBase.newActivity(pluginInfo.classLoader, activityInfo.name, intent);
                 activity.setIntent(intent);
                 try {
@@ -122,7 +122,7 @@ public class HostInstrumentation extends Instrumentation {
         ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
         Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null) {
-            PluginInfo pluginInfo = mPluginManager.getPluginInfo(activityInfo.packageName);
+            PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
             Context pluginContext = mPluginManager.createPluginContext(
                     activityInfo.packageName, activity.getBaseContext());
             try {

@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -343,26 +345,28 @@ public class PluginManager {
         throw new ClassNotFoundException(className);
     }
 
-    public PluginInfo getPluginInfo(String packageName) {
+    public PluginInfo getLoadedPluginInfo(String packageName) {
         synchronized (sLoadedPluginMap) {
             return sLoadedPluginMap.get(packageName);
         }
     }
 
-    public List<PluginInfo> getPluginInfos() {
+    public List<PluginInfo> getLoadedPluginInfos() {
         synchronized (sLoadedPluginMap) {
             return new ArrayList<>(sLoadedPluginMap.values());
         }
     }
 
     public Context createPluginContext(String packageName, Context baseContext) {
-        PluginInfo pluginInfo = getPluginInfo(packageName);
+        PluginInfo pluginInfo = getLoadedPluginInfo(packageName);
         if (pluginInfo != null) {
             return new PluginContext(pluginInfo, baseContext);
         } else {
             return null;
         }
     }
+
+    // IPC:
 
     public PluginInfo installPlugin(String apkPath) {
         if (mService != null) {
@@ -459,6 +463,50 @@ public class PluginManager {
         return null;
     }
 
+    public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
+        if (mService != null) {
+            try {
+                return mService.queryIntentActivities(intent, flags);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "queryIntentActivities() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
+        if (mService != null) {
+            try {
+                return mService.queryIntentServices(intent, flags);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "queryIntentServices() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
+        if (mService != null) {
+            try {
+                return mService.queryBroadcastReceivers(intent, flags);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "queryBroadcastReceivers() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
+        if (mService != null) {
+            try {
+                return mService.queryIntentContentProviders(intent, flags);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "queryIntentContentProviders() error!", e);
+            }
+        }
+        return null;
+    }
+
     public ActivityInfo getActivityInfo(ComponentName componentName, int flags) {
         if (mService != null) {
             try {
@@ -498,6 +546,17 @@ public class PluginManager {
                 return mService.getProviderInfo(componentName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getProviderInfo() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public PackageInfo getPackageInfo(String packageName, int flags) {
+        if (mService != null) {
+            try {
+                return mService.getPackageInfo(packageName, flags);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "getPackageInfo() error!", e);
             }
         }
         return null;

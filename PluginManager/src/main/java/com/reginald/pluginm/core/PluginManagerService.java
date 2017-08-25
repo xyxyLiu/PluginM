@@ -92,6 +92,15 @@ public class PluginManagerService extends IPluginManager.Stub {
             }
 
             String pluginPkgName = apkInfo.packageName;
+
+            synchronized (sInstalledPluginMap) {
+                PluginInfo installedPluginInfo = sInstalledPluginMap.get(pluginPkgName);
+                if (installedPluginInfo != null) {
+                    Logger.d(TAG, "install() found installed pluginInfo " + installedPluginInfo);
+                    return installedPluginInfo;
+                }
+            }
+
             String rootDir = mContext.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE).getAbsolutePath();
             File pluginDir = PackageUtils.getOrMakeDir(rootDir, pluginPkgName);
 
@@ -118,14 +127,6 @@ public class PluginManagerService extends IPluginManager.Stub {
             pluginInfo.apkPath = pluginApk.getAbsolutePath();
             pluginInfo.fileSize = pluginApk.length();
             pluginInfo.lastModified = pluginApk.lastModified();
-
-            synchronized (sInstalledPluginMap) {
-                PluginInfo installedPluginInfo = sInstalledPluginMap.get(pluginInfo.packageName);
-                if (installedPluginInfo != null) {
-                    Logger.d(TAG, "install() found installed pluginInfo " + installedPluginInfo);
-                    return installedPluginInfo;
-                }
-            }
 
             // create classloader & dexopt
             Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
@@ -196,7 +197,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return null;
         }
 
-        // make a proxy activity for it:
+        // make a stub activity for it:
         ActivityInfo stubActivityInfo = mStubManager.selectStubActivity(activityInfo);
         Logger.d(TAG, String.format("getPluginActivityIntent() activityInfo = %s -> stub = %s",
                 activityInfo, stubActivityInfo));
@@ -223,6 +224,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return null;
         }
 
+        // make a stub service for it:
         ServiceInfo stubServiceInfo = mStubManager.selectStubService(serviceInfo);
         Logger.d(TAG, String.format("getPluginServiceIntent() serviceInfo = %s -> stub = %s",
                 serviceInfo, stubServiceInfo));
@@ -247,6 +249,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return null;
         }
 
+        // make a stub provider for it:
         ProviderInfo stubProvider = mStubManager.selectStubProvider(providerInfo);
         Logger.d(TAG, String.format("getPluginProviderUri() providerInfo = %s -> stub = %s",
                 providerInfo, stubProvider));
@@ -275,7 +278,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return getActivityInfo(intent.getComponent(), flags);
         }
         try {
-            List<ResolveInfo> resolveInfos = IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
+            List<ResolveInfo> resolveInfos = IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
             if (resolveInfos == null || resolveInfos.isEmpty()) {
                 return null;
             }
@@ -295,7 +298,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return getServiceInfo(intent.getComponent(), flags);
         }
         try {
-            List<ResolveInfo> resolveInfos = IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), 0);
+            List<ResolveInfo> resolveInfos = IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
             if (resolveInfos == null || resolveInfos.isEmpty()) {
                 return null;
             }
@@ -324,6 +327,46 @@ public class PluginManagerService extends IPluginManager.Stub {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
+        try {
+            return IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+        } catch (Exception e) {
+            Logger.e(TAG, "queryIntentActivities() intent = " + intent, e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
+        try {
+            return IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+        } catch (Exception e) {
+            Logger.e(TAG, "queryIntentServices() intent = " + intent, e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
+        try {
+            return IntentMatcher.resolveReceiverIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+        } catch (Exception e) {
+            Logger.e(TAG, "queryBroadcastReceivers() intent = " + intent, e);
+        }
+        return null;
+    }
+
+    @Override
+    public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
+        try {
+            return IntentMatcher.resolveProviderIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+        } catch (Exception e) {
+            Logger.e(TAG, "queryIntentContentProviders() intent = " + intent, e);
         }
         return null;
     }
@@ -403,6 +446,24 @@ public class PluginManagerService extends IPluginManager.Stub {
     }
 
     @Override
+    public PackageInfo getPackageInfo(String packageName, int flags) {
+        Logger.d(TAG, "getPackageInfo() packageName = " + packageName + ", flags = " + flags);
+
+        PluginPackageParser pluginPackageParser = getPackageParserForComponent(packageName);
+        if (pluginPackageParser == null) {
+            return null;
+        }
+
+        try {
+            return pluginPackageParser.getPackageInfo(flags);
+        } catch (Exception e) {
+            Logger.e(TAG, "getPackageInfo()", e);
+        }
+
+        return null;
+    }
+
+    @Override
     public PluginInfo getInstalledPluginInfo(String packageName) {
         synchronized (sInstalledPluginMap) {
             return sInstalledPluginMap.get(packageName);
@@ -417,7 +478,11 @@ public class PluginManagerService extends IPluginManager.Stub {
     }
 
     private PluginPackageParser getPackageParserForComponent(ComponentName componentName) {
-        PluginInfo pluginInfo = getInstalledPluginInfo(componentName.getPackageName());
+        return getPackageParserForComponent(componentName.getPackageName());
+    }
+
+    private PluginPackageParser getPackageParserForComponent(String packageName) {
+        PluginInfo pluginInfo = getInstalledPluginInfo(packageName);
         if (pluginInfo == null) {
             return null;
         }

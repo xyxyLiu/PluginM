@@ -67,6 +67,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         // register method handlers
         addMethodHandler(new getIntentSender());
         addMethodHandler(new stopServiceToken());
+        addMethodHandler(new overridePendingTransition());
 
         Logger.d(TAG, "install() install ok!");
         return true;
@@ -169,6 +170,25 @@ public class IActivityManagerServiceHook extends ServiceHook {
 
         public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
             return invokeResult == null ? true : invokeResult;
+        }
+    }
+
+    /**
+     * public void overridePendingTransition(IBinder token, String packageName, int enterAnim, int exitAnim)
+     */
+    private class overridePendingTransition extends ServiceHook.MethodHandler {
+
+        @Override
+        public String getName() {
+            return "overridePendingTransition";
+        }
+
+        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+            int enterAnim = (int) args[2];
+            int exitAnim = (int) args[3];
+            Logger.d(TAG, "overridePendingTransition() onStartInvoke : enterAnim = " +
+                    enterAnim + " , exitAnim = " + exitAnim);
+            return false;
         }
     }
 

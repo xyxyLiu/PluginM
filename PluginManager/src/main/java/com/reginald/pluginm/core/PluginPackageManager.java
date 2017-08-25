@@ -31,7 +31,9 @@ import android.support.annotation.XmlRes;
 
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +41,8 @@ import java.util.List;
  */
 
 public class PluginPackageManager extends PackageManager {
-
+    private static final String TAG = "PluginPackageManager";
+    private final static int sDefaultFlags = PackageManager.GET_SHARED_LIBRARY_FILES;
     private PluginManager mPluginManager;
     private PackageManager mBase;
 
@@ -50,13 +53,13 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public PackageInfo getPackageInfo(String packageName, int flags) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(packageName);
-        if (pluginInfo != null) {
-            try {
-                return pluginInfo.pkgParser.getPackageInfo(flags);
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            PackageInfo packageInfo = mPluginManager.getPackageInfo(packageName, flags);
+            if (packageInfo != null) {
+                return packageInfo;
             }
+        } catch (Exception e) {
+            Logger.e(TAG, "getPackageInfo() packageName = " + packageName, e);
         }
 
         return mBase.getPackageInfo(packageName, flags);
@@ -85,18 +88,30 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public int[] getPackageGids(String packageName) throws NameNotFoundException {
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(packageName);
+        if (pluginInfo != null) {
+            packageName = mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.getPackageGids(packageName);
     }
 
     @TargetApi(Build.VERSION_CODES.N)
     @Override
     public int[] getPackageGids(String packageName, int flags) throws NameNotFoundException {
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(packageName);
+        if (pluginInfo != null) {
+            packageName = mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.getPackageGids(packageName, flags);
     }
 
     @TargetApi(Build.VERSION_CODES.N)
     @Override
     public int getPackageUid(String packageName, int flags) throws NameNotFoundException {
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(packageName);
+        if (pluginInfo != null) {
+            packageName = mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.getPackageUid(packageName, flags);
     }
 
@@ -122,13 +137,15 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public ApplicationInfo getApplicationInfo(String packageName, int flags) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(packageName);
-        if (pluginInfo != null) {
-            try {
-                return pluginInfo.pkgParser.getApplicationInfo(flags);
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            PackageInfo packageInfo = mPluginManager.getPackageInfo(packageName, flags);
+            Logger.d(TAG, "getApplicationInfo() packageName = " + packageName + " , packageInfo = " + packageInfo);
+            if (packageInfo != null) {
+                Logger.d(TAG, "getApplicationInfo() packageName = " + packageName + " , applicationInfo = " + packageInfo.applicationInfo);
+                return packageInfo.applicationInfo;
             }
+        } catch (Exception e) {
+            Logger.e(TAG, "getApplicationInfo() packageName = " + packageName, e);
         }
         return mBase.getApplicationInfo(packageName, flags);
     }
@@ -179,7 +196,28 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public List<PackageInfo> getInstalledPackages(int flags) {
-        return mBase.getInstalledPackages(flags);
+        List<PackageInfo> packageInfos = mBase.getInstalledPackages(flags);
+
+        List<PluginInfo> pluginInfos = mPluginManager.getAllInstalledPlugins();
+
+        if (pluginInfos != null) {
+            if (packageInfos != null) {
+                packageInfos = new ArrayList<>();
+            }
+
+            for (PluginInfo plugin : pluginInfos) {
+                try {
+                    PackageInfo packageInfo = mPluginManager.getPackageInfo(plugin.packageName, flags);
+                    if (packageInfo != null) {
+                        packageInfos.add(packageInfo);
+                    }
+                } catch (Exception e) {
+                    Logger.e(TAG, "getInstalledPackages() try add packageName = " + plugin.packageName, e);
+                }
+            }
+        }
+
+        return packageInfos;
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -238,7 +276,28 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public List<ApplicationInfo> getInstalledApplications(int flags) {
-        return mBase.getInstalledApplications(flags);
+        List<ApplicationInfo> applicationInfos = mBase.getInstalledApplications(flags);
+
+        List<PluginInfo> pluginInfos = mPluginManager.getAllInstalledPlugins();
+
+        if (pluginInfos != null) {
+            if (applicationInfos != null) {
+                applicationInfos = new ArrayList<>();
+            }
+
+            for (PluginInfo plugin : pluginInfos) {
+                try {
+                    PackageInfo packageInfo = mPluginManager.getPackageInfo(plugin.packageName, flags);
+                    if (packageInfo != null && packageInfo.applicationInfo != null) {
+                        applicationInfos.add(packageInfo.applicationInfo);
+                    }
+                } catch (Exception e) {
+                    Logger.e(TAG, "getInstalledApplications() try add packageName = " + plugin.packageName, e);
+                }
+            }
+        }
+
+        return applicationInfos;
     }
 
     @Override
@@ -275,19 +334,25 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
-        //TODO
+        List<ResolveInfo> resolveInfos = mPluginManager.queryIntentActivities(intent, flags);
+        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+            return resolveInfos;
+        }
         return mBase.queryIntentActivities(intent, flags);
     }
 
     @Override
     public List<ResolveInfo> queryIntentActivityOptions(ComponentName caller, Intent[] specifics, Intent intent, int flags) {
-        //TODO
+        //TODO 后期考虑适配
         return mBase.queryIntentActivityOptions(caller, specifics, intent, flags);
     }
 
     @Override
     public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
-        //TODO
+        List<ResolveInfo> resolveInfos = mPluginManager.queryBroadcastReceivers(intent, flags);
+        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+            return resolveInfos;
+        }
         return mBase.queryBroadcastReceivers(intent, flags);
     }
 
@@ -304,12 +369,20 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
+        List<ResolveInfo> resolveInfos = mPluginManager.queryIntentServices(intent, flags);
+        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+            return resolveInfos;
+        }
         return mBase.queryIntentServices(intent, flags);
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
+        List<ResolveInfo> resolveInfos = mPluginManager.queryIntentContentProviders(intent, flags);
+        if (resolveInfos != null && !resolveInfos.isEmpty()) {
+            return resolveInfos;
+        }
         return mBase.queryIntentContentProviders(intent, flags);
     }
 
@@ -324,6 +397,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public List<ProviderInfo> queryContentProviders(String processName, int uid, int flags) {
+        //TODO 后期考虑适配
         return mBase.queryContentProviders(processName, uid, flags);
     }
 
@@ -339,29 +413,53 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Drawable getDrawable(String packageName, @DrawableRes int resid, ApplicationInfo appInfo) {
+        Resources pluginResource = getPluginResouces(packageName);
+        if (pluginResource != null) {
+            return pluginResource.getDrawable(resid);
+        }
         return mBase.getDrawable(packageName, resid, appInfo);
     }
 
     @Override
     public Drawable getActivityIcon(ComponentName activityName) throws NameNotFoundException {
-        return mBase.getActivityIcon(activityName);
+        return getActivityInfo(activityName, sDefaultFlags).loadIcon(this);
     }
 
     @Override
     public Drawable getActivityIcon(Intent intent) throws NameNotFoundException {
-        return mBase.getActivityIcon(intent);
+        if (intent.getComponent() != null) {
+            return getActivityIcon(intent.getComponent());
+        }
+
+        ResolveInfo info = resolveActivity(
+                intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (info != null) {
+            return info.activityInfo.loadIcon(this);
+        }
+
+        throw new NameNotFoundException(intent.toUri(0));
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     public Drawable getActivityBanner(ComponentName activityName) throws NameNotFoundException {
-        return mBase.getActivityBanner(activityName);
+        return getActivityInfo(activityName, sDefaultFlags).loadBanner(this);
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     public Drawable getActivityBanner(Intent intent) throws NameNotFoundException {
-        return mBase.getActivityBanner(intent);
+        if (intent.getComponent() != null) {
+            return getActivityBanner(intent.getComponent());
+        }
+
+        ResolveInfo info = resolveActivity(
+                intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (info != null) {
+            return info.activityInfo.loadBanner(this);
+        }
+
+        throw new NameNotFoundException(intent.toUri(0));
     }
 
     @Override
@@ -371,44 +469,54 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Drawable getApplicationIcon(ApplicationInfo info) {
-        return mBase.getApplicationIcon(info);
+        return info.loadIcon(this);
     }
 
     @Override
     public Drawable getApplicationIcon(String packageName) throws NameNotFoundException {
-        return mBase.getApplicationIcon(packageName);
+        return getApplicationIcon(getApplicationInfo(packageName, sDefaultFlags));
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     public Drawable getApplicationBanner(ApplicationInfo info) {
-        return mBase.getApplicationBanner(info);
+        return info.loadBanner(this);
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT_WATCH)
     @Override
     public Drawable getApplicationBanner(String packageName) throws NameNotFoundException {
-        return mBase.getApplicationBanner(packageName);
+        return getApplicationBanner(getApplicationInfo(packageName, sDefaultFlags));
     }
 
     @Override
     public Drawable getActivityLogo(ComponentName activityName) throws NameNotFoundException {
-        return mBase.getActivityLogo(activityName);
+        return getActivityInfo(activityName, sDefaultFlags).loadLogo(this);
     }
 
     @Override
     public Drawable getActivityLogo(Intent intent) throws NameNotFoundException {
-        return mBase.getActivityLogo(intent);
+        if (intent.getComponent() != null) {
+            return getActivityLogo(intent.getComponent());
+        }
+
+        ResolveInfo info = resolveActivity(
+                intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (info != null) {
+            return info.activityInfo.loadLogo(this);
+        }
+
+        throw new NameNotFoundException(intent.toUri(0));
     }
 
     @Override
     public Drawable getApplicationLogo(ApplicationInfo info) {
-        return mBase.getApplicationLogo(info);
+        return info.loadLogo(this);
     }
 
     @Override
     public Drawable getApplicationLogo(String packageName) throws NameNotFoundException {
-        return mBase.getApplicationLogo(packageName);
+        return getApplicationLogo(getApplicationInfo(packageName, sDefaultFlags));
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -422,8 +530,9 @@ public class PluginPackageManager extends PackageManager {
         try {
             return (Drawable) MethodUtils.invokeMethod(mBase, "getUserBadgeForDensity", user, density);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Logger.e(TAG, "getUserBadgeForDensity()", e);
         }
+        return null;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -440,48 +549,62 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public CharSequence getText(String packageName, @StringRes int resid, ApplicationInfo appInfo) {
+        Resources pluginResource = getPluginResouces(packageName);
+        if (pluginResource != null) {
+            return pluginResource.getText(resid);
+        }
         return mBase.getText(packageName, resid, appInfo);
     }
 
     @Override
     public XmlResourceParser getXml(String packageName, @XmlRes int resid, ApplicationInfo appInfo) {
+        Resources pluginResource = getPluginResouces(packageName);
+        if (pluginResource != null) {
+            return pluginResource.getXml(resid);
+        }
         return mBase.getXml(packageName, resid, appInfo);
     }
 
     @Override
     public CharSequence getApplicationLabel(ApplicationInfo info) {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(info.packageName);
-        if (pluginInfo != null) {
-            return pluginInfo.resources.getText(info.labelRes);
-        }
-        return mBase.getApplicationLabel(info);
+        return info.loadLabel(this);
     }
 
     @Override
     public Resources getResourcesForActivity(ComponentName activityName) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(activityName.getPackageName());
-        if (pluginInfo != null) {
-            return pluginInfo.resources;
+        Resources pluginResource = getPluginResouces(activityName.getPackageName());
+        if (pluginResource != null) {
+            return pluginResource;
         }
         return mBase.getResourcesForActivity(activityName);
     }
 
     @Override
     public Resources getResourcesForApplication(ApplicationInfo app) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(app.packageName);
-        if (pluginInfo != null) {
-            return pluginInfo.resources;
+        Resources pluginResource = getPluginResouces(app.packageName);
+        if (pluginResource != null) {
+            return pluginResource;
         }
         return mBase.getResourcesForApplication(app);
     }
 
     @Override
     public Resources getResourcesForApplication(String appPackageName) throws NameNotFoundException {
-        PluginInfo pluginInfo = mPluginManager.getPluginInfo(appPackageName);
+        Resources pluginResource = getPluginResouces(appPackageName);
+        if (pluginResource != null) {
+            return pluginResource;
+        }
+        return mBase.getResourcesForApplication(appPackageName);
+    }
+
+    private Resources getPluginResouces(String pluginPkg) {
+        // 目前只可以加载本进程已经加载的插件资源
+        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pluginPkg);
+        Logger.d(TAG, "getResourcesForApplication() pluginPkg = " + pluginPkg + " , pluginInfo = " + pluginInfo);
         if (pluginInfo != null) {
             return pluginInfo.resources;
         }
-        return mBase.getResourcesForApplication(appPackageName);
+        return null;
     }
 
 
@@ -504,6 +627,10 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public String getInstallerPackageName(String packageName) {
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(packageName);
+        if (pluginInfo != null) {
+            return mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.getInstallerPackageName(packageName);
     }
 

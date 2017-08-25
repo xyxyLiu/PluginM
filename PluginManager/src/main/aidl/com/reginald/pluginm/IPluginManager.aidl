@@ -17,9 +17,16 @@ interface IPluginManager {
     ActivityInfo resolveActivityInfo(in Intent intent, int flags);
     ServiceInfo resolveServiceInfo(in Intent intent, int flags);
     ProviderInfo resolveProviderInfo(in String name);
+
+    List<ResolveInfo> queryIntentActivities(in Intent intent, int flags);
+    List<ResolveInfo> queryIntentServices(in Intent intent, int flags);
+    List<ResolveInfo> queryBroadcastReceivers(in Intent intent, int flags);
+    List<ResolveInfo> queryIntentContentProviders(in Intent intent, int flags);
+
     ActivityInfo getActivityInfo(in ComponentName componentName, int flags);
     ServiceInfo getServiceInfo(in ComponentName componentName, int flags);
     ActivityInfo getReceiverInfo(in ComponentName componentName, int flags);
     ProviderInfo getProviderInfo(in ComponentName componentName, int flags);
+    PackageInfo getPackageInfo(in String packageName, int flags);
 
 }

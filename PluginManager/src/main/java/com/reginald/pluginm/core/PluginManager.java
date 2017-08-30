@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
@@ -256,7 +257,7 @@ public class PluginManager {
             loadStaticReceivers(pluginInfo);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "loadPluginApplication() error!", e);
         }
         return false;
     }
@@ -587,7 +588,7 @@ public class PluginManager {
     public static String getPackageNameCompat(String plugin, String host) {
         String pkg = host;
 
-        // 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
+        //TODO 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         Logger.d(TAG, "getPackageNameCompat(): ");
         int i = 0;
@@ -596,22 +597,27 @@ public class PluginManager {
             Logger.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();
-            if (i >= lookupIndex && className.equals("android.content.ContextWrapper") &&
+            if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
                     methodName.equals("getPackageName")) {
                 lookupIndex = i + 1;
+                continue;
+            }
+
+            if (i >= lookupIndex && className.equals(ContextWrapper.class.getName()) &&
+                    methodName.equals("getPackageName")) {
+                lookupIndex = i + 1;
+                continue;
             }
 
             if (i == lookupIndex) {
                 if (!className.startsWith("android.")) {
                     pkg = plugin;
-                    break;
-                }
-
-                if (className.startsWith("android.content.ComponentName") ||
+                } else if (className.startsWith("android.content.ComponentName") ||
                         methodName.equals("<init>")) {
                     pkg = plugin;
-                    break;
                 }
+
+                break;
             }
 
             i++;

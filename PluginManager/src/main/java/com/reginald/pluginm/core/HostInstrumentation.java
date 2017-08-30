@@ -127,15 +127,12 @@ public class HostInstrumentation extends Instrumentation {
                     activityInfo.packageName, activity.getBaseContext());
             try {
                 FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
-                FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
                 FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
                 FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
-
                 FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
                 Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
             } catch (IllegalAccessException e) {
-                Logger.e(TAG, "callActivityOnCreate() replace context error! ");
-                e.printStackTrace();
+                Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
             }
             activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
         }

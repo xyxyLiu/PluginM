@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,7 +76,14 @@ public class DemoActivity extends Activity {
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("选择一个apk");
-        builder.setItems(apks.toArray(new String[apks.size()]), new DialogInterface.OnClickListener() {
+        List<String> pkgs = new ArrayList<>();
+        for (String apk : apks) {
+            PackageInfo pkgInfo = getPackageManager().getPackageArchiveInfo(apk, 0);
+            if (pkgInfo != null && !TextUtils.isEmpty(pkgInfo.packageName)) {
+                pkgs.add(pkgInfo.packageName);
+            }
+        }
+        builder.setItems(pkgs.toArray(new String[pkgs.size()]), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 install(apks.get(which));

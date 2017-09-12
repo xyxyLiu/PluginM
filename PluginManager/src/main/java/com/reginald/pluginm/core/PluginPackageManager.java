@@ -77,7 +77,30 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Intent getLaunchIntentForPackage(String packageName) {
-        return mBase.getLaunchIntentForPackage(packageName);
+        // First see if the package has an INFO activity; the existence of
+        // such an activity is implied to be the desired front-door for the
+        // overall package (such as if it has multiple launcher entries).
+        Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
+        intentToResolve.addCategory(Intent.CATEGORY_INFO);
+        intentToResolve.setPackage(packageName);
+        List<ResolveInfo> ris = queryIntentActivities(intentToResolve, 0);
+
+        // Otherwise, try to find a main launcher activity.
+        if (ris == null || ris.size() <= 0) {
+            // reuse the intent instance
+            intentToResolve.removeCategory(Intent.CATEGORY_INFO);
+            intentToResolve.addCategory(Intent.CATEGORY_LAUNCHER);
+            intentToResolve.setPackage(packageName);
+            ris = queryIntentActivities(intentToResolve, 0);
+        }
+        if (ris == null || ris.size() <= 0) {
+            return null;
+        }
+        Intent intent = new Intent(intentToResolve);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setClassName(ris.get(0).activityInfo.packageName,
+                ris.get(0).activityInfo.name);
+        return intent;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -197,11 +220,10 @@ public class PluginPackageManager extends PackageManager {
     @Override
     public List<PackageInfo> getInstalledPackages(int flags) {
         List<PackageInfo> packageInfos = mBase.getInstalledPackages(flags);
-
         List<PluginInfo> pluginInfos = mPluginManager.getAllInstalledPlugins();
 
         if (pluginInfos != null) {
-            if (packageInfos != null) {
+            if (packageInfos == null) {
                 packageInfos = new ArrayList<>();
             }
 

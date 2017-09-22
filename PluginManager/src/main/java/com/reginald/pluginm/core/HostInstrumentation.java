@@ -18,6 +18,7 @@ import com.reginald.pluginm.stub.Stubs;
 import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -83,8 +84,12 @@ public class HostInstrumentation extends Instrumentation {
             realExecStartActivityMethod.setAccessible(true);
             result = (ActivityResult) realExecStartActivityMethod.invoke(mBase, who, contextThread, token,
                     target, intent, requestCode, options);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            Logger.e(TAG, "realExecStartActivity error!", e);
+        } catch (IllegalAccessException e) {
+            Logger.e(TAG, "realExecStartActivity error!", e);
+        } catch (InvocationTargetException e) {
+            Logger.e(TAG, "realExecStartActivity error!", e);
         }
 
         return result;

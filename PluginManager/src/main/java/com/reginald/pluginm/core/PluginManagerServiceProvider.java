@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.comm.PluginCommService;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.Logger;
 
@@ -22,8 +23,8 @@ public class PluginManagerServiceProvider extends ContentProvider {
 
     public static final Uri URI = Uri.parse("content://" + AUTH);
     public static final String METHOD_GET_CORE_SERVICE = "method.get_core_service";
+    public static final String METHOD_GET_COMM_SERVICE = "method.get_comm_service";
     public static final String KEY_SERVICE = "key.service";
-
 
     private PluginManagerService mCoreService;
 
@@ -34,7 +35,8 @@ public class PluginManagerServiceProvider extends ContentProvider {
         return false;
     }
 
-    public @Nullable
+    public
+    @Nullable
     Bundle call(@NonNull String method, @Nullable String arg,
             @Nullable Bundle extras) {
         Logger.d(TAG, String.format("call method = %s, arg = %s, extras = %s", method, arg, extras));
@@ -47,6 +49,11 @@ public class PluginManagerServiceProvider extends ContentProvider {
                     bundle.putParcelable(KEY_SERVICE, binderParcelable);
                     return bundle;
                 }
+            } else if (method.equals(METHOD_GET_COMM_SERVICE)) {
+                BinderParcelable binderParcelable = new BinderParcelable(PluginCommService.getInstance(getContext()));
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(KEY_SERVICE, binderParcelable);
+                return bundle;
             } else {
                 Logger.w(TAG, "call method " + method + " NOT supported!");
             }

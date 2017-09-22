@@ -1,4 +1,4 @@
-package pluginm.reginald.com.pluginlib.proxy;
+package com.reginald.pluginm.pluginapi.proxy;
 
 import java.lang.reflect.Proxy;
 import java.util.HashMap;

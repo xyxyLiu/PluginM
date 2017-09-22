@@ -151,6 +151,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <meta-data android:name="plugin_invoker"
+            android:value="[
+            {'service':'main', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin'},
+            {'service':'main_remote', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin:remote'}
+            ]" />
+
         <activity android:name=".PluginMainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

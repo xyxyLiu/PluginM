@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
@@ -31,16 +32,30 @@ public class StubManager {
 
     private static final String TAG = "StubManager";
     private static final String CATEGORY_ACTIVITY_PROXY_STUB = "com.reginald.pluginm.category.STUB";
-    private static final int PROCESS_TYPE = PROCESS_TYPE_STANDALONE;
+    private static volatile StubManager sInstance;
 
     private Context mContext;
+    private int mProcessType = PROCESS_TYPE_STANDALONE;
 
     private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
 
     private final Map<String, ProcessInfo> mPluginProcessMap = new HashMap<>(10);
 
+    public static synchronized StubManager getInstance(Context hostContext) {
+        if (sInstance == null) {
+            sInstance = new StubManager(hostContext);
+        }
 
-    public void init() {
+        return sInstance;
+    }
+
+    private StubManager(Context context) {
+        mContext = context;
+        mProcessType = PluginM.getConfigs().getProcessType();
+        init();
+    }
+
+    private void init() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(CATEGORY_ACTIVITY_PROXY_STUB);
         intent.setPackage(mContext.getPackageName());
@@ -77,8 +92,8 @@ public class StubManager {
 
     }
 
-    public StubManager(Context context) {
-        mContext = context;
+    public ProcessInfo getProcessInfo(String processName) {
+        return mStubProcessInfoMap.get(processName);
     }
 
     /**
@@ -150,7 +165,7 @@ public class StubManager {
 
         List<ProcessInfo> stubProcessInfos = new ArrayList<>(mStubProcessInfoMap.values());
 
-        switch (PROCESS_TYPE) {
+        switch (mProcessType) {
             case PROCESS_TYPE_STANDALONE:
                 filterPluginProcessMap();
 
@@ -266,7 +281,8 @@ public class StubManager {
 
     @Override
     public String toString() {
-        return String.format("StubManager[ mStubProcessInfoMap = %s ]", mStubProcessInfoMap);
+        return String.format("StubManager[ mProcessType = %d, mStubProcessInfoMap = %s ]",
+                mProcessType, mStubProcessInfoMap);
     }
 
     public static String getProcessName(String processName, String pkgName) {
@@ -276,8 +292,6 @@ public class StubManager {
             return processName;
         }
     }
-
-
 
 
 }

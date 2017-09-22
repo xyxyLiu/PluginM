@@ -5,7 +5,13 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.reginald.pluginm.comm.PluginCommClient;
+import com.reginald.pluginm.comm.invoker.InvokeCallback;
+import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
+import com.reginald.pluginm.comm.invoker.InvokeResult;
 import com.reginald.pluginm.core.PluginManager;
+import com.reginald.pluginm.pluginapi.IInvokeCallback;
+import com.reginald.pluginm.pluginapi.IInvokeResult;
 import com.reginald.pluginm.stub.PluginContentResolver;
 
 import java.util.List;
@@ -16,10 +22,19 @@ import java.util.List;
 
 public class PluginM {
     private static Context sAppContext;
+    private static PluginConfigs sConfigs;
 
-    public static void onAttachBaseContext(Application app) {
+    public static void onAttachBaseContext(Application app, PluginConfigs configs) {
+        if (app == null || configs == null) {
+            throw new IllegalStateException("app and configs MUST be provided!");
+        }
         sAppContext = app;
+        sConfigs = configs;
         PluginManager.init(app);
+    }
+
+    public static PluginConfigs getConfigs() {
+        return sConfigs;
     }
 
     public static PluginInfo install(String apkPath) {
@@ -40,5 +55,13 @@ public class PluginM {
 
     public static ContentResolver getPluginContentResolver() {
         return new PluginContentResolver(sAppContext, sAppContext.getContentResolver());
+    }
+
+    public IInvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName, String params, final IInvokeCallback callback) {
+        InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
+
+        final InvokeResult invokeResult = PluginCommClient.getInstance(sAppContext).invokePlugin(packageName, serviceName, methodName, params, invokeCallback);
+
+        return InvokeResult.newIInvokerResult(invokeResult);
     }
 }

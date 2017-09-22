@@ -7,11 +7,14 @@ import android.content.pm.ProviderInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.comm.PluginCommService;
+import com.reginald.pluginm.core.PluginClient;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
@@ -29,6 +32,7 @@ public class PluginStubMainProvider extends ContentProvider {
     private static final String TAG = "PluginStubMainProvider";
     private static final String EXTRA_BINDER = "extra.binder";
     public static final String METHOD_GET_PROVIDER = "method.get_provider";
+    public static final String METHOD_GET_CLIENT = "method.get_client";
 
     private static PluginStubMainProvider sInstance;
     private final Map<String, ContentProvider> mContentProviderMap = new HashMap<>();
@@ -93,7 +97,13 @@ public class PluginStubMainProvider extends ContentProvider {
             });
 
             return resultBundle.isEmpty() ? null : resultBundle;
+        } else if (METHOD_GET_CLIENT.equals(method)) {
+            final Bundle resultBundle = new Bundle();
+            BinderParcelable binderParcelable = new BinderParcelable(PluginClient.getInstance(getContext()));
+            resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
+            return resultBundle;
         }
+
         return null;
     }
 
@@ -160,11 +170,25 @@ public class PluginStubMainProvider extends ContentProvider {
     }
 
     public static IContentProvider parseIContentProvider(Bundle bundle) {
+        IBinder iBinder = parseBinderParacelable(bundle);
+
+        if (iBinder != null) {
+            try {
+                return (IContentProvider) MethodUtils.invokeStaticMethod(sContentProviderNativeClass, "asInterface", iBinder);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    public static IBinder parseBinderParacelable(Bundle bundle) {
         if (bundle != null) {
             bundle.setClassLoader(BinderParcelable.class.getClassLoader());
             BinderParcelable binderParcelable = bundle.getParcelable(EXTRA_BINDER);
             try {
-                return (IContentProvider) MethodUtils.invokeStaticMethod(sContentProviderNativeClass, "asInterface", binderParcelable.iBinder);
+                return binderParcelable.iBinder;
             } catch (Exception e) {
                 e.printStackTrace();
             }

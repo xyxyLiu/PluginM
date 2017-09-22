@@ -10,10 +10,13 @@ import android.os.Parcelable;
 
 import com.reginald.pluginm.parser.PluginPackageParser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by lxy on 16-6-21.
  */
-public final class PluginInfo implements Parcelable{
+public final class PluginInfo implements Parcelable {
     // install info
     public String packageName;
     public String apkPath;
@@ -25,6 +28,7 @@ public final class PluginInfo implements Parcelable{
     public String dexDir;
     public String nativeLibDir;
     public boolean isStandAlone;
+    public final Map<String, Map<String, String>> pluginInvokerClassMap = new HashMap<>();
 
     // loaded info
     public PluginPackageParser pkgParser;
@@ -51,6 +55,8 @@ public final class PluginInfo implements Parcelable{
         dexDir = in.readString();
         nativeLibDir = in.readString();
         isStandAlone = in.readByte() != 0;
+        in.readMap(pluginInvokerClassMap, PluginInfo.class.getClassLoader());
+
         applicationInfo = in.readParcelable(ApplicationInfo.class.getClassLoader());
     }
 
@@ -66,6 +72,7 @@ public final class PluginInfo implements Parcelable{
         dest.writeString(dexDir);
         dest.writeString(nativeLibDir);
         dest.writeByte((byte) (isStandAlone ? 1 : 0));
+        dest.writeMap(pluginInvokerClassMap);
         dest.writeParcelable(applicationInfo, flags);
     }
 
@@ -88,8 +95,9 @@ public final class PluginInfo implements Parcelable{
 
     public String toString() {
         return String.format("PluginInfo[ packageName = %s, apkPath = %s, versionName = %s, versionCode = %d, fileSize = %d, " +
-                "lastModified = %d, dataDir = %s, dexDir = %s, nativeLibDir = %s, isStandAlone = %b ]",
-                packageName, apkPath, versionName, versionCode, fileSize, lastModified, dataDir, dexDir, nativeLibDir, isStandAlone);
+                        "lastModified = %d, dataDir = %s, dexDir = %s, nativeLibDir = %s, isStandAlone = %b pluginInvokerClassMap = %s]",
+                packageName, apkPath, versionName, versionCode, fileSize, lastModified,
+                dataDir, dexDir, nativeLibDir, isStandAlone, pluginInvokerClassMap);
     }
 
 }

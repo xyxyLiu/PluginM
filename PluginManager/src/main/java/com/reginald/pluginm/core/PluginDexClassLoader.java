@@ -1,5 +1,6 @@
 package com.reginald.pluginm.core;
 
+import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.utils.Logger;
 
 import dalvik.system.DexClassLoader;
@@ -11,9 +12,9 @@ public class PluginDexClassLoader extends DexClassLoader {
 
     private static final String TAG = "PluginDexClassLoader";
 
-    ClassLoader testparent;
+    ClassLoader mHost;
 
-    public PluginDexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent) {
+    public PluginDexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent, ClassLoader extra) {
         super(dexPath, optimizedDirectory, libraryPath, parent);
         Logger.d(TAG, "PluginDexClassLoader() " + this);
         Logger.d(TAG, "PluginDexClassLoader() parent = " + parent);
@@ -22,52 +23,54 @@ public class PluginDexClassLoader extends DexClassLoader {
 //        } catch (Exception e) {
 //            Logger.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
 //        }
-        testparent = parent;
+        mHost = extra;
     }
 
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
         Logger.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
-//        try {
-//            Logger.d(TAG, "loadClass() try parent load = " + testparent.loadClass(className));
-//        } catch (Exception e ){
-//            e.printStackTrace();
-//            Logger.d(TAG, "loadClass() try parent load error! ");
-//        }
 
-//        Class<?> clazz = findLoadedClass(className);
-//        Logger.d(TAG, "loadClass() findLoadedClass = " +clazz);
-//        if (clazz == null) {
-//            ClassNotFoundException suppressed = null;
-//            try {
-//                clazz = testparent.loadClass(className);
-//            } catch (ClassNotFoundException e) {
-//                suppressed = e;
-//            }
-//
-//
-//            Logger.d(TAG, "loadClass() parent didn't found " +clazz);
-//
-//            if (clazz == null) {
-//                try {
-//                    Logger.d(TAG, "loadClass() findclass " +clazz);
-//                    clazz = findClass(className);
-//                } catch (ClassNotFoundException e) {
-////                    e.addSuppressed(suppressed);
-//                    throw e;
-//                }
-//            }
-//        }
-//
-//        return clazz;
+        ClassNotFoundException exception = null;
+
+        if (canUseHostLoader1(className)) {
+            try {
+                return mHost.loadClass(className);
+            } catch (ClassNotFoundException e) {
+                Logger.e(TAG, "loadClass() classname = " + className + " host load fail!");
+                exception = e;
+            }
+        }
 
         try {
             Class<?> clazz = super.loadClass(className, resolve);
             Logger.d(TAG, "loadClass() classname = " + className + " ok!");
             return clazz;
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             Logger.e(TAG, "loadClass() classname = " + className + " fail!");
-            throw e;
+            exception = e;
         }
+
+        if (canUseHostLoader2(className)) {
+            try {
+                return mHost.loadClass(className);
+            } catch (ClassNotFoundException e) {
+                Logger.e(TAG, "loadClass() classname = " + className + " host load fail!");
+                exception = e;
+            }
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
+
+        throw new ClassNotFoundException(String.format("plugin class %s NOT found", className));
+    }
+
+    private boolean canUseHostLoader1(String className) {
+        return className.startsWith(PluginHelper.class.getPackage().getName());
+    }
+
+    private boolean canUseHostLoader2(String className) {
+        return false;
     }
 
     public String toString() {

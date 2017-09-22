@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
@@ -19,10 +20,15 @@ import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
 import com.reginald.pluginm.stub.StubManager;
+import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.PackageUtils;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -62,8 +68,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     private PluginManagerService(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
-        mStubManager = new StubManager(mContext);
-        mStubManager.init();
+        mStubManager = StubManager.getInstance(mContext);
     }
 
 
@@ -124,6 +129,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             }
 
             pluginInfo = ApkParser.parsePluginInfo(mContext, pluginApk.getAbsolutePath());
+            resolveConfigInfo(pluginInfo);
             pluginInfo.apkPath = pluginApk.getAbsolutePath();
             pluginInfo.fileSize = pluginApk.length();
             pluginInfo.lastModified = pluginApk.lastModified();
@@ -131,16 +137,20 @@ public class PluginManagerService extends IPluginManager.Stub {
             // create classloader & dexopt
             Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
             ClassLoader parentClassLoader;
-            if (isStandAlone) {
-                parentClassLoader = mContext.getClassLoader().getParent();
+            ClassLoader hostClassLoader = mContext.getClassLoader();
+
+            if (pluginInfo.isStandAlone) {
+                parentClassLoader = hostClassLoader.getParent();
             } else {
-                parentClassLoader = mContext.getClassLoader();
+                parentClassLoader = hostClassLoader;
             }
 
             File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
             File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
             DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(), pluginNativeLibPath.getAbsolutePath(), parentClassLoader);
+                    pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(),
+                    pluginNativeLibPath.getAbsolutePath(), parentClassLoader, hostClassLoader);
+
             Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
             Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
             pluginInfo.isStandAlone = isStandAlone;
@@ -185,6 +195,19 @@ public class PluginManagerService extends IPluginManager.Stub {
             return null;
         }
 
+    }
+
+    private void resolveConfigInfo(PluginInfo pluginInfo) {
+        try {
+            PluginPackageParser packageParser = pluginInfo.pkgParser;
+            ApplicationInfo applicationInfo = packageParser.getApplicationInfo(PackageManager.GET_META_DATA);
+            Bundle metaData = applicationInfo.metaData;
+            Logger.d(TAG, "resolveConfigInfo() application metaData = " + metaData);
+            Map<String, Map<String, String>> invokerConfigMap = ConfigUtils.parseInvokerConfig(metaData);
+            pluginInfo.pluginInvokerClassMap.putAll(invokerConfigMap);
+        } catch (Exception e) {
+            Logger.e(TAG, "resolveConfigInfo() error!", e);
+        }
     }
 
     @Override

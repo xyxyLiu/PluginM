@@ -19,6 +19,10 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.reginald.pluginm.pluginapi.IInvokeCallback;
+import com.reginald.pluginm.pluginapi.IInvokeResult;
+import com.reginald.pluginm.pluginapi.PluginHelper;
+
 public class PluginActivityB extends Activity {
 
     private static final String TAG = "PluginActivityB";
@@ -127,6 +131,26 @@ public class PluginActivityB extends Activity {
                         pm.queryIntentActivities(new Intent("action.com.example.testplugin.testA"), 0));
                 Log.d(TAG, "testPackageManager pm.getText() = " +
                         pm.getText(getPackageName(), R.string.app_name, null));
+            }
+        });
+
+        mBtn5 = (Button) findViewById(R.id.btn5);
+        mBtn5.setText("test PluginInvoker");
+        mBtn5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "testPackageManager PluginHelper.getPluginPackageName() = " +
+                        PluginHelper.getPluginPackageName(PluginActivityB.this));
+                Log.d(TAG, "testPackageManager PluginHelper.getHostContext() = " +
+                        PluginHelper.getHostContext(PluginActivityB.this));
+                Log.d(TAG, "testPackageManager PluginHelper.invokePlugin() = " +
+                        PluginHelper.invokePlugin(PluginHelper.getPluginPackageName(PluginActivityB.this), "main", "test", "paramstest", new IInvokeCallback() {
+                            @Override
+                            public IInvokeResult onCallback(String params) {
+                                Log.d(TAG, "testPackageManager onCallback() params = " + params);
+                                return IInvokeResult.INVOKERESULT_VOID_OK;
+                            }
+                        }));
             }
         });
 

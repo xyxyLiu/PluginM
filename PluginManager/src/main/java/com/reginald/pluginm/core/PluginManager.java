@@ -29,8 +29,11 @@ import android.util.Pair;
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.IPluginManager;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.comm.PluginLocalManager;
 import com.reginald.pluginm.hook.IActivityManagerServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
+import com.reginald.pluginm.pluginapi.IPluginLocalManager;
+import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.CommonUtils;
@@ -38,9 +41,9 @@ import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import dalvik.system.DexClassLoader;
 
@@ -55,7 +58,10 @@ public class PluginManager {
     public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
     public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
     public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
-    private static Map<String, PluginInfo> sLoadedPluginMap = new HashMap<>();
+
+    private final Object mPluginLoadLock = new Object();
+    private final Map<String, PluginInfo> mLoadedPluginMap = new ConcurrentHashMap<>();
+    private final Map<String, ClassLoader> mLoadedClassLoaderMap = new ConcurrentHashMap<>();
 
     private Context mContext;
     private volatile IPluginManager mService;
@@ -130,56 +136,56 @@ public class PluginManager {
             String pluginPackageName = packageName;
             PluginInfo pluginInfo = null;
             Logger.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName);
-            synchronized (sLoadedPluginMap) {
-                pluginInfo = sLoadedPluginMap.get(pluginPackageName);
+            synchronized (mPluginLoadLock) {
+                pluginInfo = mLoadedPluginMap.get(pluginPackageName);
                 if (pluginInfo != null) {
                     Logger.d(TAG, "loadPlugin() found loaded pluginInfo " + pluginInfo);
                     return pluginInfo;
                 }
-            }
 
-            pluginInfo = getInstalledPluginInfo(packageName);
-            Logger.d(TAG, "loadPlugin() getInstalledPluginInfo " + pluginInfo);
-            if (pluginInfo == null) {
-                Logger.e(TAG, "loadPlugin() " + pluginPackageName + " NOT installed!");
-                return null;
-            }
 
-            ClassLoader parentClassLoader;
+                pluginInfo = getInstalledPluginInfo(packageName);
+                Logger.d(TAG, "loadPlugin() getInstalledPluginInfo " + pluginInfo);
+                if (pluginInfo == null) {
+                    Logger.e(TAG, "loadPlugin() " + pluginPackageName + " NOT installed!");
+                    return null;
+                }
 
-            // create classloader
-            Logger.d(TAG, "loadPlugin() mContext.getClassLoader() = " + mContext.getClassLoader());
+                ClassLoader parentClassLoader;
+                ClassLoader hostClassLoader = mContext.getClassLoader();
+                // create classloader
+                Logger.d(TAG, "loadPlugin() mContext.getClassLoader() = " + mContext.getClassLoader());
 
-            if (pluginInfo.isStandAlone) {
-                parentClassLoader = mContext.getClassLoader().getParent();
-            } else {
-                parentClassLoader = mContext.getClassLoader();
-            }
-            DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    pluginInfo.apkPath, pluginInfo.dexDir, pluginInfo.nativeLibDir, parentClassLoader);
-            Logger.d(TAG, "loadPlugin() dexClassLoader = " + dexClassLoader);
-            Logger.d(TAG, "loadPlugin() dexClassLoader's parent = " + dexClassLoader.getParent());
+                if (pluginInfo.isStandAlone) {
+                    parentClassLoader = hostClassLoader.getParent();
+                } else {
+                    parentClassLoader = hostClassLoader;
+                }
+                DexClassLoader pluginClassLoader = new PluginDexClassLoader(
+                        pluginInfo.apkPath, pluginInfo.dexDir, pluginInfo.nativeLibDir, parentClassLoader, hostClassLoader);
+                Logger.d(TAG, "loadPlugin() pluginClassLoader = " + pluginClassLoader);
+                Logger.d(TAG, "loadPlugin() pluginClassLoader's parent = " + pluginClassLoader.getParent());
 
-            pluginInfo.pkgParser = ApkParser.getPackageParser(mContext, pluginInfo.apkPath);
-            pluginInfo.applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
-            pluginInfo.classLoader = dexClassLoader;
-            pluginInfo.parentClassLoader = parentClassLoader;
+                pluginInfo.pkgParser = ApkParser.getPackageParser(mContext, pluginInfo.apkPath);
+                pluginInfo.applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
+                pluginInfo.classLoader = pluginClassLoader;
+                pluginInfo.parentClassLoader = parentClassLoader;
 
-            PluginPackageManager pluginPackageManager = new PluginPackageManager(mContext, mContext.getPackageManager());
-            Logger.d(TAG, "loadPlugin() pluginPackageManager = " + pluginPackageManager);
-            pluginInfo.packageManager = pluginPackageManager;
+                PluginPackageManager pluginPackageManager = new PluginPackageManager(mContext, mContext.getPackageManager());
+                Logger.d(TAG, "loadPlugin() pluginPackageManager = " + pluginPackageManager);
+                pluginInfo.packageManager = pluginPackageManager;
 
-            // replace resources
-            Resources resources = ResourcesManager.getPluginResources(mContext, pluginInfo.apkPath);
-            if (resources != null) {
-                pluginInfo.resources = resources;
-            } else {
-                Logger.e(TAG, "loadPlugin() error! resources is null!");
-                return null;
-            }
+                // replace resources
+                Resources resources = ResourcesManager.getPluginResources(mContext, pluginInfo.apkPath);
+                if (resources != null) {
+                    pluginInfo.resources = resources;
+                } else {
+                    Logger.e(TAG, "loadPlugin() error! resources is null!");
+                    return null;
+                }
 
-            synchronized (sLoadedPluginMap) {
-                sLoadedPluginMap.put(pluginInfo.packageName, pluginInfo);
+                mLoadedPluginMap.put(pluginPackageName, pluginInfo);
+                mLoadedClassLoaderMap.put(pluginPackageName, pluginClassLoader);
             }
 
             if (!initPlugin(pluginInfo, mContext)) {
@@ -198,10 +204,10 @@ public class PluginManager {
 
     private boolean initPlugin(PluginInfo pluginInfo, Context hostContext) {
         Logger.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
-//        if (!initPluginHelper(pluginInfo, hostContext)) {
-//            Logger.e(TAG, "initPlugin() initPluginHelper error! ");
-//            return false;
-//        }
+        if (!initPluginHelper(pluginInfo, hostContext)) {
+            Logger.e(TAG, "initPlugin() initPluginHelper error! ");
+            return false;
+        }
 
         if (!loadPluginApplication(pluginInfo, hostContext)) {
             Logger.e(TAG, "initPlugin() initPluginApplication error! ");
@@ -211,23 +217,24 @@ public class PluginManager {
         return true;
     }
 
-//    private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
-//        Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
-//        Class<?> pluginHelperClazz;
-//        try {
-//            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
-//            ILocalPluginManager iPluginManager = PluginManager.getInstance(hostContext);
-//            if (pluginHelperClazz != null) {
-//                MethodUtils.invokeStaticMethod(pluginHelperClazz, "onInit",
-//                        new Object[]{iPluginManager, pluginInfo.packageName},
-//                        new Class[]{Object.class, String.class});
-//                return true;
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
+    private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
+        Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
+        Class<?> pluginHelperClazz;
+        try {
+            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
+            IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
+            if (pluginHelperClazz != null) {
+                Method initMethod = pluginHelperClazz.getDeclaredMethod("init", Object.class);
+                initMethod.setAccessible(true);
+                initMethod.invoke(null, pluginLocalManager);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.e(TAG, "initPluginHelper() error!", e);
+        }
+        return false;
+    }
 
     private boolean loadPluginApplication(PluginInfo pluginInfo, Context hostContext) {
         Logger.d(TAG, "loadPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
@@ -315,6 +322,7 @@ public class PluginManager {
     }
 
     // public api
+
     /**
      * find plugin class by plugin packageName and className
      * @param packageName
@@ -322,12 +330,10 @@ public class PluginManager {
      * @return
      * @throws ClassNotFoundException
      */
-    public static Class<?> loadPluginClass(String packageName, String className) throws ClassNotFoundException {
+    public Class<?> loadPluginClass(String packageName, String className) throws ClassNotFoundException {
         Logger.d(TAG, "loadPluginClass() className = " + className);
         PluginInfo pluginInfo;
-        synchronized (sLoadedPluginMap) {
-            pluginInfo = sLoadedPluginMap.get(packageName);
-        }
+        pluginInfo = mLoadedPluginMap.get(packageName);
 
         if (pluginInfo != null) {
             ClassLoader pluginClassLoader = pluginInfo.classLoader;
@@ -347,15 +353,11 @@ public class PluginManager {
     }
 
     public PluginInfo getLoadedPluginInfo(String packageName) {
-        synchronized (sLoadedPluginMap) {
-            return sLoadedPluginMap.get(packageName);
-        }
+        return mLoadedPluginMap.get(packageName);
     }
 
     public List<PluginInfo> getLoadedPluginInfos() {
-        synchronized (sLoadedPluginMap) {
-            return new ArrayList<>(sLoadedPluginMap.values());
-        }
+        return new ArrayList<>(mLoadedPluginMap.values());
     }
 
     public Context createPluginContext(String packageName, Context baseContext) {
@@ -365,6 +367,15 @@ public class PluginManager {
         } else {
             return null;
         }
+    }
+
+    public PluginInfo getPluginInfoByClassLoader(ClassLoader pluginClassLoader) {
+        for (Map.Entry<String, ClassLoader> entry : mLoadedClassLoaderMap.entrySet()) {
+            if (pluginClassLoader == entry.getValue()) {
+                return mLoadedPluginMap.get(entry.getKey());
+            }
+        }
+        return null;
     }
 
     // IPC:
@@ -405,11 +416,11 @@ public class PluginManager {
     public Pair<Uri, Bundle> getPluginProviderUri(String auth) {
         if (mService != null) {
             try {
-                Bundle bundle =  mService.getPluginProviderUri(auth);
+                Bundle bundle = mService.getPluginProviderUri(auth);
                 Logger.d(TAG, "getPluginProviderUri() bundle = " + bundle);
                 if (bundle != null) {
                     bundle.setClassLoader(PluginManager.class.getClassLoader());
-                    Pair<Uri, Bundle> pair = new Pair<>((Uri)bundle.getParcelable("uri"),
+                    Pair<Uri, Bundle> pair = new Pair<>((Uri) bundle.getParcelable("uri"),
                             (Bundle) bundle.getBundle("bundle"));
                     return pair;
                 }

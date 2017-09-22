@@ -1,4 +1,18 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.reginald.andresm'
+
+andresm {
+    packageId = 0x60
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.reginald:andresm:0.1.0'
+    }
+}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -31,6 +45,8 @@ android {
 }
 
 dependencies {
+//    provided fileTree(dir: 'apilib', include: ['*.jar'])
+    compile project(':pluginlib')
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.3.0'
 //    compile project(':pluginlib')

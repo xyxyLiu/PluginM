@@ -148,38 +148,6 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     @Override
-    public void startActivity(Intent intent) {
-        startActivity(intent, null);
-    }
-
-    @Override
-    public void startActivity(Intent intent, Bundle options) {
-        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
-        if (pluginIntent != null) {
-            super.startActivity(pluginIntent, options);
-        } else {
-            super.startActivity(intent, options);
-        }
-    }
-
-    @Override
-    public void startActivities(Intent[] intents) {
-        startActivities(intents, null);
-    }
-
-    @Override
-    public void startActivities(Intent[] intents, Bundle options) {
-        for (int i = 0; i < intents.length; i++) {
-            Intent intent = intents[i];
-            Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginActivityIntent(intent);
-            if (pluginIntent != null) {
-                intents[i] = pluginIntent;
-            }
-        }
-        startActivities(intents, options);
-    }
-
-    @Override
     public ContentResolver getContentResolver() {
         return mContentResolver;
     }

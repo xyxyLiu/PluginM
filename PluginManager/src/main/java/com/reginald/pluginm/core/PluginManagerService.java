@@ -24,16 +24,12 @@ import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.PackageUtils;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import dalvik.system.DexClassLoader;
 
@@ -51,8 +47,10 @@ public class PluginManagerService extends IPluginManager.Stub {
     public static final String PLUGIN_APK_FOLDER_NAME = "apk";
     public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
     public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
-    private static Map<String, PluginInfo> sInstalledPluginMap = new HashMap<>();
-    private static Map<String, PluginPackageParser> sInstalledPkgParser = new HashMap<>();
+
+    private final Object mInstallLock = new Object();
+    private final Map<String, PluginInfo> mInstalledPluginMap = new ConcurrentHashMap<>();
+    private final Map<String, PluginPackageParser> mInstalledPkgParser = new ConcurrentHashMap<>();
 
     private Context mContext;
     private StubManager mStubManager;
@@ -97,95 +95,97 @@ public class PluginManagerService extends IPluginManager.Stub {
             }
 
             String pluginPkgName = apkInfo.packageName;
+            PluginInfo installedPluginInfo = mInstalledPluginMap.get(pluginPkgName);
+            if (installedPluginInfo != null) {
+                Logger.d(TAG, "install() found installed pluginInfo " + installedPluginInfo);
+                return installedPluginInfo;
+            }
 
-            synchronized (sInstalledPluginMap) {
-                PluginInfo installedPluginInfo = sInstalledPluginMap.get(pluginPkgName);
+            synchronized (mInstallLock) {
+                installedPluginInfo = mInstalledPluginMap.get(pluginPkgName);
                 if (installedPluginInfo != null) {
                     Logger.d(TAG, "install() found installed pluginInfo " + installedPluginInfo);
                     return installedPluginInfo;
                 }
-            }
 
-            String rootDir = mContext.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE).getAbsolutePath();
-            File pluginDir = PackageUtils.getOrMakeDir(rootDir, pluginPkgName);
+                String rootDir = mContext.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE).getAbsolutePath();
+                File pluginDir = PackageUtils.getOrMakeDir(rootDir, pluginPkgName);
 
-            if (!pluginDir.exists()) {
-                Logger.e(TAG, "install() pluginDir for " + pluginPkgName + " init error!");
-                return null;
-            }
-
-            File pluginApkDir = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_APK_FOLDER_NAME);
-            if (!pluginApkDir.exists()) {
-                Logger.e(TAG, "install() pluginDir " + pluginApkDir.getAbsolutePath() + " NOT found!");
-                return null;
-            }
-
-            File pluginApk = new File(pluginApkDir, "base.apk");
-
-            boolean isSuccess = PackageUtils.copyFile(originApk.getAbsolutePath(), pluginApk.getAbsolutePath());
-            if (!isSuccess) {
-                Logger.e(TAG, "install() pluginApk = " + pluginApk.getAbsolutePath() + " copy error!");
-                return null;
-            }
-
-            pluginInfo = ApkParser.parsePluginInfo(mContext, pluginApk.getAbsolutePath());
-            resolveConfigInfo(pluginInfo);
-            pluginInfo.apkPath = pluginApk.getAbsolutePath();
-            pluginInfo.fileSize = pluginApk.length();
-            pluginInfo.lastModified = pluginApk.lastModified();
-
-            // create classloader & dexopt
-            Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
-            ClassLoader parentClassLoader;
-            ClassLoader hostClassLoader = mContext.getClassLoader();
-
-            if (pluginInfo.isStandAlone) {
-                parentClassLoader = hostClassLoader.getParent();
-            } else {
-                parentClassLoader = hostClassLoader;
-            }
-
-            File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
-            File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
-            DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                    pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(),
-                    pluginNativeLibPath.getAbsolutePath(), parentClassLoader, hostClassLoader);
-
-            Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
-            Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
-            pluginInfo.isStandAlone = isStandAlone;
-            pluginInfo.classLoader = dexClassLoader;
-            pluginInfo.parentClassLoader = parentClassLoader;
-            pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
-
-            // install so
-            File apkParent = pluginApk.getParentFile();
-            File tempSoDir = new File(apkParent, "temp");
-            Set<String> soList = PackageUtils.unZipSo(pluginApk, tempSoDir);
-            if (soList != null) {
-                for (String soName : soList) {
-                    PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
+                if (!pluginDir.exists()) {
+                    Logger.e(TAG, "install() pluginDir for " + pluginPkgName + " init error!");
+                    return null;
                 }
-                //删掉临时文件
-                PackageUtils.deleteAll(tempSoDir);
-            }
-            pluginInfo.nativeLibDir = pluginNativeLibPath.getAbsolutePath();
 
-            Logger.d(TAG, "install() pluginInfo = " + pluginInfo);
+                File pluginApkDir = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_APK_FOLDER_NAME);
+                if (!pluginApkDir.exists()) {
+                    Logger.e(TAG, "install() pluginDir " + pluginApkDir.getAbsolutePath() + " NOT found!");
+                    return null;
+                }
 
-            if (pluginInfo == null) {
-                Logger.e(TAG, "install() error! pluginInfo is null!");
-                return null;
-            }
+                File pluginApk = new File(pluginApkDir, "base.apk");
 
-            synchronized (sInstalledPkgParser) {
-                Logger.d(TAG, "install() sInstalledPkgParser add " + pluginInfo.packageName);
-                sInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
-            }
+                boolean isSuccess = PackageUtils.copyFile(originApk.getAbsolutePath(), pluginApk.getAbsolutePath());
+                if (!isSuccess) {
+                    Logger.e(TAG, "install() pluginApk = " + pluginApk.getAbsolutePath() + " copy error!");
+                    return null;
+                }
 
-            synchronized (sInstalledPluginMap) {
-                Logger.d(TAG, "install() sInstalledPluginMap add " + pluginInfo.packageName);
-                sInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
+
+                pluginInfo = ApkParser.parsePluginInfo(mContext, pluginApk.getAbsolutePath());
+                resolveConfigInfo(pluginInfo);
+                pluginInfo.apkPath = pluginApk.getAbsolutePath();
+                pluginInfo.fileSize = pluginApk.length();
+                pluginInfo.lastModified = pluginApk.lastModified();
+
+                // create classloader & dexopt
+                Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
+                ClassLoader parentClassLoader;
+                ClassLoader hostClassLoader = mContext.getClassLoader();
+
+                if (pluginInfo.isStandAlone) {
+                    parentClassLoader = hostClassLoader.getParent();
+                } else {
+                    parentClassLoader = hostClassLoader;
+                }
+
+                File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
+                File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
+                DexClassLoader dexClassLoader = new PluginDexClassLoader(
+                        pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(),
+                        pluginNativeLibPath.getAbsolutePath(), parentClassLoader, hostClassLoader);
+
+                Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
+                Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
+                pluginInfo.isStandAlone = isStandAlone;
+                pluginInfo.classLoader = dexClassLoader;
+                pluginInfo.parentClassLoader = parentClassLoader;
+                pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
+
+                // install so
+                File apkParent = pluginApk.getParentFile();
+                File tempSoDir = new File(apkParent, "temp");
+                Set<String> soList = PackageUtils.unZipSo(pluginApk, tempSoDir);
+                if (soList != null) {
+                    for (String soName : soList) {
+                        PackageUtils.copySo(tempSoDir, soName, pluginNativeLibPath.getAbsolutePath());
+                    }
+                    //删掉临时文件
+                    PackageUtils.deleteAll(tempSoDir);
+                }
+                pluginInfo.nativeLibDir = pluginNativeLibPath.getAbsolutePath();
+
+                Logger.d(TAG, "install() pluginInfo = " + pluginInfo);
+
+                if (pluginInfo == null) {
+                    Logger.e(TAG, "install() error! pluginInfo is null!");
+                    return null;
+                }
+
+                Logger.d(TAG, "install() mInstalledPkgParser add " + pluginInfo.packageName);
+                mInstalledPkgParser.put(pluginInfo.packageName, pluginInfo.pkgParser);
+
+                Logger.d(TAG, "install() mInstalledPluginMap add " + pluginInfo.packageName);
+                mInstalledPluginMap.put(pluginInfo.packageName, pluginInfo);
             }
 
             return pluginInfo;
@@ -301,7 +301,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return getActivityInfo(intent.getComponent(), flags);
         }
         try {
-            List<ResolveInfo> resolveInfos = IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            List<ResolveInfo> resolveInfos = IntentMatcher.resolveActivityIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
             if (resolveInfos == null || resolveInfos.isEmpty()) {
                 return null;
             }
@@ -321,7 +321,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             return getServiceInfo(intent.getComponent(), flags);
         }
         try {
-            List<ResolveInfo> resolveInfos = IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            List<ResolveInfo> resolveInfos = IntentMatcher.resolveServiceIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
             if (resolveInfos == null || resolveInfos.isEmpty()) {
                 return null;
             }
@@ -337,9 +337,9 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public ProviderInfo resolveProviderInfo(String name) {
-        Logger.d(TAG, "resolveProviderInfo() name = " + name + " ,sInstalledPkgParser = " + sInstalledPkgParser);
+        Logger.d(TAG, "resolveProviderInfo() name = " + name + " ,mInstalledPkgParser = " + mInstalledPkgParser);
         try {
-            for (PluginPackageParser pluginPackageParser : sInstalledPkgParser.values()) {
+            for (PluginPackageParser pluginPackageParser : mInstalledPkgParser.values()) {
                 List<ProviderInfo> providerInfos = pluginPackageParser.getProviders();
                 for (ProviderInfo providerInfo : providerInfos) {
                     Logger.d(TAG, "resolveProviderInfo() check providerInfo " + providerInfo);
@@ -357,7 +357,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     @Override
     public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
         try {
-            return IntentMatcher.resolveActivityIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            return IntentMatcher.resolveActivityIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
         } catch (Exception e) {
             Logger.e(TAG, "queryIntentActivities() intent = " + intent, e);
         }
@@ -367,7 +367,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     @Override
     public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
         try {
-            return IntentMatcher.resolveServiceIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            return IntentMatcher.resolveServiceIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
         } catch (Exception e) {
             Logger.e(TAG, "queryIntentServices() intent = " + intent, e);
         }
@@ -377,7 +377,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     @Override
     public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
         try {
-            return IntentMatcher.resolveReceiverIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            return IntentMatcher.resolveReceiverIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
         } catch (Exception e) {
             Logger.e(TAG, "queryBroadcastReceivers() intent = " + intent, e);
         }
@@ -387,7 +387,7 @@ public class PluginManagerService extends IPluginManager.Stub {
     @Override
     public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
         try {
-            return IntentMatcher.resolveProviderIntent(mContext, sInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
+            return IntentMatcher.resolveProviderIntent(mContext, mInstalledPkgParser, intent, intent.resolveTypeIfNeeded(mContext.getContentResolver()), flags);
         } catch (Exception e) {
             Logger.e(TAG, "queryIntentContentProviders() intent = " + intent, e);
         }
@@ -488,16 +488,12 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public PluginInfo getInstalledPluginInfo(String packageName) {
-        synchronized (sInstalledPluginMap) {
-            return sInstalledPluginMap.get(packageName);
-        }
+        return mInstalledPluginMap.get(packageName);
     }
 
     @Override
     public List<PluginInfo> getAllInstalledPlugins() {
-        synchronized (sInstalledPluginMap) {
-            return new ArrayList<>(sInstalledPluginMap.values());
-        }
+        return new ArrayList<>(mInstalledPluginMap.values());
     }
 
     private PluginPackageParser getPackageParserForComponent(ComponentName componentName) {

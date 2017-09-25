@@ -1,19 +1,24 @@
 package com.reginald.pluginm.core;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.Instrumentation;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.view.ContextThemeWrapper;
 
 import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.Stubs;
 import com.reginald.pluginm.utils.Logger;
 
@@ -26,6 +31,8 @@ import java.lang.reflect.Method;
  */
 public class HostInstrumentation extends Instrumentation {
     public static final String TAG = "HostInstrumentation";
+
+    private static Class<?> sIAppTaskClazz;
 
     private Instrumentation mBase;
 
@@ -56,21 +63,201 @@ public class HostInstrumentation extends Instrumentation {
         this.mBase = base;
     }
 
+    /**
+     * public ActivityResult execStartActivity(
+     * Context who, IBinder contextThread, IBinder token, Activity target,
+     * Intent intent, int requestCode, Bundle options)
+     *
+     * public void execStartActivities(Context who, IBinder contextThread,
+     * IBinder token, Activity target, Intent[] intents, Bundle options);
+     *
+     * public void execStartActivitiesAsUser(Context who, IBinder contextThread,
+     * IBinder token, Activity target, Intent[] intents, Bundle options,
+     * int userId);
+     *
+     * public ActivityResult execStartActivity(
+     * Context who, IBinder contextThread, IBinder token, Fragment target,
+     * Intent intent, int requestCode, Bundle options);
+     *
+     * public ActivityResult execStartActivity(
+     * Context who, IBinder contextThread, IBinder token, Activity target,
+     * Intent intent, int requestCode, Bundle options, UserHandle user);
+     *
+     * public ActivityResult execStartActivityAsCaller(
+     * Context who, IBinder contextThread, IBinder token, Activity target,
+     * Intent intent, int requestCode, Bundle options, int userId);
+     *
+     * public void execStartActivityFromAppTask(
+     * Context who, IBinder contextThread, IAppTask appTask,
+     * Intent intent, Bundle options);
+     *
+     *
+     * // 4.0.4
+     *
+     * public ActivityResult execStartActivity(
+     * Context who, IBinder contextThread, IBinder token, Activity target,
+     * Intent intent, int requestCode)
+     *
+     * public void execStartActivities(Context who, IBinder contextThread,
+     * IBinder token, Activity target, Intent[] intents);
+     *
+     * public ActivityResult execStartActivity(
+     * Context who, IBinder contextThread, IBinder token, Fragment target,
+     * Intent intent, int requestCode);
+     */
+
+
     public ActivityResult execStartActivity(
             Context who, IBinder contextThread, IBinder token, Activity target,
             Intent intent, int requestCode, Bundle options) {
 
-        Intent pluginIntent = mPluginManager.getPluginActivityIntent(intent);
+        Intent resolvedIntent = resolveIntent(intent);
 
-        if (pluginIntent != null) {
-            intent = pluginIntent;
-        }
-
-        ActivityResult result = realExecStartActivity(who, contextThread, token, target,
-                intent, requestCode, options);
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivity",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode, options},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class, int.class, Bundle.class}
+        );
 
         return result;
 
+    }
+
+    public void execStartActivitiesAsUser(Context who, IBinder contextThread,
+            IBinder token, Activity target, Intent[] intents, Bundle options,
+            int userId) {
+
+        Intent[] resolvedIntents = resolveIntents(intents);
+
+        MethodUtils.invokeMethodNoThrow(mBase, "execStartActivitiesAsUser",
+                new Object[]{who, contextThread, token, target, resolvedIntents, options, userId},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Activity.class, Intent[].class, Bundle.class, int.class}
+        );
+    }
+
+    public ActivityResult execStartActivity(
+            Context who, IBinder contextThread, IBinder token, Fragment target,
+            Intent intent, int requestCode, Bundle options) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivity",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode, options},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Fragment.class, Intent.class, int.class, Bundle.class}
+        );
+
+        return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+    public ActivityResult execStartActivity(
+            Context who, IBinder contextThread, IBinder token, Activity target,
+            Intent intent, int requestCode, Bundle options, UserHandle user) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivity",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode, options, user},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Fragment.class,
+                        Intent.class, int.class, Bundle.class, UserHandle.class}
+        );
+
+        return result;
+    }
+
+    public ActivityResult execStartActivityAsCaller(
+            Context who, IBinder contextThread, IBinder token, Activity target,
+            Intent intent, int requestCode, Bundle options, int userId) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivityAsCaller",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode, options, userId},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Fragment.class,
+                        Intent.class, int.class, Bundle.class, int.class}
+        );
+
+        return result;
+    }
+
+    public void execStartActivityFromAppTask(
+            Context who, IBinder contextThread, Object appTask,
+            Intent intent, Bundle options) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        if (sIAppTaskClazz == null) {
+            try {
+                sIAppTaskClazz = Class.forName("android.app.IAppTask");
+            } catch (ClassNotFoundException e) {
+                Logger.e(TAG, "execStartActivityFromAppTask() android.app.IAppTask NOT found!", e);
+            }
+        }
+
+        MethodUtils.invokeMethodNoThrow(mBase, "execStartActivityFromAppTask",
+                new Object[]{who, contextThread, appTask, resolvedIntent, options},
+                new Class[]{Context.class, IBinder.class, sIAppTaskClazz, Intent.class, Bundle.class}
+        );
+    }
+
+
+    public ActivityResult execStartActivity(
+            Context who, IBinder contextThread, IBinder token, Activity target,
+            Intent intent, int requestCode) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivity",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Activity.class, Intent.class, int.class}
+        );
+
+        return result;
+    }
+
+    public void execStartActivities(Context who, IBinder contextThread,
+            IBinder token, Activity target, Intent[] intents) {
+        Intent[] resolvedIntents = resolveIntents(intents);
+
+        MethodUtils.invokeMethodNoThrow(mBase, "execStartActivities",
+                new Object[]{who, contextThread, token, target, resolvedIntents},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Activity.class, Intent[].class}
+        );
+    }
+
+    public ActivityResult execStartActivity(
+            Context who, IBinder contextThread, IBinder token, Fragment target,
+            Intent intent, int requestCode) {
+        Intent resolvedIntent = resolveIntent(intent);
+
+        ActivityResult result = (ActivityResult) MethodUtils.invokeMethodNoThrow(mBase, "execStartActivity",
+                new Object[]{who, contextThread, token, target, resolvedIntent, requestCode},
+                new Class[]{Context.class, IBinder.class, IBinder.class, Fragment.class, Intent.class, int.class}
+        );
+
+        return result;
+    }
+
+    private Intent[] resolveIntents(Intent[] intents) {
+        if (intents == null) {
+            return null;
+        }
+
+        Intent[] resolvedIntents = new Intent[intents.length];
+
+        for (int i = 0; i < intents.length; i++) {
+            resolvedIntents[i] = resolveIntent(intents[i]);
+        }
+
+        return resolvedIntents;
+    }
+
+    private Intent resolveIntent(Intent intent) {
+        if (intent == null) {
+            return null;
+        }
+
+        Intent resolvedIntent = mPluginManager.getPluginActivityIntent(intent);
+
+        if (resolvedIntent == null) {
+            resolvedIntent = intent;
+        }
+
+        return resolvedIntent;
     }
 
     private ActivityResult realExecStartActivity(
@@ -133,6 +320,7 @@ public class HostInstrumentation extends Instrumentation {
             try {
                 FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
                 FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
+                FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
                 FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
                 FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
                 Logger.d(TAG, "callActivityOnCreate() replace context ok! ");

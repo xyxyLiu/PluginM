@@ -23,6 +23,8 @@
 package com.reginald.pluginm.reflect;
 
 
+import com.reginald.pluginm.utils.Logger;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,7 +37,7 @@ import java.util.Map;
  * Created by Andy Zhang(zhangyong232@gmail.com)ClassUtils on 2015/3/25.
  */
 public class MethodUtils {
-
+    private static final String TAG = "MethodUtils";
     private static Map<String, Method> sMethodCache = new HashMap<String, Method>();
 
     private static String getKey(final Class<?> cls, final String methodName, final Class<?>... parameterTypes) {
@@ -214,6 +216,29 @@ public class MethodUtils {
         return method.invoke(object, args);
     }
 
+    public static Object invokeMethodNoThrow(final Object object, final String methodName,
+            Object[] args, Class<?>[] parameterTypes) {
+        parameterTypes = Utils.nullToEmpty(parameterTypes);
+        args = Utils.nullToEmpty(args);
+        final Method method = getMatchingAccessibleMethod(object.getClass(),
+                methodName, parameterTypes);
+
+        if (method == null) {
+            Logger.e(TAG, "invokeMethodNoThrow() method NOT found: " + methodName);
+            return null;
+        }
+
+        try {
+            return method.invoke(object, args);
+        } catch (IllegalAccessException e) {
+            Logger.e(TAG, "invokeMethodNoThrow() error!", e);
+        } catch (InvocationTargetException e) {
+            Logger.e(TAG, "invokeMethodNoThrow() error!", e);
+        }
+
+        return null;
+    }
+
     public static Object invokeStaticMethod(final Class clazz, final String methodName,
             Object[] args, Class<?>[] parameterTypes)
             throws NoSuchMethodException, IllegalAccessException,
@@ -245,6 +270,14 @@ public class MethodUtils {
         final Class<?>[] parameterTypes = Utils.toClass(args);
         return invokeMethod(object, methodName, args, parameterTypes);
     }
+
+    public static Object invokeMethodNoThrow(final Object object, final String methodName,
+            Object... args) {
+        args = Utils.nullToEmpty(args);
+        final Class<?>[] parameterTypes = Utils.toClass(args);
+        return invokeMethodNoThrow(object, methodName, args, parameterTypes);
+    }
+
 
     public static <T> T invokeConstructor(final Class<T> cls, Object... args)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,

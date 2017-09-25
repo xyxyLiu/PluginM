@@ -15,3 +15,10 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# pluginm api start
+-keep public class com.reginald.pluginm.pluginapi.** {
+    public <fields>;
+    <methods>;
+}
+# pluginm api end

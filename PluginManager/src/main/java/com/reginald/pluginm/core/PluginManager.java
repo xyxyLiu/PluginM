@@ -38,12 +38,14 @@ import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ThreadUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import dalvik.system.DexClassLoader;
 
@@ -136,6 +138,13 @@ public class PluginManager {
             String pluginPackageName = packageName;
             PluginInfo pluginInfo = null;
             Logger.d(TAG, "loadPlugin() pluginPackageName = " + pluginPackageName);
+
+            pluginInfo = mLoadedPluginMap.get(pluginPackageName);
+            if (pluginInfo != null) {
+                Logger.d(TAG, "loadPlugin() found loaded pluginInfo " + pluginInfo);
+                return pluginInfo;
+            }
+
             synchronized (mPluginLoadLock) {
                 pluginInfo = mLoadedPluginMap.get(pluginPackageName);
                 if (pluginInfo != null) {
@@ -202,19 +211,30 @@ public class PluginManager {
         }
     }
 
-    private boolean initPlugin(PluginInfo pluginInfo, Context hostContext) {
+    private boolean initPlugin(final PluginInfo pluginInfo, final Context hostContext) {
         Logger.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
-        if (!initPluginHelper(pluginInfo, hostContext)) {
-            Logger.e(TAG, "initPlugin() initPluginHelper error! ");
-            return false;
-        }
 
-        if (!loadPluginApplication(pluginInfo, hostContext)) {
-            Logger.e(TAG, "initPlugin() initPluginApplication error! ");
-            return false;
-        }
+        final AtomicBoolean isSuc = new AtomicBoolean(false);
 
-        return true;
+        ThreadUtils.ensureRunOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                if (!initPluginHelper(pluginInfo, hostContext)) {
+                    Logger.e(TAG, "initPlugin() initPluginHelper error! ");
+                    return;
+                }
+
+                if (!loadPluginApplication(pluginInfo, hostContext)) {
+                    Logger.e(TAG, "initPlugin() initPluginApplication error! ");
+                    return;
+                }
+
+                isSuc.set(true);
+            }
+        });
+
+
+        return isSuc.get();
     }
 
     private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {

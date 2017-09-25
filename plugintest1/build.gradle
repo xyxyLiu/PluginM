@@ -23,8 +23,7 @@ android {
 }
 
 dependencies {
-//    provided fileTree(dir: 'apilib', include: ['*.jar'])
-    compile project(':pluginlib')
+    provided fileTree(dir: rootProject.ext.targetPluginApiLibDir, include: ['*.jar'])
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'

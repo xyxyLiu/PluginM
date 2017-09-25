@@ -13,13 +13,11 @@ import android.support.annotation.Nullable;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.comm.PluginCommService;
 import com.reginald.pluginm.core.PluginClient;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.Logger;
-import com.reginald.pluginm.utils.ThreadUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -74,30 +72,28 @@ public class PluginStubMainProvider extends ContentProvider {
             final ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
             final Bundle resultBundle = new Bundle();
 
-            ThreadUtils.ensureRunOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.packageName);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.packageName);
 
-                    if (loadedPluginInfo == null) {
-                        return;
-                    }
+            if (loadedPluginInfo == null) {
+                return null;
+            }
 
-                    try {
-                        IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
-                        Logger.d(TAG, "call() iContentProvider = " + iContentProvider);
-                        if (iContentProvider != null) {
-                            BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
-                            resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            try {
+                IContentProvider iContentProvider = getIContentProvider(loadedPluginInfo, providerInfo);
+                Logger.d(TAG, "call() iContentProvider = " + iContentProvider);
+                if (iContentProvider != null) {
+                    BinderParcelable binderParcelable = new BinderParcelable(iContentProvider.asBinder());
+                    resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
+                    return resultBundle;
                 }
-            });
+            } catch (Exception e) {
+                Logger.e(TAG, "found provider error!", e);
+            }
 
-            return resultBundle.isEmpty() ? null : resultBundle;
-        } else if (METHOD_GET_CLIENT.equals(method)) {
+            return null;
+        } else if (METHOD_GET_CLIENT.equals(method))
+
+        {
             final Bundle resultBundle = new Bundle();
             BinderParcelable binderParcelable = new BinderParcelable(PluginClient.getInstance(getContext()));
             resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);

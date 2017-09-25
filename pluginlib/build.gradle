@@ -10,9 +10,10 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -21,3 +22,20 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
+
+
+def target_plugin_api_lib_dir = rootProject.ext.targetPluginApiLibDir
+
+task clearJar(type: Delete) {
+    delete target_plugin_api_lib_dir
+}
+
+task makeJar(type: Copy) {
+    from('build/intermediates/bundles/default/')
+    into(target_plugin_api_lib_dir)
+    include('classes.jar')
+    rename ('classes.jar', 'pluginm-api-v' + android.defaultConfig.versionName +
+            '_' + android.defaultConfig.versionCode + '.jar')
+}
+
+makeJar.dependsOn(clearJar, build)

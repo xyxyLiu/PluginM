@@ -17,6 +17,7 @@ ext {
     minSdkVersion = 11
 
     DEBUG_LOG = "true"
+    targetPluginApiLibDir = rootDir.path + '/build/plugin_api_lib/'
 }
 
 allprojects {

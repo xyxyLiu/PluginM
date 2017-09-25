@@ -15,6 +15,9 @@ public class PluginHelper {
         sPluginLocalManager = (IPluginLocalManager)iPluginLocalManager;
     }
 
+    private PluginHelper() {
+    }
+
     public static String getPluginPackageName(Context context) {
         if (sPluginLocalManager != null) {
             return sPluginLocalManager.getPluginPackageName(context);

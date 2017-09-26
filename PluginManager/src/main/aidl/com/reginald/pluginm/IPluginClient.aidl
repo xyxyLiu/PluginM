@@ -9,4 +9,6 @@ interface IPluginClient {
     List<PluginInfo> getAllLoadedPlugins();
 
     InvokeResult invokePlugin(String packageName, String serviceName, String methodName, String params, InvokeCallback callback);
+
+    IBinder fetchPluginService(String packageName, String serviceName);
 }

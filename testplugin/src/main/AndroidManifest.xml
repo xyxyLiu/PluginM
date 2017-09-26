@@ -152,7 +152,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <meta-data android:name="plugin_invoker"
+        <meta-data android:name="pluginm_invoker"
             android:value="[
             {'service':'main', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin'},
             {'service':'main_remote', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin:remote'}

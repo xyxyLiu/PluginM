@@ -2,6 +2,7 @@ package com.reginald.pluginm.pluginapi;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.os.IBinder;
 
 import com.reginald.pluginm.pluginapi.IInvokeCallback;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
@@ -14,6 +15,7 @@ public interface IPluginLocalManager {
     String getPluginPackageName(Context context);
     PackageInfo getPluginPackageInfo(String packageName, int flags);
 
-    IInvokeResult invokeHost(String serviceName, String methodName, String params, IInvokeCallback callback);
-    IInvokeResult invokePlugin(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback);
+    IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback);
+    IBinder fetchService(String packageName, String serviceName);
+
 }

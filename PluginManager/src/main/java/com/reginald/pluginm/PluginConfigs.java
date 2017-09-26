@@ -12,12 +12,23 @@ public class PluginConfigs {
 
     private int mProcessType = PROCESS_TYPE_STANDALONE;
 
+    private boolean mUseHostLoader = true;
+
     public int getProcessType() {
         return mProcessType;
     }
 
     public PluginConfigs setProcessType(int processType) {
         mProcessType = processType;
+        return this;
+    }
+
+    public boolean isUseHostLoader() {
+        return mUseHostLoader;
+    }
+
+    public PluginConfigs setUseHostLoader(boolean useHostLoader) {
+        mUseHostLoader = useHostLoader;
         return this;
     }
 

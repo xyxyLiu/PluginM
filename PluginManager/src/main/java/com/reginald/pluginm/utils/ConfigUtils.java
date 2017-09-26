@@ -16,7 +16,7 @@ import java.util.Map;
  */
 
 public class ConfigUtils {
-    public static final String KEY_INVOKER = "plugin_invoker";
+    public static final String KEY_INVOKER = "pluginm_invoker";
     public static final String KEY_INVOKER_SERVICE = "service";
     public static final String KEY_INVOKER_CLASS = "class";
     public static final String KEY_INVOKER_PROCESS = "process";

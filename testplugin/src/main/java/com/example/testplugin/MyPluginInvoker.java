@@ -2,20 +2,37 @@ package com.example.testplugin;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 
+import com.reginald.pluginm.demo.pluginsharelib.ITestPluginBinder;
+import com.reginald.pluginm.demo.pluginsharelib.PluginItem;
 import com.reginald.pluginm.pluginapi.IInvokeCallback;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
-import com.reginald.pluginm.pluginapi.IPluginInvoker;
+import com.reginald.pluginm.pluginapi.IInvoker;
 
 /**
  * Created by lxy on 17-9-20.
  */
 
-public class MyPluginInvoker implements IPluginInvoker {
+public class MyPluginInvoker implements IInvoker {
     private static final String TAG = "MyPluginInvoker";
 
     private static final String METHOD_START_MAIN = "start_main";
+
+    private IBinder myBinder = new ITestPluginBinder.Stub() {
+        @Override
+        public String basicTypes(PluginItem pluginItem) throws RemoteException {
+            Log.d(TAG, "BINDER basicTypes() pluginItem = " + pluginItem);
+            return "I'm a binder from plugintest!";
+        }
+    };
+
+    @Override
+    public IBinder onServiceCreate(Context context) {
+        return myBinder;
+    }
 
     @Override
     public IInvokeResult onInvoke(Context context, String methodName, String params, IInvokeCallback callback) {

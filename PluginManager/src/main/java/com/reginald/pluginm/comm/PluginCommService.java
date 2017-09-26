@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.text.TextUtils;
 
 import com.reginald.pluginm.IPluginClient;
 import com.reginald.pluginm.PluginInfo;
@@ -35,6 +36,7 @@ public class PluginCommService extends IPluginComm.Stub {
     private PluginManager mPluginManager;
     private HostInvokerManager mHostInvokerManager;
     private final Map<String, IPluginClient> mPluginClientMap = new HashMap<>(2);
+    private final Map<String, IBinder> mPluginBinderCacheMap = new HashMap<>(2);
 
     public static synchronized PluginCommService getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -52,18 +54,46 @@ public class PluginCommService extends IPluginComm.Stub {
     }
 
     @Override
-    public InvokeResult invokeHost(String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
-        return mHostInvokerManager.invokeHost(serviceName, methodName, params, callback);
+    public InvokeResult invoke(String packageName, String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
+        if (TextUtils.isEmpty(packageName)) {
+            return invokeHost(serviceName, methodName, params, callback);
+        } else {
+            return invokePlugin(packageName, serviceName, methodName, params, callback);
+        }
     }
 
     @Override
-    public InvokeResult invokePlugin(String packageName, String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
+    public IBinder fetchService(String packageName, String serviceName) throws RemoteException {
+        if (TextUtils.isEmpty(packageName)) {
+            return mHostInvokerManager.fetchHostServiceBinder(serviceName);
+        } else {
+            return fetchPluginServiceBinder(packageName, serviceName);
+        }
+    }
+
+
+    private InvokeResult invokeHost(String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
+        return mHostInvokerManager.invokeHost(serviceName, methodName, params, callback);
+    }
+
+    private InvokeResult invokePlugin(String packageName, String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
         IPluginClient pluginClient = fetchPluginClient(packageName, serviceName);
         if (pluginClient != null) {
             return pluginClient.invokePlugin(packageName, serviceName, methodName, params, callback);
         }
 
         return InvokeResult.buildErrorResult(IInvokeResult.RESULT_NOT_FOUND);
+    }
+
+
+    // TODO cache binders
+    private IBinder fetchPluginServiceBinder(String packageName, String serviceName) throws RemoteException {
+        IPluginClient pluginClient = fetchPluginClient(packageName, serviceName);
+        if (pluginClient != null) {
+            return pluginClient.fetchPluginService(packageName, serviceName);
+        }
+
+        return null;
     }
 
     private IPluginClient fetchPluginClient(String packageName, String serviceName) {
@@ -140,5 +170,4 @@ public class PluginCommService extends IPluginComm.Stub {
         IPluginClient pluginClient = mPluginClientMap.remove(processName);
         Logger.d(TAG, "onPluginClientDied() remove " + (pluginClient != null ? "success!" : "error!"));
     }
-
 }

@@ -1,1 +1,1 @@
-include ':PluginManager', ':testplugin', ':testhost', ':pluginlib', ':plugintest1'
+include ':PluginManager', ':testplugin', ':testhost', ':pluginlib', ':testplugin2', ':pluginsharelib'

@@ -3,6 +3,7 @@ package com.reginald.pluginm.pluginapi;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.IBinder;
 
 /**
  * Created by lxy on 16-10-27.
@@ -51,7 +52,7 @@ public class PluginHelper {
 
     public static IInvokeResult invokeHost(String serviceName, String methodName, String params, IInvokeCallback callback) {
         if (sPluginLocalManager != null) {
-            return sPluginLocalManager.invokeHost(serviceName, methodName, params, callback);
+            return sPluginLocalManager.invoke(null, serviceName, methodName, params, callback);
         }
 
         return null;
@@ -59,7 +60,15 @@ public class PluginHelper {
 
     public static IInvokeResult invokePlugin(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
         if (sPluginLocalManager != null) {
-            return sPluginLocalManager.invokePlugin(packageName, serviceName, methodName, params, callback);
+            return sPluginLocalManager.invoke(packageName, serviceName, methodName, params, callback);
+        }
+
+        return null;
+    }
+
+    public static IBinder fetchService(String packageName, String serviceName) {
+        if (sPluginLocalManager != null) {
+            return sPluginLocalManager.fetchService(packageName, serviceName);
         }
 
         return null;

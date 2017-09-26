@@ -2,6 +2,7 @@ package com.reginald.pluginm.comm;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.os.IBinder;
 
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.comm.invoker.InvokeCallback;
@@ -55,21 +56,17 @@ public class PluginLocalManager implements IPluginLocalManager {
     }
 
     @Override
-    public IInvokeResult invokeHost(String serviceName, String methodName, String params, IInvokeCallback callback) {
+    public IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
         InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
 
-        final InvokeResult invokeResult = PluginCommClient.getInstance(mContext).invokeHost(serviceName, methodName, params, invokeCallback);
+        final InvokeResult invokeResult = PluginCommClient.getInstance(mContext).invoke(packageName, serviceName, methodName, params, invokeCallback);
 
         return InvokeResult.newIInvokerResult(invokeResult);
     }
 
     @Override
-    public IInvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName, String params, final IInvokeCallback callback) {
-        InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
-
-        final InvokeResult invokeResult = PluginCommClient.getInstance(mContext).invokePlugin(packageName, serviceName, methodName, params, invokeCallback);
-
-        return InvokeResult.newIInvokerResult(invokeResult);
+    public IBinder fetchService(String packageName, String serviceName) {
+        return PluginCommClient.getInstance(mContext).fetchService(packageName, serviceName);
     }
 
     private PluginInfo getPluginInfo(Context pluginContext) {

@@ -1,5 +1,7 @@
 package com.reginald.pluginm.core;
 
+import com.reginald.pluginm.PluginConfigs;
+import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.utils.Logger;
 
@@ -31,15 +33,6 @@ public class PluginDexClassLoader extends DexClassLoader {
 
         ClassNotFoundException exception = null;
 
-        if (canUseHostLoader1(className)) {
-            try {
-                return mHost.loadClass(className);
-            } catch (ClassNotFoundException e) {
-                Logger.e(TAG, "loadClass() classname = " + className + " host load fail!");
-                exception = e;
-            }
-        }
-
         try {
             Class<?> clazz = super.loadClass(className, resolve);
             Logger.d(TAG, "loadClass() classname = " + className + " ok!");
@@ -49,7 +42,7 @@ public class PluginDexClassLoader extends DexClassLoader {
             exception = e;
         }
 
-        if (canUseHostLoader2(className)) {
+        if (canUseHostLoader(className)) {
             try {
                 return mHost.loadClass(className);
             } catch (ClassNotFoundException e) {
@@ -65,12 +58,8 @@ public class PluginDexClassLoader extends DexClassLoader {
         throw new ClassNotFoundException(String.format("plugin class %s NOT found", className));
     }
 
-    private boolean canUseHostLoader1(String className) {
-        return className.startsWith(PluginHelper.class.getPackage().getName());
-    }
-
-    private boolean canUseHostLoader2(String className) {
-        return false;
+    private boolean canUseHostLoader(String className) {
+        return PluginM.getConfigs().isUseHostLoader();
     }
 
     public String toString() {

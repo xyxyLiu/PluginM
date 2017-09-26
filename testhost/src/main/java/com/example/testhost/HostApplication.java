@@ -14,6 +14,8 @@ public class HostApplication extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        PluginM.onAttachBaseContext(this, new PluginConfigs().setProcessType(PluginConfigs.PROCESS_TYPE_DUAL));
+        PluginM.onAttachBaseContext(this, new PluginConfigs()
+                .setProcessType(PluginConfigs.PROCESS_TYPE_DUAL)
+                .setUseHostLoader(true));
     }
 }

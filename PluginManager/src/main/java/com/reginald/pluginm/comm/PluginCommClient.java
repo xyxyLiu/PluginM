@@ -66,26 +66,26 @@ public class PluginCommClient {
         }
     }
 
-    public InvokeResult invokeHost(String serviceName, String methodName, String params, InvokeCallback callback) {
-        if (mService != null) {
-            try {
-                return mService.invokeHost(serviceName, methodName, params, callback);
-            } catch (RemoteException e) {
-                Logger.e(TAG, "invokeHost() error!", e);
-            }
-        }
-        return InvokeResult.buildErrorResult(IInvokeResult.RESULT_REMOTE_ERROR);
-    }
-
-    public InvokeResult invokePlugin(String packageName, String serviceName,
+    public InvokeResult invoke(String packageName, String serviceName,
             String methodName, String params, InvokeCallback callback) {
         if (mService != null) {
             try {
-                return mService.invokePlugin(packageName, serviceName, methodName, params, callback);
+                return mService.invoke(packageName, serviceName, methodName, params, callback);
             } catch (RemoteException e) {
                 Logger.e(TAG, "invokePlugin() error!", e);
             }
         }
         return InvokeResult.buildErrorResult(IInvokeResult.RESULT_REMOTE_ERROR);
+    }
+
+    public IBinder fetchService(String packageName, String serviceName) {
+        if (mService != null) {
+            try {
+                return mService.fetchService(packageName, serviceName);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "fetchService() error!", e);
+            }
+        }
+        return null;
     }
 }

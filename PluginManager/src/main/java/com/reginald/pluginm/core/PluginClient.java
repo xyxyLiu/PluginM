@@ -1,6 +1,7 @@
 package com.reginald.pluginm.core;
 
 import android.content.Context;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
 
@@ -11,7 +12,7 @@ import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
 import com.reginald.pluginm.comm.invoker.InvokeResult;
 import com.reginald.pluginm.pluginapi.IInvokeCallback;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
-import com.reginald.pluginm.pluginapi.IPluginInvoker;
+import com.reginald.pluginm.pluginapi.IInvoker;
 import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 
@@ -29,7 +30,8 @@ public class PluginClient extends IPluginClient.Stub {
     private static volatile PluginClient sInstance;
 
     private Context mContext;
-    private Map<String, IPluginInvoker> mInvokerCacheMap = new HashMap<>();
+    private final Map<String, IInvoker> mInvokerCacheMap = new HashMap<>();
+    private final Map<String, IBinder> mBinderCacheMap = new HashMap<>();
 
     public static synchronized PluginClient getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -51,7 +53,7 @@ public class PluginClient extends IPluginClient.Stub {
 
     @Override
     public InvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName, String params, final InvokeCallback callback) throws RemoteException {
-        IPluginInvoker pluginInvoker = fetchPluginInvoker(packageName, serviceName);
+        IInvoker pluginInvoker = fetchPluginInvoker(packageName, serviceName);
 
         if (pluginInvoker != null) {
             IInvokeCallback iInvokeCallback = InvokeCallbackWrapper.build(callback);
@@ -69,7 +71,47 @@ public class PluginClient extends IPluginClient.Stub {
         return new InvokeResult(IInvokeResult.RESULT_NOT_FOUND, null);
     }
 
-    private IPluginInvoker fetchPluginInvoker(String packageName, String serviceName) {
+    @Override
+    public IBinder fetchPluginService(String packageName, String serviceName) throws RemoteException {
+        return fetchPluginServiceBinder(packageName, serviceName);
+    }
+
+    private IBinder fetchPluginServiceBinder(String packageName, String serviceName) {
+        String key = keyForInvokerMap(packageName, serviceName);
+        if (key == null) {
+            Logger.w(TAG, String.format("fetchPluginServiceBinder() key is Null! for %s @ %s", serviceName, packageName));
+            return null;
+        }
+
+        synchronized (mBinderCacheMap) {
+            IBinder iBinder = mBinderCacheMap.get(key);
+            Logger.w(TAG, String.format("fetchPluginServiceBinder() cached binder = %s", iBinder));
+
+            if (iBinder != null && iBinder.isBinderAlive() && iBinder.pingBinder()) {
+                return iBinder;
+            }
+
+            IInvoker iPluginInvoker = fetchPluginInvoker(packageName, serviceName);
+
+            if (iPluginInvoker == null) {
+                Logger.w(TAG, String.format("fetchPluginServiceBinder() iPluginInvoker NOT found for %s @ %s", serviceName, packageName));
+                return null;
+            }
+
+            PluginInfo pluginInfo = PluginManager.getInstance(mContext).getLoadedPluginInfo(packageName);
+
+            if (pluginInfo == null) {
+                Logger.w(TAG, String.format("fetchPluginServiceBinder() pluginInfo NOT found for %s @ %s", serviceName, packageName));
+                return null;
+            }
+
+            iBinder = iPluginInvoker.onServiceCreate(pluginInfo.baseContext);
+            mBinderCacheMap.put(key, iBinder);
+            return iBinder;
+        }
+    }
+
+    private IInvoker fetchPluginInvoker(String packageName, String serviceName) {
         String key = keyForInvokerMap(packageName, serviceName);
         if (key == null) {
             Logger.w(TAG, String.format("fetchPluginInvoker() key is Null! for %s @ %s", serviceName, packageName));
@@ -77,7 +119,7 @@ public class PluginClient extends IPluginClient.Stub {
         }
 
         synchronized (mInvokerCacheMap) {
-            IPluginInvoker pluginInvoker = mInvokerCacheMap.get(key);
+            IInvoker pluginInvoker = mInvokerCacheMap.get(key);
             Logger.w(TAG, String.format("fetchPluginInvoker() cached pluginInvoker = %s", pluginInvoker));
 
             if (pluginInvoker != null) {
@@ -102,7 +144,7 @@ public class PluginClient extends IPluginClient.Stub {
                 }
                 String className = serviceConfig.get(ConfigUtils.KEY_INVOKER_CLASS);
                 Class<?> invokerClazz = pluginInfo.classLoader.loadClass(className);
-                pluginInvoker = (IPluginInvoker) invokerClazz.newInstance();
+                pluginInvoker = (IInvoker) invokerClazz.newInstance();
                 mInvokerCacheMap.put(key, pluginInvoker);
                 return pluginInvoker;
             } catch (ClassNotFoundException e) {

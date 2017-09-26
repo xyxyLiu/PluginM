@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.IBinder;
 
 import com.reginald.pluginm.comm.PluginCommClient;
 import com.reginald.pluginm.comm.invoker.InvokeCallback;
@@ -57,11 +58,15 @@ public class PluginM {
         return new PluginContentResolver(sAppContext, sAppContext.getContentResolver());
     }
 
-    public IInvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName, String params, final IInvokeCallback callback) {
+    public IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
         InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
 
-        final InvokeResult invokeResult = PluginCommClient.getInstance(sAppContext).invokePlugin(packageName, serviceName, methodName, params, invokeCallback);
+        final InvokeResult invokeResult = PluginCommClient.getInstance(sAppContext).invoke(packageName, serviceName, methodName, params, invokeCallback);
 
         return InvokeResult.newIInvokerResult(invokeResult);
+    }
+
+    public IBinder fetchService(String packageName, String serviceName) {
+        return PluginCommClient.getInstance(sAppContext).fetchService(packageName, serviceName);
     }
 }

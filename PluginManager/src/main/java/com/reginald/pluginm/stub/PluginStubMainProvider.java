@@ -13,10 +13,11 @@ import android.support.annotation.Nullable;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.core.PluginClient;
+import com.reginald.pluginm.comm.PluginClientService;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.HashMap;
@@ -34,6 +35,7 @@ public class PluginStubMainProvider extends ContentProvider {
 
     private static PluginStubMainProvider sInstance;
     private final Map<String, ContentProvider> mContentProviderMap = new HashMap<>();
+    private ProviderInfo mStubInfo;
 
     private static Class sContentProviderNativeClass;
 
@@ -49,6 +51,7 @@ public class PluginStubMainProvider extends ContentProvider {
     public boolean onCreate() {
         Logger.d(TAG, "onCreate() ");
         sInstance = this;
+        mStubInfo = CommonUtils.getProviderInfo(this);
         return true;
     }
 
@@ -95,7 +98,7 @@ public class PluginStubMainProvider extends ContentProvider {
 
         {
             final Bundle resultBundle = new Bundle();
-            BinderParcelable binderParcelable = new BinderParcelable(PluginClient.getInstance(getContext()));
+            BinderParcelable binderParcelable = new BinderParcelable(PluginClientService.getInstance(getContext()));
             resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
             return resultBundle;
         }
@@ -157,6 +160,9 @@ public class PluginStubMainProvider extends ContentProvider {
                     synchronized (mContentProviderMap) {
                         mContentProviderMap.put(providerInfo.name, contentProvider);
                     }
+
+                    PluginManager.getInstance(getContext()).callProviderOnCreate(contentProvider, mStubInfo, providerInfo);
+
                     Logger.d(TAG, "installProviders() providerInfo ok!");
                 } catch (Exception e) {
                     Logger.e(TAG, "installProviders() error! providerInfo = " + providerInfo, e);

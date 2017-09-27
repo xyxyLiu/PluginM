@@ -1,9 +1,12 @@
 package com.reginald.pluginm.core;
 
+import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -44,6 +47,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -59,11 +63,17 @@ public class PluginManager {
     public static final String EXTRA_INTENT_TARGET_ACTIVITYINFO = "extra.plugin.target.activityinfo";
     public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
     public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
+    public static final String EXTRA_INTENT_STUB_INFO = "extra.plugin.stub.info";
     public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
 
     private final Object mPluginLoadLock = new Object();
     private final Map<String, PluginInfo> mLoadedPluginMap = new ConcurrentHashMap<>();
     private final Map<String, ClassLoader> mLoadedClassLoaderMap = new ConcurrentHashMap<>();
+
+    private final Map<Application, ApplicationInfo> mRunningApplicationMap = new WeakHashMap<>();
+    private final Map<Activity, Pair<ActivityInfo, ActivityInfo>> mRunningActivityMap = new WeakHashMap<>();
+    private final Map<Service, Pair<ServiceInfo, ServiceInfo>> mRunningServiceMap = new WeakHashMap<>();
+    private final Map<ContentProvider, Pair<ProviderInfo, ProviderInfo>> mRunningProviderMap = new WeakHashMap<>();
 
     private Context mContext;
     private volatile IPluginManager mService;
@@ -277,6 +287,8 @@ public class PluginManager {
             attachMethod.invoke(pluginInfo.application, pluginInfo.baseContext);
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
 
+            callApplicationOnAttach(pluginInfo.application, applicationInfo);
+
             loadProviders(pluginInfo);
 
             pluginInfo.application.onCreate();
@@ -397,6 +409,70 @@ public class PluginManager {
         }
         return null;
     }
+
+    public void callApplicationOnAttach(Application app, ApplicationInfo appInfo) {
+        String myProcessName = CommonUtils.getProcessName(mContext, Process.myPid());
+        Logger.d(TAG, String.format("callApplicationOnAttach() appInfo =  %s, processName = %s", appInfo, myProcessName));
+
+        mRunningApplicationMap.put(app, appInfo);
+        onApplicationAttached(appInfo, myProcessName);
+    }
+
+    public void callActivityOnCreate(Activity activity, ActivityInfo stubInfo, ActivityInfo targetInfo) {
+        if (mRunningActivityMap.containsKey(activity)) {
+            throw new IllegalStateException("duplicate activity created! " + activity);
+        }
+        Logger.d(TAG, String.format("callActivityOnCreate() activity =  %s, stubInfo = %s, targetInfo = %s",
+                activity, stubInfo, targetInfo));
+        mRunningActivityMap.put(activity, new Pair<>(stubInfo, targetInfo));
+        onActivityCreated(stubInfo, targetInfo);
+    }
+
+    public void callActivityOnDestory(Activity activity) {
+        Pair<ActivityInfo, ActivityInfo> pair = mRunningActivityMap.get(activity);
+        if (pair != null) {
+            Logger.d(TAG, String.format("callActivityOnDestory() activity =  %s, pair = %s",
+                    activity, pair));
+            mRunningActivityMap.remove(activity);
+            onActivityDestory(pair.first, pair.second);
+        }
+    }
+
+    public void callServiceOnCreate(Service service, ServiceInfo stubInfo, ServiceInfo targetInfo) {
+        if (mRunningServiceMap.containsKey(service)) {
+            throw new IllegalStateException("duplicate service created! " + service);
+        }
+
+        Logger.d(TAG, String.format("callServiceOnCreate() service =  %s, stubInfo = %s, targetInfo = %s",
+                service, stubInfo, targetInfo));
+
+        mRunningServiceMap.put(service, new Pair<>(stubInfo, targetInfo));
+        onServiceCreated(stubInfo, targetInfo);
+    }
+
+    public void callServiceOnDestory(Service service) {
+        Pair<ServiceInfo, ServiceInfo> pair = mRunningServiceMap.get(service);
+
+        if (pair != null) {
+            Logger.d(TAG, String.format("callServiceOnDestory() service =  %s, pair = %s",
+                    service, pair));
+            mRunningServiceMap.remove(service);
+            onServiceDestory(pair.first, pair.second);
+        }
+    }
+
+    public void callProviderOnCreate(ContentProvider provider, ProviderInfo stubInfo, ProviderInfo targetInfo) {
+        if (mRunningProviderMap.containsKey(provider)) {
+            throw new IllegalStateException("duplicate provider created! " + provider);
+        }
+
+        Logger.d(TAG, String.format("callProviderOnCreate() provider =  %s, stubInfo = %s, targetInfo = %s",
+                provider, stubInfo, targetInfo));
+
+        mRunningProviderMap.put(provider, new Pair<>(stubInfo, targetInfo));
+        onProviderCreated(stubInfo, targetInfo);
+    }
+
 
     // IPC:
 
@@ -592,6 +668,66 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public void onApplicationAttached(ApplicationInfo targetInfo, String processName) {
+        if (mService != null) {
+            try {
+                mService.onApplicationAttached(targetInfo, processName);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onActivityCreated() error!", e);
+            }
+        }
+    }
+
+    public void onActivityCreated(ActivityInfo stubInfo, ActivityInfo targetInfo) {
+        if (mService != null) {
+            try {
+                mService.onActivityCreated(stubInfo, targetInfo);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onActivityCreated() error!", e);
+            }
+        }
+    }
+
+    public void onActivityDestory(ActivityInfo stubInfo, ActivityInfo targetInfo) {
+        if (mService != null) {
+            try {
+                mService.onActivityDestory(stubInfo, targetInfo);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onActivityDestory() error!", e);
+            }
+        }
+    }
+
+    public void onServiceCreated(ServiceInfo stubInfo, ServiceInfo targetInfo) {
+        if (mService != null) {
+            try {
+                mService.onServiceCreated(stubInfo, targetInfo);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onServiceCreated() error!", e);
+            }
+        }
+    }
+
+    public void onServiceDestory(ServiceInfo stubInfo, ServiceInfo targetInfo) {
+        if (mService != null) {
+            try {
+                mService.onServiceDestory(stubInfo, targetInfo);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onServiceDestory() error!", e);
+            }
+        }
+    }
+
+    public void onProviderCreated(ProviderInfo stubInfo, ProviderInfo targetInfo) {
+        if (mService != null) {
+            try {
+                mService.onProviderCreated(stubInfo, targetInfo);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onProviderCreated() error!", e);
+            }
+        }
     }
 
     public PluginInfo getInstalledPluginInfo(String packageName) {

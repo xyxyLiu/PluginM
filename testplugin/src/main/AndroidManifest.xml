@@ -158,14 +158,16 @@
             {'service':'main_remote', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin:remote'}
             ]" />
 
-        <activity android:name=".PluginMainActivity">
+        <activity android:name=".PluginMainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PluginActivityA">
+        <activity android:name=".PluginActivityA"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="action.com.example.testplugin.testA" />
 

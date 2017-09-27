@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.text.TextUtils;
 
 import com.reginald.pluginm.IPluginManager;
@@ -52,6 +53,8 @@ public class PluginManagerService extends IPluginManager.Stub {
     private final Map<String, PluginInfo> mInstalledPluginMap = new ConcurrentHashMap<>();
     private final Map<String, PluginPackageParser> mInstalledPkgParser = new ConcurrentHashMap<>();
 
+    private final Map<String, PluginProcess> mRunningPluginProcess = new ConcurrentHashMap<>();
+
     private Context mContext;
     private StubManager mStubManager;
 
@@ -69,6 +72,14 @@ public class PluginManagerService extends IPluginManager.Stub {
         mStubManager = StubManager.getInstance(mContext);
     }
 
+    public PluginProcess getPluginProcess(String processName) {
+        return mRunningPluginProcess.get(processName);
+    }
+
+    public void onPluginProcessDied(String processName) {
+        PluginProcess removed = mRunningPluginProcess.remove(processName);
+        Logger.d(TAG, "onPluginProcessDied() removed = " + removed);
+    }
 
     // public api
 
@@ -229,6 +240,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             Intent intent = handleOriginalIntent(originIntent);
             intent.setClassName(stubActivityInfo.packageName, stubActivityInfo.name);
             intent.putExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO, activityInfo);
+            intent.putExtra(PluginManager.EXTRA_INTENT_STUB_INFO, stubActivityInfo);
 
             Logger.d(TAG, String.format("getPluginActivityIntent() stubActivityInfo = %s", stubActivityInfo));
             return intent;
@@ -255,6 +267,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             Intent intent = handleOriginalIntent(originIntent);
             intent.setClassName(stubServiceInfo.packageName, stubServiceInfo.name);
             intent.putExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO, serviceInfo);
+            intent.putExtra(PluginManager.EXTRA_INTENT_STUB_INFO, stubServiceInfo);
 
             Logger.d(TAG, String.format("getPluginServiceIntent() stubServiceInfo = %s", stubServiceInfo));
             return intent;
@@ -281,6 +294,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             Bundle resultBundle = new Bundle();
             Bundle providerBundle = new Bundle();
             providerBundle.putParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO, providerInfo);
+            providerBundle.putParcelable(PluginManager.EXTRA_INTENT_STUB_INFO, stubProvider);
             resultBundle.putBundle("bundle", providerBundle);
             resultBundle.putParcelable("uri", Uri.parse("content://" + stubProvider.authority));
             return resultBundle;
@@ -484,6 +498,67 @@ public class PluginManagerService extends IPluginManager.Stub {
         }
 
         return null;
+    }
+
+    @Override
+    public void onApplicationAttached(ApplicationInfo targetInfo, String processName) throws RemoteException {
+
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+        StubManager.ProcessInfo stubProcessInfo = mStubManager.getProcessInfo(processName);
+
+        Logger.d(TAG, String.format("onApplicationAttached() targetInfo = %s, processName = %s, stubProcessInfo = %s",
+                targetInfo, processName, stubProcessInfo));
+
+        if (stubProcessInfo == null) {
+            throw new IllegalStateException("no stub processInfo found for process " + processName);
+        }
+
+        if (pluginProcess == null) {
+            pluginProcess = new PluginProcess(stubProcessInfo);
+        }
+
+        mRunningPluginProcess.put(processName, pluginProcess);
+    }
+
+    @Override
+    public void onActivityCreated(ActivityInfo stubInfo, ActivityInfo targetInfo) throws RemoteException {
+        Logger.d(TAG, String.format("onActivityCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        String processName = stubInfo.processName;
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+
+        if (pluginProcess == null) {
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
+        }
+
+        pluginProcess.onActivityCreated(stubInfo, targetInfo);
+    }
+
+    @Override
+    public void onActivityDestory(ActivityInfo stubInfo, ActivityInfo targetInfo) throws RemoteException {
+        Logger.d(TAG, String.format("onActivityDestory() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        String processName = stubInfo.processName;
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+
+        if (pluginProcess == null) {
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
+        }
+
+        pluginProcess.onActivityDestory(stubInfo, targetInfo);
+    }
+
+    @Override
+    public void onServiceCreated(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
+        Logger.d(TAG, String.format("onServiceCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+    }
+
+    @Override
+    public void onServiceDestory(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
+        Logger.d(TAG, String.format("onServiceDestory() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+    }
+
+    @Override
+    public void onProviderCreated(ProviderInfo stubInfo, ProviderInfo targetInfo) throws RemoteException {
+        Logger.d(TAG, String.format("onProviderCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
     }
 
     @Override

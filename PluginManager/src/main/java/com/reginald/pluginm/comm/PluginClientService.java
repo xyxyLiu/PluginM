@@ -1,4 +1,4 @@
-package com.reginald.pluginm.core;
+package com.reginald.pluginm.comm;
 
 import android.content.Context;
 import android.os.IBinder;
@@ -10,6 +10,7 @@ import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.comm.invoker.InvokeCallback;
 import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
 import com.reginald.pluginm.comm.invoker.InvokeResult;
+import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.pluginapi.IInvokeCallback;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
 import com.reginald.pluginm.pluginapi.IInvoker;
@@ -24,24 +25,24 @@ import java.util.Map;
  * Created by lxy on 17-9-20.
  */
 
-public class PluginClient extends IPluginClient.Stub {
+public class PluginClientService extends IPluginClient.Stub {
 
-    private static final String TAG = "PluginClient";
-    private static volatile PluginClient sInstance;
+    private static final String TAG = "PluginClientService";
+    private static volatile PluginClientService sInstance;
 
     private Context mContext;
     private final Map<String, IInvoker> mInvokerCacheMap = new HashMap<>();
     private final Map<String, IBinder> mBinderCacheMap = new HashMap<>();
 
-    public static synchronized PluginClient getInstance(Context hostContext) {
+    public static synchronized PluginClientService getInstance(Context hostContext) {
         if (sInstance == null) {
-            sInstance = new PluginClient(hostContext);
+            sInstance = new PluginClientService(hostContext);
         }
 
         return sInstance;
     }
 
-    private PluginClient(Context hostContext) {
+    private PluginClientService(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
     }

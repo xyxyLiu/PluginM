@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.nineoldandroids.animation.AnimatorSet;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class PluginMainActivity extends Activity {
@@ -30,6 +31,7 @@ public class PluginMainActivity extends Activity {
     private Button mBtn3;
     private Button mBtn4;
     private Button mBtn5;
+    private Button mBtn6;
 
     public static final String BROADCAST_ACTION_1 = "plugin_broadcast_test_1";
     public static final String BROADCAST_ACTION_2 = "plugin_broadcast_test_2";
@@ -108,6 +110,17 @@ public class PluginMainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 launchOtherPlugins();
+            }
+        });
+
+        mBtn6 = (Button) findViewById(R.id.btn6);
+        mBtn6.setText("start self");
+        mBtn6.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PluginMainActivity.this, PluginMainActivity.class);
+                intent.setAction("data:" + new Date());
+                startActivity(intent);
             }
         });
 

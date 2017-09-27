@@ -14,6 +14,7 @@ import com.reginald.pluginm.comm.invoker.HostInvokerManager;
 import com.reginald.pluginm.comm.invoker.InvokeCallback;
 import com.reginald.pluginm.comm.invoker.InvokeResult;
 import com.reginald.pluginm.core.PluginManager;
+import com.reginald.pluginm.core.PluginManagerService;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
 import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.stub.StubManager;
@@ -169,5 +170,6 @@ public class PluginCommService extends IPluginComm.Stub {
         Logger.d(TAG, "onPluginClientDied() process = " + processName);
         IPluginClient pluginClient = mPluginClientMap.remove(processName);
         Logger.d(TAG, "onPluginClientDied() remove " + (pluginClient != null ? "success!" : "error!"));
+        PluginManagerService.getInstance(mContext).onPluginProcessDied(processName);
     }
 }

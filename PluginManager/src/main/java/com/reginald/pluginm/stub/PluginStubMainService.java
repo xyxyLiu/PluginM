@@ -17,6 +17,7 @@ import com.reginald.pluginm.core.PluginContext;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.core.PluginManagerService;
 import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
 
 import java.lang.reflect.Method;
@@ -32,14 +33,17 @@ public class PluginStubMainService extends Service {
 
     private static final String TAG = "PluginStubMainService";
 
-    PluginManager mPluginManager;
+    private PluginManager mPluginManager;
 
-    Map<ComponentName, ServiceRecord> mInstalledServices = new HashMap<>();
+    private final Map<ComponentName, ServiceRecord> mInstalledServices = new HashMap<>();
+
+    private ServiceInfo mStubInfo;
 
     public void onCreate() {
         super.onCreate();
         mPluginManager = PluginManager.getInstance(getApplicationContext());
-        Logger.d(TAG, "onCreate()");
+        mStubInfo = CommonUtils.getServiceInfo(this);
+        Logger.d(TAG, "onCreate() mStubInfo = " + mStubInfo);
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -273,6 +277,8 @@ public class PluginStubMainService extends Service {
                 Logger.d(TAG, "createPluginService() call Service.onCreate() of " + pluginServiceRecord.service);
                 pluginServiceRecord.service.onCreate();
 
+                mPluginManager.callServiceOnCreate(pluginServiceRecord.service, mStubInfo, serviceInfo);
+
                 return pluginServiceRecord;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -298,6 +304,7 @@ public class PluginStubMainService extends Service {
     private void destroyPluginService(ServiceRecord serviceRecord) {
         Logger.d(TAG, "destroyPluginService() for " + serviceRecord.service.getClass().getName());
         serviceRecord.service.onDestroy();
+        mPluginManager.callServiceOnDestory(serviceRecord.service);
         try {
             Object contextImpl = ((ContextWrapper) serviceRecord.service.getBaseContext()).getBaseContext();
             Class<?> contextImplClazz = Class.forName("android.app.ContextImpl");

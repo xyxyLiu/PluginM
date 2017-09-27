@@ -13,6 +13,8 @@ import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
 
 import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.core.PluginManagerService;
+import com.reginald.pluginm.core.PluginProcess;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
@@ -97,28 +99,35 @@ public class StubManager {
     }
 
     /**
-     * TODO 需要处理重复使用问题
+     * TODO 需要处理Theme
      * @param activityInfo
      * @return
      */
     public ActivityInfo selectStubActivity(ActivityInfo activityInfo) {
         ProcessInfo processInfo = selectStubProcess(activityInfo);
 
-        for (ActivityInfo stubActivityInfo : processInfo.getStubActivities()) {
+        List<ActivityInfo> stubActivities = processInfo.getStubActivities();
+
+        for (ActivityInfo stubActivityInfo : stubActivities) {
             if (stubActivityInfo.launchMode == activityInfo.launchMode) {
-                return stubActivityInfo;
+                switch (stubActivityInfo.launchMode) {
+                    case ActivityInfo.LAUNCH_MULTIPLE:
+                        return stubActivityInfo;
+                    case ActivityInfo.LAUNCH_SINGLE_INSTANCE:
+                    case ActivityInfo.LAUNCH_SINGLE_TASK:
+                    case ActivityInfo.LAUNCH_SINGLE_TOP:
+                        PluginProcess pluginProcess = PluginManagerService.getInstance(mContext).
+                                getPluginProcess(processInfo.processName);
+                        if (pluginProcess == null ||
+                                pluginProcess.canUseActivity(stubActivityInfo, activityInfo)) {
+                            return stubActivityInfo;
+                        }
+                        break;
+                }
             }
         }
 
-        return null;
-    }
-
-    public void addPluginActivityInfo(ActivityInfo activityInfo) {
-
-    }
-
-    public void removePluginActivityInfo(ActivityInfo activityInfo) {
-
+        throw new IllegalStateException("no valid stubActivity found for " + activityInfo);
     }
 
     public ServiceInfo selectStubService(ServiceInfo serviceInfo) {
@@ -224,44 +233,43 @@ public class StubManager {
     public static class ProcessInfo {
         public final String processName;
 
-        private Map<String, ActivityInfo> mStubActivityMap = new HashMap<>();
-        private Map<String, ServiceInfo> mStubServiceMap = new HashMap<>();
-        private Map<String, ProviderInfo> mStubProviderMap = new HashMap<>();
+        private final List<ActivityInfo> mStubActivityList = new ArrayList<>();
+        private final List<ServiceInfo> mStubServiceList = new ArrayList<>();
+        private final List<ProviderInfo> mStubProviderList = new ArrayList<>();
 
-        private Map<String, HashSet<ActivityInfo>> mStubTargetActivityMap = new HashMap<>();
-
-        public ProcessInfo(String packageName) {
-            processName = packageName;
+        public ProcessInfo(String processName) {
+            this.processName = processName;
         }
 
         public void addStubActivity(ActivityInfo activityInfo) {
-            mStubActivityMap.put(activityInfo.name, activityInfo);
+            mStubActivityList.add(activityInfo);
         }
 
         public void addStubService(ServiceInfo serviceInfo) {
-            mStubServiceMap.put(serviceInfo.name, serviceInfo);
+            mStubServiceList.add(serviceInfo);
         }
 
         public void addStubProvider(ProviderInfo providerInfo) {
-            mStubProviderMap.put(providerInfo.name, providerInfo);
+            mStubProviderList.add(providerInfo);
         }
 
         public List<ActivityInfo> getStubActivities() {
-            return new ArrayList<>(mStubActivityMap.values());
+            return mStubActivityList;
         }
 
         public List<ServiceInfo> getStubServices() {
-            return new ArrayList<>(mStubServiceMap.values());
+            return mStubServiceList;
         }
 
         public List<ProviderInfo> getStubProviders() {
-            return new ArrayList<>(mStubProviderMap.values());
+            return mStubProviderList;
         }
+
 
         @Override
         public String toString() {
             return String.format("ProcessInfo[ mProcessName = %s, mStubActivityMap = %s, mStubServiceMap = %s, mStubProviderMap = %s ]",
-                    processName, mStubActivityMap, mStubServiceMap, mStubProviderMap);
+                    processName, mStubActivityList, mStubServiceList, mStubProviderList);
         }
 
         @Override

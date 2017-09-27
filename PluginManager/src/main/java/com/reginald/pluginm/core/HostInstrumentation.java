@@ -312,8 +312,10 @@ public class HostInstrumentation extends Instrumentation {
         Logger.d(TAG, "callActivityOnCreate() activity = " + activity);
         Intent intent = activity.getIntent();
         ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+        ActivityInfo stubInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
+
         Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
-        if (activityInfo != null) {
+        if (activityInfo != null && stubInfo != null) {
             PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
             Context pluginContext = mPluginManager.createPluginContext(
                     activityInfo.packageName, activity.getBaseContext());
@@ -328,9 +330,17 @@ public class HostInstrumentation extends Instrumentation {
                 Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
             }
             activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
+            mPluginManager.callActivityOnCreate(activity, stubInfo, activityInfo);
         }
 
         mBase.callActivityOnCreate(activity, icicle);
+    }
+
+    @Override
+    public void callActivityOnDestroy(Activity activity) {
+        mPluginManager.callActivityOnDestory(activity);
+
+        mBase.callActivityOnDestroy(activity);
     }
 
     @Override

@@ -239,6 +239,7 @@ public class PluginStubMainService extends Service {
     private ServiceRecord createPluginService(ServiceInfo serviceInfo) {
         PluginInfo loadedPluginInfo = PluginManager.getInstance(getApplicationContext()).loadPlugin(serviceInfo.packageName);
         if (loadedPluginInfo == null) {
+            Logger.e(TAG, "createPluginService() no loaded plugininfo found for " + serviceInfo);
             return null;
         }
 

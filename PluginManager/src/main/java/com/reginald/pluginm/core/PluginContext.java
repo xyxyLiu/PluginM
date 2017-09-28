@@ -23,7 +23,7 @@ import com.reginald.pluginm.utils.Logger;
  */
 public class PluginContext extends ContextThemeWrapper {
 
-    private static final String TAG = "PluginActivityContext";
+    private static final String TAG = "PluginContext";
 
     private Context mBaseContext;
     private PluginInfo mPluginInfo;
@@ -74,14 +74,6 @@ public class PluginContext extends ContextThemeWrapper {
 
     public Resources getResources() {
         return mResources;
-    }
-
-    @Override
-    public Resources.Theme getTheme() {
-        Logger.d(TAG, "getTheme()");
-        Resources.Theme theme = mPluginInfo.resources.newTheme();
-        theme.applyStyle(mPluginInfo.applicationInfo.theme, false);
-        return theme;
     }
 
     public Context getApplicationContext() {

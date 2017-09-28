@@ -290,6 +290,13 @@ public class HostInstrumentation extends Instrumentation {
             Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
                 PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
+
+                if (pluginInfo == null) {
+                    Logger.e(TAG, "newActivity() no loaded plugininfo found for " + activityInfo + ", load fake activity!");
+                    Activity fakeActivity = mBase.newActivity(cl, Stubs.Activity.Fake.class.getName(), intent);
+                    return fakeActivity;
+                }
+
                 Activity activity = mBase.newActivity(pluginInfo.classLoader, activityInfo.name, intent);
                 activity.setIntent(intent);
                 try {
@@ -310,6 +317,12 @@ public class HostInstrumentation extends Instrumentation {
     @Override
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
         Logger.d(TAG, "callActivityOnCreate() activity = " + activity);
+
+        if (activity instanceof Stubs.Activity.Fake) {
+            mBase.callActivityOnCreate(activity, icicle);
+            return;
+        }
+
         Intent intent = activity.getIntent();
         ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
         ActivityInfo stubInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
@@ -317,20 +330,23 @@ public class HostInstrumentation extends Instrumentation {
         Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null && stubInfo != null) {
             PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
-            Context pluginContext = mPluginManager.createPluginContext(
-                    activityInfo.packageName, activity.getBaseContext());
-            try {
-                FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
-                FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
-                FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
-                FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
-                FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
-                Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
-            } catch (IllegalAccessException e) {
-                Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
+
+            if (pluginInfo != null) {
+                Context pluginContext = mPluginManager.createPluginContext(
+                        activityInfo.packageName, activity.getBaseContext());
+                try {
+                    FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
+                    FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
+                    FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
+                    FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
+                    FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
+                    Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
+                } catch (IllegalAccessException e) {
+                    Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
+                }
+                activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
+                mPluginManager.callActivityOnCreate(activity, stubInfo, activityInfo);
             }
-            activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
-            mPluginManager.callActivityOnCreate(activity, stubInfo, activityInfo);
         }
 
         mBase.callActivityOnCreate(activity, icicle);

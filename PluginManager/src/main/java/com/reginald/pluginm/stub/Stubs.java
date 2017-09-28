@@ -1,5 +1,8 @@
 package com.reginald.pluginm.stub;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+
 /**
  * 所有的Stub组件，需要与Manifest中的Stub组建同步!
  * Created by lxy on 17-8-18.
@@ -8,6 +11,14 @@ package com.reginald.pluginm.stub;
 public class Stubs {
 
     public static class Activity {
+        public static class Fake extends android.app.Activity {
+            @Override
+            protected void onCreate(@Nullable Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                finish();
+            }
+        }
+
         public static class P0 {
             public static class Standard0 extends android.app.Activity {
             }

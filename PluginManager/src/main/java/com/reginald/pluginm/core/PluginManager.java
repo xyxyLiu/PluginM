@@ -38,9 +38,11 @@ import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.pluginapi.IPluginLocalManager;
 import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.stub.PluginStubMainProvider;
+import com.reginald.pluginm.stub.StubManager;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ProcessHelper;
 import com.reginald.pluginm.utils.ThreadUtils;
 
 import java.lang.reflect.Method;
@@ -66,10 +68,12 @@ public class PluginManager {
     public static final String EXTRA_INTENT_STUB_INFO = "extra.plugin.stub.info";
     public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
 
+    // 本进程已经加载的插件信息：
     private final Object mPluginLoadLock = new Object();
     private final Map<String, PluginInfo> mLoadedPluginMap = new ConcurrentHashMap<>();
     private final Map<String, ClassLoader> mLoadedClassLoaderMap = new ConcurrentHashMap<>();
 
+    // 本进程正在运行的插件组件信息：
     private final Map<Application, ApplicationInfo> mRunningApplicationMap = new WeakHashMap<>();
     private final Map<Activity, Pair<ActivityInfo, ActivityInfo>> mRunningActivityMap = new WeakHashMap<>();
     private final Map<Service, Pair<ServiceInfo, ServiceInfo>> mRunningServiceMap = new WeakHashMap<>();
@@ -95,6 +99,8 @@ public class PluginManager {
     }
 
     private static void onAttachBaseContext(Application app) {
+        ProcessHelper.init(app);
+
         boolean isSuc = IActivityManagerServiceHook.init(app);
         Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
 
@@ -103,6 +109,9 @@ public class PluginManager {
 
         isSuc = HostHCallback.install(app);
         Logger.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
+
+        isSuc = PluginClientService.attach(app);
+        Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
     }
 
     private PluginManager(Context hostContext) {
@@ -125,7 +134,7 @@ public class PluginManager {
                         iBinder.linkToDeath(new IBinder.DeathRecipient() {
                             @Override
                             public void binderDied() {
-                                initCoreService();
+                                onCoreServiceDied();
                             }
                         }, 0);
                     }
@@ -136,6 +145,22 @@ public class PluginManager {
         } catch (Throwable e) {
             Logger.e(TAG, "initCoreService() error!", e);
         }
+    }
+
+    private void onCoreServiceDied() {
+        Logger.e(TAG, "onCoreServiceDied() receive core process died. dump info = " + toDumpString());
+        // 检测到常驻进程退出，插件进程自杀
+        if (!mRunningApplicationMap.isEmpty()) {
+            Logger.e(TAG, "onCoreServiceDied() exit!");
+            System.exit(0);
+        }
+    }
+
+    private String toDumpString() {
+        return String.format("PluginManager [ process = %s(%d), mLoadedPluginMap = %s, mLoadedClassLoaderMap = %s, " +
+                        "mRunningApplicationMap = %s. mRunningActivityMap = %s, mRunningServiceMap = %s, mRunningProviderMap = %s]",
+                ProcessHelper.sProcessName, ProcessHelper.sPid, mLoadedPluginMap, mLoadedClassLoaderMap,
+                mRunningApplicationMap, mRunningActivityMap, mRunningServiceMap, mRunningProviderMap);
     }
 
     public Context getHostContext() {
@@ -311,7 +336,7 @@ public class PluginManager {
         List<ProviderInfo> targetProviderInfos = new ArrayList<>();
         if (providerInfos != null) {
             for (ProviderInfo providerInfo : providerInfos) {
-                String currentProcessName = CommonUtils.getProcessName(mContext, Process.myPid());
+                String currentProcessName = ProcessHelper.sProcessName;
                 String stubProcessName = selectStubProcessName(providerInfo.processName, providerInfo.packageName);
                 if (!TextUtils.isEmpty(currentProcessName) && currentProcessName.equals(stubProcessName)) {
                     targetProviderInfos.add(providerInfo);
@@ -331,7 +356,7 @@ public class PluginManager {
                 ActivityInfo receiverInfo = entry.getKey();
                 List<IntentFilter> intentFilters = entry.getValue();
 
-                String currentProcessName = CommonUtils.getProcessName(mContext, Process.myPid());
+                String currentProcessName = ProcessHelper.sProcessName;
                 String stubProcessName = selectStubProcessName(receiverInfo.processName, receiverInfo.packageName);
 
                 if (!TextUtils.isEmpty(currentProcessName) && currentProcessName.equals(stubProcessName)) {
@@ -411,7 +436,7 @@ public class PluginManager {
     }
 
     public void callApplicationOnAttach(Application app, ApplicationInfo appInfo) {
-        String myProcessName = CommonUtils.getProcessName(mContext, Process.myPid());
+        String myProcessName = ProcessHelper.sProcessName;
         Logger.d(TAG, String.format("callApplicationOnAttach() appInfo =  %s, processName = %s", appInfo, myProcessName));
 
         mRunningApplicationMap.put(app, appInfo);
@@ -668,6 +693,16 @@ public class PluginManager {
             }
         }
         return null;
+    }
+
+    public void onPluginProcessAttached(IBinder client) throws RemoteException {
+        if (mService != null) {
+            try {
+                mService.onPluginProcessAttached(client);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onPluginProcessAttached() error!", e);
+            }
+        }
     }
 
     public void onApplicationAttached(ApplicationInfo targetInfo, String processName) {

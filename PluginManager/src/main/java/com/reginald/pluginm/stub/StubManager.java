@@ -29,19 +29,33 @@ import java.util.Set;
  * Created by lxy on 16-10-31.
  */
 public class StubManager {
-    public static final int PROCESS_TYPE_STANDALONE = 1;
-    public static final int PROCESS_TYPE_DUAL = 2;
+    /**
+     * 独立进程模式： 每个插件分配一个进程。
+     */
+    public static final int PROCESS_TYPE_INDEPENDENT = 1;
+
+    /**
+     * 单一进程模式: 所有插件都分配在一个固定的进程。
+     */
+    public static final int PROCESS_TYPE_SINGLE = 2;
+
+    /**
+     * 双进程模式: 所有插件都分配在两个固定的进程，进程名与插件名称相同的在一个特定进程，否则在另一个特定进程。
+     */
+    public static final int PROCESS_TYPE_DUAL = 3;
+
 
     private static final String TAG = "StubManager";
     private static final String CATEGORY_ACTIVITY_PROXY_STUB = "com.reginald.pluginm.category.STUB";
     private static volatile StubManager sInstance;
 
     private Context mContext;
-    private int mProcessType = PROCESS_TYPE_STANDALONE;
+    private int mProcessType = PROCESS_TYPE_INDEPENDENT;
 
     private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
 
-    private final Map<String, ProcessInfo> mPluginProcessMap = new HashMap<>(10);
+    // PROCESS_TYPE_INDEPENDENT 模式下的进程分配map: pkgname -> ProcessInfo
+    private final Map<String, ProcessInfo> mPluginSingleProcessMap = new HashMap<>(10);
 
     public static synchronized StubManager getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -161,7 +175,10 @@ public class StubManager {
     }
 
     public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
-        return selectStubProcess(componentInfo.processName, componentInfo.packageName);
+        ProcessInfo processInfo = selectStubProcess(componentInfo.processName, componentInfo.packageName);
+        Logger.d(TAG, "selectStubProcess() componentInfo = " + componentInfo +
+                " -> stub process = " + processInfo.processName);
+        return processInfo;
     }
 
     /**
@@ -169,36 +186,43 @@ public class StubManager {
      */
     public ProcessInfo selectStubProcess(String processName, String pkgName) {
         if (mStubProcessInfoMap.isEmpty()) {
-            throw new RuntimeException("no registered stub process found");
+            throw new RuntimeException("no registered stub process found for plugin process " + processName);
         }
 
         List<ProcessInfo> stubProcessInfos = new ArrayList<>(mStubProcessInfoMap.values());
 
         switch (mProcessType) {
-            case PROCESS_TYPE_STANDALONE:
+            case PROCESS_TYPE_INDEPENDENT:
                 filterPluginProcessMap();
 
-                ProcessInfo processInfo = mPluginProcessMap.get(pkgName);
+                ProcessInfo processInfo = mPluginSingleProcessMap.get(pkgName);
                 if (processInfo != null) {
                     return processInfo;
                 }
                 for (ProcessInfo p : stubProcessInfos) {
-                    if (!mPluginProcessMap.containsValue(p)) {
-                        mPluginProcessMap.put(pkgName, p);
+                    if (!mPluginSingleProcessMap.containsValue(p)) {
+                        mPluginSingleProcessMap.put(pkgName, p);
                         return p;
                     }
                 }
 
                 throw new IllegalStateException("No more stub process for plugin " + pkgName);
 
+            case PROCESS_TYPE_SINGLE:
+                return stubProcessInfos.get(0);
+
             case PROCESS_TYPE_DUAL:
-                if (mStubProcessInfoMap.size() > 1) {
-                    if (getProcessName(processName, pkgName).equals(pkgName)) {
+                if (stubProcessInfos.size() > 1) {
+                    String pluginProcessName = getProcessName(processName, pkgName);
+                    Logger.d(TAG, "selectStubProcess() pluginProcessName = " + pluginProcessName);
+                    if (pkgName.equals(pluginProcessName)) {
                         return stubProcessInfos.get(0);
                     } else {
                         return stubProcessInfos.get(1);
                     }
                 } else {
+                    Logger.w(TAG, "selectStubProcess() PROCESS_TYPE_DUAL need at least 2 stub process, " +
+                            "but only one stub process provided! ");
                     return stubProcessInfos.get(0);
                 }
         }
@@ -220,7 +244,7 @@ public class StubManager {
 
         Logger.d(TAG, "filterPluginProcessMap() runningStubProcesses = " + runningStubProcesses);
 
-        Set<Map.Entry<String, ProcessInfo>> entries = mPluginProcessMap.entrySet();
+        Set<Map.Entry<String, ProcessInfo>> entries = mPluginSingleProcessMap.entrySet();
         Iterator<Map.Entry<String, ProcessInfo>> iterator = entries.iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, ProcessInfo> entry = iterator.next();

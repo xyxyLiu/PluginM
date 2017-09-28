@@ -13,7 +13,6 @@ import android.support.annotation.Nullable;
 
 import com.android.common.ContentProviderCompat;
 import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.comm.PluginClientService;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.utils.BinderParcelable;
@@ -31,7 +30,7 @@ public class PluginStubMainProvider extends ContentProvider {
     private static final String TAG = "PluginStubMainProvider";
     private static final String EXTRA_BINDER = "extra.binder";
     public static final String METHOD_GET_PROVIDER = "method.get_provider";
-    public static final String METHOD_GET_CLIENT = "method.get_client";
+    public static final String METHOD_START_PROCESS = "method.start_process";
 
     private static PluginStubMainProvider sInstance;
     private final Map<String, ContentProvider> mContentProviderMap = new HashMap<>();
@@ -94,13 +93,9 @@ public class PluginStubMainProvider extends ContentProvider {
             }
 
             return null;
-        } else if (METHOD_GET_CLIENT.equals(method))
-
-        {
-            final Bundle resultBundle = new Bundle();
-            BinderParcelable binderParcelable = new BinderParcelable(PluginClientService.getInstance(getContext()));
-            resultBundle.putParcelable(EXTRA_BINDER, binderParcelable);
-            return resultBundle;
+        } else if (METHOD_START_PROCESS.equals(method)) {
+            // return an empty bundle
+            return new Bundle();
         }
 
         return null;

@@ -11,22 +11,29 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.IPluginClient;
 import com.reginald.pluginm.IPluginManager;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
+import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.stub.StubManager;
+import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.PackageUtils;
+import com.reginald.pluginm.utils.ProcessHelper;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,9 +57,13 @@ public class PluginManagerService extends IPluginManager.Stub {
     public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
 
     private final Object mInstallLock = new Object();
+
+    // 已安装插件信息：
     private final Map<String, PluginInfo> mInstalledPluginMap = new ConcurrentHashMap<>();
     private final Map<String, PluginPackageParser> mInstalledPkgParser = new ConcurrentHashMap<>();
 
+    // 插件客户端信息：
+    private final Map<String, IPluginClient> mPluginClientMap = new HashMap<>(2);
     private final Map<String, PluginProcess> mRunningPluginProcess = new ConcurrentHashMap<>();
 
     private Context mContext;
@@ -72,13 +83,89 @@ public class PluginManagerService extends IPluginManager.Stub {
         mStubManager = StubManager.getInstance(mContext);
     }
 
-    public PluginProcess getPluginProcess(String processName) {
-        return mRunningPluginProcess.get(processName);
+    public IPluginClient fetchPluginClient(final String processName, boolean isStartProcess) {
+        StubManager.ProcessInfo processInfo = StubManager.getInstance(mContext).getProcessInfo(processName);
+
+        Logger.d(TAG, "fetchPluginClient() processName = " + processName + " , isStartProcess = " + isStartProcess);
+
+        IPluginClient pluginClient = null;
+
+        synchronized (mPluginClientMap) {
+            pluginClient = mPluginClientMap.get(processName);
+            if (pluginClient != null) {
+                Logger.d(TAG, "fetchPluginClient() success! cached pluginClient = " + pluginClient);
+                return pluginClient;
+            }
+        }
+
+        if (!isStartProcess) {
+            return null;
+        }
+
+        List<ProviderInfo> stubProviders = processInfo.getStubProviders();
+        ProviderInfo stubProvider = stubProviders != null && !stubProviders.isEmpty() ? stubProviders.get(0) : null;
+
+        if (stubProvider == null) {
+            Logger.e(TAG, "fetchPluginClient() no stub provider found to trigger start process for " + processName);
+            return null;
+        }
+
+        Uri uri = Uri.parse("content://" + stubProvider.authority);
+
+        try {
+            // trigger start process
+            Bundle bundle = mContext.getContentResolver().call(
+                    uri, PluginStubMainProvider.METHOD_START_PROCESS, null, null);
+
+            synchronized (mPluginClientMap) {
+                pluginClient = mPluginClientMap.get(processName);
+                if (pluginClient != null) {
+                    Logger.d(TAG, "fetchPluginClient() success after trigger start process! pluginClient = " + pluginClient);
+                    return pluginClient;
+                } else {
+                    Logger.e(TAG, "fetchPluginClient() trigger process error!");
+                    return null;
+                }
+            }
+
+        } catch (Throwable e) {
+            Logger.e(TAG, "fetchPluginClient() error!", e);
+        }
+
+
+        return null;
     }
 
-    public void onPluginProcessDied(String processName) {
+    private void onPluginClientStarted(final String processName, IPluginClient pluginClient) {
+        Logger.d(TAG, "onPluginClientStarted() processName = " + processName + " ,pluginClient = " + pluginClient);
+        synchronized (mPluginClientMap) {
+            try {
+                pluginClient.asBinder().linkToDeath(new DeathRecipient() {
+                    @Override
+                    public void binderDied() {
+                        onPluginClientDied(processName);
+                    }
+                }, 0);
+                mPluginClientMap.put(processName, pluginClient);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onPluginClientStarted() linkToDeath error!", e);
+            }
+        }
+    }
+
+    private void onPluginClientDied(String processName) {
+        Logger.d(TAG, "onPluginClientDied() process = " + processName);
+        synchronized (mPluginClientMap) {
+            IPluginClient pluginClient = mPluginClientMap.remove(processName);
+            Logger.d(TAG, "onPluginClientDied() remove " + (pluginClient != null ? "success!" : "error!"));
+        }
+
         PluginProcess removed = mRunningPluginProcess.remove(processName);
-        Logger.d(TAG, "onPluginProcessDied() removed = " + removed);
+        Logger.d(TAG, "onPluginClientDied() PluginProcess removed? " + removed);
+    }
+
+    public PluginProcess getPluginProcess(String processName) {
+        return mRunningPluginProcess.get(processName);
     }
 
     // public api
@@ -501,6 +588,25 @@ public class PluginManagerService extends IPluginManager.Stub {
     }
 
     @Override
+    public void onPluginProcessAttached(IBinder client) throws RemoteException {
+        int pid = Binder.getCallingPid();
+        String processName = ProcessHelper.getProcessName(mContext, pid);
+
+        Logger.d(TAG, String.format("onPluginProcessAttached() pid = %s, processName = %s, client = %s",
+                pid, processName, client));
+
+        if (TextUtils.isEmpty(processName)) {
+            throw new IllegalStateException("unknown process " + pid);
+        }
+
+        if (client != null) {
+            IPluginClient pluginClient = IPluginClient.Stub.asInterface(client);
+            onPluginClientStarted(processName, pluginClient);
+        }
+
+    }
+
+    @Override
     public void onApplicationAttached(ApplicationInfo targetInfo, String processName) throws RemoteException {
 
         PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
@@ -515,9 +621,10 @@ public class PluginManagerService extends IPluginManager.Stub {
 
         if (pluginProcess == null) {
             pluginProcess = new PluginProcess(stubProcessInfo);
+            mRunningPluginProcess.put(processName, pluginProcess);
         }
 
-        mRunningPluginProcess.put(processName, pluginProcess);
+        pluginProcess.onApplicationAttached(targetInfo);
     }
 
     @Override
@@ -549,16 +656,40 @@ public class PluginManagerService extends IPluginManager.Stub {
     @Override
     public void onServiceCreated(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onServiceCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        String processName = stubInfo.processName;
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+
+        if (pluginProcess == null) {
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
+        }
+
+        pluginProcess.onServiceCreated(stubInfo, targetInfo);
     }
 
     @Override
     public void onServiceDestory(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onServiceDestory() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        String processName = stubInfo.processName;
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+
+        if (pluginProcess == null) {
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
+        }
+
+        pluginProcess.onServiceDestory(stubInfo, targetInfo);
     }
 
     @Override
     public void onProviderCreated(ProviderInfo stubInfo, ProviderInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onProviderCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        String processName = stubInfo.processName;
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+
+        if (pluginProcess == null) {
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
+        }
+
+        pluginProcess.onProviderCreated(stubInfo, targetInfo);
     }
 
     @Override

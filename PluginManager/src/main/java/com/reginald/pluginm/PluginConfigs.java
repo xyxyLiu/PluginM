@@ -1,5 +1,7 @@
 package com.reginald.pluginm;
 
+import com.reginald.pluginm.stub.StubManager;
+
 /**
  * Created by lxy on 17-9-21.
  */
@@ -7,10 +9,12 @@ package com.reginald.pluginm;
 public class PluginConfigs {
     private static final String TAG = "PluginConfigs";
 
-    public static final int PROCESS_TYPE_STANDALONE = 1;
-    public static final int PROCESS_TYPE_DUAL = 2;
 
-    private int mProcessType = PROCESS_TYPE_STANDALONE;
+    public static final int PROCESS_TYPE_INDEPENDENT = StubManager.PROCESS_TYPE_INDEPENDENT;
+    public static final int PROCESS_TYPE_SINGLE = StubManager.PROCESS_TYPE_SINGLE;
+    public static final int PROCESS_TYPE_DUAL = StubManager.PROCESS_TYPE_DUAL;
+
+    private int mProcessType = PROCESS_TYPE_INDEPENDENT;
 
     private boolean mUseHostLoader = true;
 

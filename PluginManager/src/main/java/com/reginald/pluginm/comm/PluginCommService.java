@@ -1,9 +1,6 @@
 package com.reginald.pluginm.comm;
 
 import android.content.Context;
-import android.content.pm.ProviderInfo;
-import android.net.Uri;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
@@ -16,13 +13,10 @@ import com.reginald.pluginm.comm.invoker.InvokeResult;
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.core.PluginManagerService;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
-import com.reginald.pluginm.stub.PluginStubMainProvider;
 import com.reginald.pluginm.stub.StubManager;
 import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,8 +30,6 @@ public class PluginCommService extends IPluginComm.Stub {
     private Context mContext;
     private PluginManager mPluginManager;
     private HostInvokerManager mHostInvokerManager;
-    private final Map<String, IPluginClient> mPluginClientMap = new HashMap<>(2);
-    private final Map<String, IBinder> mPluginBinderCacheMap = new HashMap<>(2);
 
     public static synchronized PluginCommService getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -117,59 +109,11 @@ public class PluginCommService extends IPluginComm.Stub {
                 packageName, serviceName, processInfo));
 
         if (processInfo != null) {
-            return fetchPluginClient(processInfo.processName);
+            return PluginManagerService.getInstance(mContext).fetchPluginClient(processInfo.processName, true);
         }
 
         return null;
     }
 
-    private synchronized IPluginClient fetchPluginClient(final String processName) {
-        StubManager.ProcessInfo processInfo = StubManager.getInstance(mContext).getProcessInfo(processName);
 
-        IPluginClient pluginClient = mPluginClientMap.get(processName);
-        if (pluginClient != null) {
-            Logger.d(TAG, "fetchPluginClient() success! cached pluginClient = " + pluginClient);
-            return pluginClient;
-        }
-
-        List<ProviderInfo> stubProviders = processInfo.getStubProviders();
-        ProviderInfo stubProvider = stubProviders != null && !stubProviders.isEmpty() ? stubProviders.get(0) : null;
-
-        if (stubProvider == null) {
-            return null;
-        }
-
-        Uri uri = Uri.parse("content://" + stubProvider.authority);
-
-        try {
-            Bundle bundle = mContext.getContentResolver().call(
-                    uri, PluginStubMainProvider.METHOD_GET_CLIENT, null, null);
-            if (bundle != null) {
-                IBinder iBinder = PluginStubMainProvider.parseBinderParacelable(bundle);
-                if (iBinder != null) {
-                    pluginClient = IPluginClient.Stub.asInterface(iBinder);
-                    iBinder.linkToDeath(new IBinder.DeathRecipient() {
-                        @Override
-                        public void binderDied() {
-                            onPluginClientDied(processName);
-                        }
-                    }, 0);
-                    mPluginClientMap.put(processName, pluginClient);
-                    Logger.d(TAG, "fetchPluginClient() success! load pluginClient = " + pluginClient);
-                    return pluginClient;
-                }
-            }
-        } catch (Throwable e) {
-            Logger.e(TAG, "fetchPluginClient() error!", e);
-        }
-
-        return null;
-    }
-
-    private synchronized void onPluginClientDied(String processName) {
-        Logger.d(TAG, "onPluginClientDied() process = " + processName);
-        IPluginClient pluginClient = mPluginClientMap.remove(processName);
-        Logger.d(TAG, "onPluginClientDied() remove " + (pluginClient != null ? "success!" : "error!"));
-        PluginManagerService.getInstance(mContext).onPluginProcessDied(processName);
-    }
 }

@@ -19,7 +19,7 @@ public abstract class ServiceHook implements InvocationHandler {
     private static final String TAG = "ServiceHook";
 
     protected Object mBase;
-    protected Map<String, MethodHandler> mMethodHandlers = new HashMap<String, MethodHandler>(2);
+    protected final Map<String, MethodHandler> mMethodHandlers = new HashMap<String, MethodHandler>(2);
 
     /**
      * 1. replace the host object(mBase) with the new one(Hook)

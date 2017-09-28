@@ -54,13 +54,13 @@ public class PluginActivityB extends Activity {
 
     private void testProviders() {
         mBtn1 = (Button) findViewById(R.id.btn1);
-        mBtn1.setText("query plugin providers");
+        mBtn1.setText("query plugin back providers");
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ContentResolver contentResolver = getContentResolver();
                 Log.d(TAG, "plugin contentResolver = " + contentResolver);
-                Cursor cursor = contentResolver.query(PluginContentProvider.CONTENT_URI, null, null, null, null);
+                Cursor cursor = contentResolver.query(PluginBackContentProvider.CONTENT_URI, null, null, null, null);
                 Log.d(TAG, "plugin cursor = " + cursor);
                 if (cursor != null) {
                     cursor.moveToFirst();

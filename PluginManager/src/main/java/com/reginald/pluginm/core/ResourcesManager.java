@@ -9,22 +9,6 @@ import android.content.res.Resources;
  */
 public class ResourcesManager {
 
-    Resources mResources;
-
-    public ResourcesManager(Context hostContext, String apkPath) {
-        try {
-            AssetManager assetManager = createAssetManager(apkPath);
-            if (assetManager != null) {
-                mResources = new Resources(assetManager, hostContext.getResources().getDisplayMetrics(), hostContext.getResources().getConfiguration());
-                return;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        throw new IllegalStateException("can not load resources from " + apkPath);
-    }
-
     public static Resources getPluginResources(Context hostContext, String apkPath) {
         try {
             AssetManager assetManager = createAssetManager(apkPath);

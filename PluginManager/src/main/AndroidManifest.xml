@@ -21,6 +21,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$Standard0"
             android:launchMode="standard"
+
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

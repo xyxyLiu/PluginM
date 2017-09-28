@@ -1,36 +1,22 @@
 package com.reginald.pluginm.utils;
 
-import android.app.ActivityManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.ContentProvider;
-import android.content.Context;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
 
-import com.reginald.pluginm.stub.Stubs;
-
-import java.util.List;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Created by lxy on 17-8-22.
  */
 
 public class CommonUtils {
-
-    public static String getProcessName(Context context, int pid) {
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningAppProcessInfo> raps = am.getRunningAppProcesses();
-        for (ActivityManager.RunningAppProcessInfo rap : raps) {
-            if (rap != null && rap.pid == pid) {
-                return rap.processName;
-            }
-        }
-        return null;
-    }
 
     public static boolean isComponentInfoMatch(ComponentInfo a, ComponentInfo b) {
         if (a == null && b == null) {
@@ -40,6 +26,27 @@ public class CommonUtils {
         } else {
             return false;
         }
+    }
+
+    public static boolean containsComponent(Collection<? extends ComponentInfo> collection, ComponentInfo componentInfo) {
+        Iterator<? extends ComponentInfo> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            if (isComponentInfoMatch(iterator.next(), componentInfo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean removeComponent(Collection<? extends ComponentInfo> collection, ComponentInfo componentInfo) {
+        Iterator<? extends ComponentInfo> iterator = collection.iterator();
+        while (iterator.hasNext()) {
+            if (isComponentInfoMatch(iterator.next(), componentInfo)) {
+                iterator.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     public static ServiceInfo getServiceInfo(Service service) {

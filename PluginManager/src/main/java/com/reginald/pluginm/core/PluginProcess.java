@@ -12,7 +12,6 @@ import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +22,7 @@ import java.util.Map;
 public class PluginProcess {
     private static final String TAG = "PluginProcess";
 
+    // plugin pkg -> appInfo
     private final Map<String, ApplicationInfo> mRunningPluginMap = new HashMap<>();
 
     // stub -> target
@@ -30,10 +30,19 @@ public class PluginProcess {
     private final Map<String, List<ServiceInfo>> mRunningServiceMap = new HashMap<>();
     private final Map<String, List<ProviderInfo>> mRunningProviderMap = new HashMap<>();
 
-    private StubManager.ProcessInfo mStubProcess;
+    private final StubManager.ProcessInfo mStubProcess;
 
     public PluginProcess(StubManager.ProcessInfo stubProcess) {
         mStubProcess = stubProcess;
+    }
+
+    public void onApplicationAttached(ApplicationInfo targetInfo) {
+        Logger.d(TAG, String.format("onApplicationAttached() processName = %s, targetInfo = %s",
+                mStubProcess.processName, targetInfo));
+
+        synchronized (mRunningPluginMap) {
+            mRunningPluginMap.put(targetInfo.packageName, targetInfo);
+        }
     }
 
     public void onActivityCreated(ActivityInfo stubInfo, ActivityInfo targetInfo) throws RemoteException {
@@ -55,12 +64,10 @@ public class PluginProcess {
         synchronized (mRunningActivityMap) {
             List<ActivityInfo> activityInfos = mRunningActivityMap.get(stubInfo.name);
             if (activityInfos != null) {
-                Iterator<ActivityInfo> iterator = activityInfos.iterator();
-                while (iterator.hasNext()) {
-                    ActivityInfo info = iterator.next();
-                    if (CommonUtils.isComponentInfoMatch(targetInfo, info)) {
-                        iterator.remove();
-                    }
+                boolean isRemoved = CommonUtils.removeComponent(activityInfos, targetInfo);
+                if (!isRemoved) {
+                    throw new IllegalStateException("duplicate running activity found for " +
+                            targetInfo + " in " + activityInfos);
                 }
             }
         }
@@ -83,14 +90,61 @@ public class PluginProcess {
 
     public void onServiceCreated(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onServiceCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        synchronized (mRunningServiceMap) {
+            List<ServiceInfo> serviceInfos = mRunningServiceMap.get(stubInfo.name);
+            if (serviceInfos == null) {
+                serviceInfos = new ArrayList<>();
+                serviceInfos.add(targetInfo);
+                mRunningServiceMap.put(stubInfo.name, serviceInfos);
+                return;
+            }
+
+            if (CommonUtils.containsComponent(serviceInfos, targetInfo)) {
+                throw new IllegalStateException("duplicate running service found for " +
+                        targetInfo + " in " + serviceInfos);
+            }
+
+            serviceInfos.add(targetInfo);
+        }
     }
 
     public void onServiceDestory(ServiceInfo stubInfo, ServiceInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onServiceDestory() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        synchronized (mRunningServiceMap) {
+            List<ServiceInfo> serviceInfos = mRunningServiceMap.get(stubInfo.name);
+            if (serviceInfos != null) {
+                boolean isRemoved = CommonUtils.removeComponent(serviceInfos, targetInfo);
+                if (!isRemoved) {
+                    throw new IllegalStateException("duplicate running service found for " + targetInfo);
+                }
+            }
+        }
     }
 
     public void onProviderCreated(ProviderInfo stubInfo, ProviderInfo targetInfo) throws RemoteException {
         Logger.d(TAG, String.format("onProviderCreated() stubInfo = %s, targetInfo = %s", stubInfo, targetInfo));
+        synchronized (mRunningProviderMap) {
+            List<ProviderInfo> providerInfos = mRunningProviderMap.get(stubInfo.name);
+            if (providerInfos == null) {
+                providerInfos = new ArrayList<>();
+                providerInfos.add(targetInfo);
+                mRunningProviderMap.put(stubInfo.name, providerInfos);
+                return;
+            }
+
+            if (CommonUtils.containsComponent(providerInfos, targetInfo)) {
+                throw new IllegalStateException("duplicate provider running! " + targetInfo);
+            }
+
+            providerInfos.add(targetInfo);
+        }
     }
 
+    @Override
+    public String toString() {
+        return String.format("PluginProcess[ processName = %s, mRunningPluginMap = %s, " +
+                        "mRunningActivityMap = %s, mRunningServiceMap = %s, mRunningProviderMap = %s]",
+                mStubProcess.processName, mRunningPluginMap, mRunningActivityMap,
+                mRunningServiceMap, mRunningProviderMap);
+    }
 }

@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.os.Bundle;
 import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.PluginInfo;

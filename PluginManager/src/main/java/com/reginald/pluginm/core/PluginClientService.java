@@ -1,4 +1,4 @@
-package com.reginald.pluginm.comm;
+package com.reginald.pluginm.core;
 
 import android.content.Context;
 import android.os.IBinder;
@@ -10,7 +10,6 @@ import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.comm.invoker.InvokeCallback;
 import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
 import com.reginald.pluginm.comm.invoker.InvokeResult;
-import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.pluginapi.IInvokeCallback;
 import com.reginald.pluginm.pluginapi.IInvokeResult;
 import com.reginald.pluginm.pluginapi.IInvoker;
@@ -40,6 +39,17 @@ public class PluginClientService extends IPluginClient.Stub {
         }
 
         return sInstance;
+    }
+
+    public static boolean attach(Context context) {
+        try {
+            PluginManager.getInstance(context).onPluginProcessAttached(PluginClientService.getInstance(context));
+            return true;
+        } catch (Throwable t) {
+            Logger.e(TAG, "attach() error!", t);
+        }
+
+        return false;
     }
 
     private PluginClientService(Context hostContext) {

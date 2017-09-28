@@ -29,6 +29,7 @@ interface IPluginManager {
     ProviderInfo getProviderInfo(in ComponentName componentName, int flags);
     PackageInfo getPackageInfo(in String packageName, int flags);
 
+    void onPluginProcessAttached(in IBinder client);
     void onApplicationAttached(in ApplicationInfo targetInfo, String processName);
     void onActivityCreated(in ActivityInfo stubInfo,in ActivityInfo targetInfo);
     void onActivityDestory(in ActivityInfo stubInfo,in ActivityInfo targetInfo);

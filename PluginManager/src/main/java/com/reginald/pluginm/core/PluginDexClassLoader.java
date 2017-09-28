@@ -1,8 +1,6 @@
 package com.reginald.pluginm.core;
 
-import com.reginald.pluginm.PluginConfigs;
 import com.reginald.pluginm.PluginM;
-import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.utils.Logger;
 
 import dalvik.system.DexClassLoader;
@@ -14,17 +12,12 @@ public class PluginDexClassLoader extends DexClassLoader {
 
     private static final String TAG = "PluginDexClassLoader";
 
-    ClassLoader mHost;
+    private final ClassLoader mHost;
 
     public PluginDexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent, ClassLoader extra) {
         super(dexPath, optimizedDirectory, libraryPath, parent);
         Logger.d(TAG, "PluginDexClassLoader() " + this);
         Logger.d(TAG, "PluginDexClassLoader() parent = " + parent);
-//        try {
-//            Logger.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager = " + parent.loadClass("com.example.multidexmodeplugin.DexClassLoaderPluginManager"));
-//        } catch (Exception e) {
-//            Logger.d(TAG, "PluginDexClassLoader() parent load DexClassLoaderPluginManager error: " + e);
-//        }
         mHost = extra;
     }
 

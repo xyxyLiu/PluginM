@@ -9,7 +9,7 @@ plugin_apk_dir=PluginM
 only_host_build=0
 
 # command checking
-while getopts nr option
+while getopts rh option
 do
     case "$option" in
         r)
@@ -22,7 +22,7 @@ do
             echo "option: only build host"
             ;;
         \?)
-            echo "Usage: args [-r] [-n]"
+            echo "Usage: args [-r] [-h]"
             echo "-r means make release build"
             exit 2
             ;;

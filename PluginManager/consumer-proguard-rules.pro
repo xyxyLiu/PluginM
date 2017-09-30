@@ -45,3 +45,14 @@
 -keep class com.reginald.pluginm.stub.PluginContentResolver {
 <methods>;
 }
+
+-keep class com.reginald.pluginm.stub.Stubs$**{
+    *;
+}
+
+# pluginm api start
+-keep public class com.reginald.pluginm.pluginapi.PluginHelper {
+    private static <methods>;
+    public static <methods>;
+}
+# pluginm api end

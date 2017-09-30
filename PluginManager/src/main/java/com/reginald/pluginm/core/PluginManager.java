@@ -278,9 +278,14 @@ public class PluginManager {
 
     private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
         Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
-        Class<?> pluginHelperClazz;
+        Class<?> pluginHelperClazz = null;
         try {
             pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
+
+            if (pluginHelperClazz.getClassLoader() != PluginHelper.class.getClassLoader()) {
+                throw new IllegalStateException("PluginHelper is complied in plugin! error!");
+            }
+
             IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
             if (pluginHelperClazz != null) {
                 Method initMethod = pluginHelperClazz.getDeclaredMethod("init", Object.class);
@@ -292,6 +297,7 @@ public class PluginManager {
             e.printStackTrace();
             Logger.e(TAG, "initPluginHelper() error!", e);
         }
+
         return false;
     }
 

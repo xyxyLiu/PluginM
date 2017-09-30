@@ -36,9 +36,20 @@ android {
         }
 
     }
+
+    signingConfigs {
+        release {
+            storeFile file("../pluginm-test.keystore")
+            storePassword "pluginm"
+            keyAlias "pluginm"
+            keyPassword "pluginm"
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

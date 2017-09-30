@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -20,6 +21,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -31,12 +33,15 @@ import android.util.Pair;
 import com.android.common.ContextCompat;
 import com.reginald.pluginm.IPluginManager;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginNotFoundException;
 import com.reginald.pluginm.comm.PluginLocalManager;
 import com.reginald.pluginm.hook.IActivityManagerServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.pluginapi.IPluginLocalManager;
 import com.reginald.pluginm.pluginapi.PluginHelper;
+import com.reginald.pluginm.stub.PluginServiceConnection;
 import com.reginald.pluginm.stub.PluginStubMainProvider;
+import com.reginald.pluginm.stub.PluginStubMainService;
 import com.reginald.pluginm.utils.BinderParcelable;
 import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.ProcessHelper;
@@ -91,24 +96,26 @@ public class PluginManager {
      * must be called in {@link Application#attachBaseContext(Context)}
      * @param app
      */
-    public static void init(Application app) {
-        onAttachBaseContext(app);
-    }
-
-    private static void onAttachBaseContext(Application app) {
+    public static void onAttachBaseContext(Application app) {
         ProcessHelper.init(app);
+        boolean isPluginProcess = ProcessHelper.isPluginProcess(app);
+        Logger.d(TAG, String.format("onAttachBaseContext() process = %s(%d) isPluginProcess? %b",
+                ProcessHelper.sProcessName, ProcessHelper.sPid, isPluginProcess));
 
-        boolean isSuc = IActivityManagerServiceHook.init(app);
-        Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
+        // 只在插件进程初始化
+        if (isPluginProcess) {
+            Instrumentation newInstrumentation = HostInstrumentation.install(app);
+            Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
 
-        Instrumentation newInstrumentation = HostInstrumentation.install(app);
-        Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
+            boolean isSuc = IActivityManagerServiceHook.init(app);
+            Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
 
-        isSuc = HostHCallback.install(app);
-        Logger.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
+            isSuc = HostHCallback.install(app);
+            Logger.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
 
-        isSuc = PluginClientService.attach(app);
-        Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
+            isSuc = PluginClientService.attach(app);
+            Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
+        }
     }
 
     private PluginManager(Context hostContext) {
@@ -412,6 +419,105 @@ public class PluginManager {
 
     public List<PluginInfo> getLoadedPluginInfos() {
         return new ArrayList<>(mLoadedPluginMap.values());
+    }
+
+    public void startActivity(Context context, Intent intent) {
+        Intent pluginIntent = getPluginActivityIntent(intent);
+        if (pluginIntent != null) {
+            context.startActivity(pluginIntent);
+            return;
+        }
+
+        throw new PluginNotFoundException("plugin Activity NOT found for intent " + intent);
+    }
+
+    public void startActivity(Context context, Intent intent, Bundle options) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            return;
+        }
+
+        Intent pluginIntent = getPluginActivityIntent(intent);
+        if (pluginIntent != null) {
+            context.startActivity(pluginIntent, options);
+            return;
+        }
+
+        throw new PluginNotFoundException("plugin Activity NOT found for intent " + intent);
+    }
+
+    public void startActivityForResult(Activity activity, Intent intent, int requestCode) {
+        Intent pluginIntent = getPluginActivityIntent(intent);
+        if (pluginIntent != null) {
+            activity.startActivityForResult(pluginIntent, requestCode);
+            return;
+        }
+
+        throw new PluginNotFoundException("plugin Activity NOT found for intent " + intent);
+    }
+
+    public void startActivityForResult(Activity activity, Intent intent, int requestCode, Bundle options) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+            return;
+        }
+
+        Intent pluginIntent = getPluginActivityIntent(intent);
+        if (pluginIntent != null) {
+            activity.startActivityForResult(pluginIntent, requestCode, options);
+            return;
+        }
+
+        throw new PluginNotFoundException("plugin Activity NOT found for intent " + intent);
+    }
+
+    public ComponentName startService(Context context, Intent intent) {
+        Intent pluginIntent = getPluginServiceIntent(intent);
+        if (pluginIntent != null) {
+            pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
+            if (context.startService(pluginIntent) != null) {
+                ServiceInfo serviceInfo = pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
+                if (serviceInfo != null) {
+                    return new ComponentName(serviceInfo.packageName, serviceInfo.name);
+                }
+            }
+            return null;
+        }
+
+        throw new PluginNotFoundException("plugin Service NOT found for intent " + intent);
+    }
+
+    public boolean stopService(Context context, Intent intent) {
+        Intent pluginIntent = getPluginServiceIntent(intent);
+        if (pluginIntent != null) {
+            pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
+            ComponentName componentName = context.startService(pluginIntent);
+            return componentName != null;
+        }
+
+        throw new PluginNotFoundException("plugin Service NOT found for intent " + intent);
+    }
+
+    public boolean bindService(Context context, Intent intent, ServiceConnection conn,
+            int flags) {
+        Intent pluginIntent = getPluginServiceIntent(intent);
+        if (pluginIntent != null) {
+            // pluginIntent 中的extras和action会被清空，可以直接利用
+            String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(pluginIntent);
+            pluginIntent.setAction(pluginAppendedAction);
+            return context.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
+        }
+
+        throw new PluginNotFoundException("plugin Service NOT found for intent " + intent);
+    }
+
+    public void unbindService(Context context, ServiceConnection conn) {
+        PluginServiceConnection pluginServiceConnection = PluginServiceConnection.getConnection(conn);
+        if (pluginServiceConnection != null) {
+            pluginServiceConnection.unbind();
+            context.unbindService(pluginServiceConnection);
+            return;
+        }
+
+        throw new PluginNotFoundException("plugin Service NOT found for ServiceConnection " + conn);
     }
 
     public Context createPluginContext(String packageName, Context baseContext) {
@@ -793,7 +899,7 @@ public class PluginManager {
         int i = 0;
         int lookupIndex = -1;
         for (StackTraceElement stackTraceElement : stackTraceElements) {
-            Logger.d(TAG, "#  " + stackTraceElement.toString());
+//            Logger.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();
             if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&

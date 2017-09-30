@@ -38,5 +38,10 @@
 -dontwarn android.app.**
 
 
--keep class com.reginald.pluginm.HostInstrumentation { *; }
--keep class com.reginald.pluginm.stub.PluginContentResolver { *; }
+-keep class com.reginald.pluginm.HostInstrumentation {
+<methods>;
+}
+
+-keep class com.reginald.pluginm.stub.PluginContentResolver {
+<methods>;
+}

@@ -171,10 +171,10 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public PluginInfo install(String pluginPath) {
-        return install(pluginPath, true);
+        return install(pluginPath, true, false);
     }
 
-    private PluginInfo install(String pluginPath, boolean isStandAlone) {
+    private PluginInfo install(String pluginPath, boolean isStandAlone, boolean isLoadDex) {
         try {
             Logger.d(TAG, "install() pluginPath = " + pluginPath);
             PluginInfo pluginInfo = null;
@@ -233,30 +233,36 @@ public class PluginManagerService extends IPluginManager.Stub {
                 pluginInfo.apkPath = pluginApk.getAbsolutePath();
                 pluginInfo.fileSize = pluginApk.length();
                 pluginInfo.lastModified = pluginApk.lastModified();
+                pluginInfo.isStandAlone = isStandAlone;
 
-                // create classloader & dexopt
-                Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
-                ClassLoader parentClassLoader;
-                ClassLoader hostClassLoader = mContext.getClassLoader();
-
-                if (pluginInfo.isStandAlone) {
-                    parentClassLoader = hostClassLoader.getParent();
-                } else {
-                    parentClassLoader = hostClassLoader;
-                }
 
                 File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
                 File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
-                DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                        pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(),
-                        pluginNativeLibPath.getAbsolutePath(), parentClassLoader, hostClassLoader);
-
-                Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
-                Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
-                pluginInfo.isStandAlone = isStandAlone;
-                pluginInfo.classLoader = dexClassLoader;
-                pluginInfo.parentClassLoader = parentClassLoader;
                 pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
+
+                // create classloader & dexopt
+                // load dex
+                if (isLoadDex) {
+                    Logger.d(TAG, "install() mContext.getClassLoader() = " + mContext.getClassLoader());
+                    ClassLoader parentClassLoader;
+                    ClassLoader hostClassLoader = mContext.getClassLoader();
+
+                    if (pluginInfo.isStandAlone) {
+                        parentClassLoader = hostClassLoader.getParent();
+                    } else {
+                        parentClassLoader = hostClassLoader;
+                    }
+
+                    DexClassLoader dexClassLoader = new PluginDexClassLoader(
+                            pluginApk.getAbsolutePath(), pluginDexPath.getAbsolutePath(),
+                            pluginNativeLibPath.getAbsolutePath(), parentClassLoader, hostClassLoader);
+
+                    Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
+                    Logger.d(TAG, "install() dexClassLoader's parent = " + dexClassLoader.getParent());
+
+                    pluginInfo.classLoader = dexClassLoader;
+                    pluginInfo.parentClassLoader = parentClassLoader;
+                }
 
                 // install so
                 File apkParent = pluginApk.getParentFile();

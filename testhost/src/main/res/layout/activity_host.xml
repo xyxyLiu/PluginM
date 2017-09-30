@@ -10,7 +10,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:text="It's HostActivityA"
+        android:text="It's HostActivity, test plugin here!"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -18,37 +18,37 @@
         android:id="@+id/btn1"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn2"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn3"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn4"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn5"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn6"
         android:layout_gravity="center_vertical"
         android:layout_width="200dp"
-        android:layout_height="50dp" />
+        android:layout_height="60dp" />
 
     <Button
         android:id="@+id/btn7"

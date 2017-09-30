@@ -40,6 +40,7 @@ public class DemoActivity extends Activity {
     private ListView mListView;
     private PluginAdapter mAapter;
     private Button mSelectBtn;
+    private Button mTestDemoBtn;
     private ProgressDialog mLoadingDlg = null;
     private File mPluginDir = new File(PLUGINS_PATH);
 
@@ -57,6 +58,21 @@ public class DemoActivity extends Activity {
             @Override
             public void onClick(View v) {
                 chooseFile(mPluginDir.getAbsolutePath());
+            }
+        });
+
+        mTestDemoBtn = (Button) findViewById(R.id.test_demo_btn);
+        mTestDemoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PluginInfo pluginInfo = PluginM.getInstalledPlugin(HostTestActivity.sPluginPkgName);
+                if (pluginInfo != null) {
+                    Intent intent = new Intent(DemoActivity.this, HostTestActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(DemoActivity.this, "还未安装插件" +
+                            HostTestActivity.sPluginPkgName + "！", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

@@ -29,4 +29,11 @@
         android:layout_gravity="center_horizontal"
         android:text="select plugin apk" />
 
+    <Button
+        android:id="@+id/test_demo_btn"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="test demo" />
+
 </LinearLayout>

@@ -7,15 +7,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginNotFoundException;
 import com.reginald.pluginm.stub.PluginContentResolver;
-import com.reginald.pluginm.stub.PluginServiceConnection;
-import com.reginald.pluginm.stub.PluginStubMainService;
+import com.reginald.pluginm.stub.StubManager;
 import com.reginald.pluginm.utils.Logger;
 
 /**
@@ -33,6 +32,7 @@ public class PluginContext extends ContextThemeWrapper {
     private Resources mResources;
     private ClassLoader mClassLoader;
     private ContentResolver mContentResolver;
+    private PluginManager mPluginManager;
 
     public PluginContext(PluginInfo pluginInfo, Context baseContext) {
         // test theme
@@ -46,6 +46,7 @@ public class PluginContext extends ContextThemeWrapper {
         mResources = pluginInfo.resources;
         mClassLoader = pluginInfo.classLoader;
         mContentResolver = new PluginContentResolver(mBaseContext, super.getContentResolver());
+        mPluginManager = PluginManager.getInstance(mBaseContext);
     }
 
     public String getPackageResourcePath() {
@@ -76,6 +77,16 @@ public class PluginContext extends ContextThemeWrapper {
         return mResources;
     }
 
+    @Override
+    public Resources.Theme getTheme() {
+        Logger.d(TAG, "getTheme() super theme = " + super.getTheme());
+        Resources.Theme theme = mPluginInfo.resources.newTheme();
+        theme.applyStyle(mPluginInfo.applicationInfo.theme, false);
+        Logger.d(TAG, "getTheme() mPluginInfo.applicationInfo.theme = " + mPluginInfo.applicationInfo.theme);
+
+        return super.getTheme();
+    }
+
     public Context getApplicationContext() {
         return mPluginInfo.application;
     }
@@ -86,56 +97,50 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public ComponentName startService(Intent intent) {
-        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
-        if (pluginIntent != null) {
-            pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
-            if (super.startService(pluginIntent) != null) {
-                ServiceInfo serviceInfo = pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
-                if (serviceInfo != null) {
-                    return new ComponentName(serviceInfo.packageName, serviceInfo.name);
-                }
+        if (!StubManager.isStubIntent(mBaseContext, intent)) {
+            try {
+                return mPluginManager.startService(this, intent);
+            } catch (PluginNotFoundException e) {
             }
-            return null;
-        } else {
-            return super.startService(intent);
         }
+
+        return super.startService(intent);
     }
 
     @Override
     public boolean stopService(Intent intent) {
-        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
-        if (pluginIntent != null) {
-            pluginIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
-            super.startService(pluginIntent);
-            return true;
-        } else {
-            return super.stopService(intent);
+        if (!StubManager.isStubIntent(mBaseContext, intent)) {
+            try {
+                return mPluginManager.stopService(this, intent);
+            } catch (PluginNotFoundException e) {
+            }
         }
+
+        return super.stopService(intent);
     }
 
     @Override
     public boolean bindService(Intent intent, ServiceConnection conn,
             int flags) {
-        Intent pluginIntent = PluginManager.getInstance(getApplicationContext()).getPluginServiceIntent(intent);
-        if (pluginIntent != null) {
-            // pluginIntent 中的extras和action会被清空，可以直接利用
-            String pluginAppendedAction = PluginStubMainService.getPluginAppendAction(pluginIntent);
-            pluginIntent.setAction(pluginAppendedAction);
-            return super.bindService(pluginIntent, PluginServiceConnection.fetchConnection(conn), flags);
-        } else {
-            return super.bindService(intent, conn, flags);
+        if (!StubManager.isStubIntent(mBaseContext, intent)) {
+            try {
+                return mPluginManager.bindService(this, intent, conn, flags);
+            } catch (PluginNotFoundException e) {
+            }
         }
+
+        return super.bindService(intent, conn, flags);
     }
 
     @Override
     public void unbindService(ServiceConnection conn) {
-        PluginServiceConnection pluginServiceConnection = PluginServiceConnection.getConnection(conn);
-        if (pluginServiceConnection != null) {
-            pluginServiceConnection.unbind();
-            super.unbindService(pluginServiceConnection);
-        } else {
-            super.unbindService(conn);
+        try {
+            mPluginManager.unbindService(this, conn);
+            return;
+        } catch (PluginNotFoundException e) {
         }
+
+        super.unbindService(conn);
     }
 
     @Override

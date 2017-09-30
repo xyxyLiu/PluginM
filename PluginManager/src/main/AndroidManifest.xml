@@ -4,7 +4,6 @@
 
     <application
         android:allowBackup="true"
-        android:label="@string/app_name"
         android:supportsRtl="true">
 
         <!-- 插件服务Provider, 需要放在宿主的常驻进程中 -->
@@ -21,7 +20,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$Standard0"
             android:launchMode="standard"
-
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,6 +31,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop0"
             android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,6 +42,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop1"
             android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop2"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop3"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTop4"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,6 +86,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask0"
             android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,6 +97,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask1"
             android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask2"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask3"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleTask4"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -72,6 +141,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance0"
             android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -82,6 +152,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance1"
             android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance2"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance3"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p0">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P0$SingleInstance4"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
             android:process=":p0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -110,6 +214,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$Standard0"
             android:launchMode="standard"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -120,6 +225,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop0"
             android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -130,6 +236,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop1"
             android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop2"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop3"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTop4"
+            android:launchMode="singleTop"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -140,6 +280,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask0"
             android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -150,6 +291,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask1"
             android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask2"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask3"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleTask4"
+            android:launchMode="singleTask"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -160,6 +335,7 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance0"
             android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -170,6 +346,40 @@
         <activity
             android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance1"
             android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance2"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance3"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
+            android:process=":p1">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.reginald.pluginm.stub.Stubs$Activity$P1$SingleInstance4"
+            android:launchMode="singleInstance"
+            android:theme="@style/PluginMTheme"
             android:process=":p1">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

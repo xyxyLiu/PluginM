@@ -169,6 +169,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".HostTestActivity" />
+
         <service
             android:name=".HostService"
             android:process=":back">

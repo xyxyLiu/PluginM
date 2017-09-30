@@ -49,6 +49,10 @@ public class PluginServiceConnection implements ServiceConnection {
             connectionInfo.binder.unlinkToDeath(connectionInfo.deathMonitor, 0);
         }
         mBinderMap.clear();
+
+        synchronized (sConnectionMap) {
+            sConnectionMap.remove(mBase);
+        }
     }
 
     @Override

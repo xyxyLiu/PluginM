@@ -35,7 +35,6 @@ public class PluginService extends Service {
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Bundle extras = intent.getExtras();
-        extras.keySet();
         Log.d(TAG, "onStartCommand() intent = " + intent + " , extras = " + extras);
 
         if (intent != null && "killself".equals(intent.getAction())) {

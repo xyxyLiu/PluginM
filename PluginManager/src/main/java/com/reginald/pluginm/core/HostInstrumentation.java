@@ -286,29 +286,43 @@ public class HostInstrumentation extends Instrumentation {
     public Activity newActivity(ClassLoader cl, String className, Intent intent) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         Logger.d(TAG, "newActivity() className = " + className);
         if (className.startsWith(Stubs.Activity.class.getName())) {
+            Activity activity;
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
                 PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
 
-                if (pluginInfo == null) {
-                    Logger.e(TAG, "newActivity() no loaded plugininfo found for " + activityInfo + ", load fake activity!");
-                    Activity fakeActivity = mBase.newActivity(cl, Stubs.Activity.Fake.class.getName(), intent);
-                    return fakeActivity;
-                }
+                if (pluginInfo != null) {
+                    try {
+                        ComponentName component = new ComponentName(activityInfo.packageName,
+                                activityInfo.name);
 
-                Activity activity = mBase.newActivity(pluginInfo.classLoader, activityInfo.name, intent);
-                activity.setIntent(intent);
-                try {
-                    FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
-                    Logger.d(TAG, "newActivity() replace mResources ok! ");
-                } catch (Exception e) {
-                    Logger.e(TAG, "newActivity() replace mResources error! ");
-                    e.printStackTrace();
-                }
+                        if (activityInfo.targetActivity != null) {
+                            component = new ComponentName(activityInfo.packageName,
+                                    activityInfo.targetActivity);
+                        }
 
-                return activity;
+                        activity = mBase.newActivity(pluginInfo.classLoader, component.getClassName(), intent);
+                        activity.setIntent(intent);
+                        try {
+                            FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
+                            Logger.d(TAG, "newActivity() replace mResources ok! ");
+                        } catch (Exception e) {
+                            Logger.e(TAG, "newActivity() replace mResources error! ");
+                            e.printStackTrace();
+                        }
+                        return activity;
+                    } catch (Exception e) {
+                        Logger.e(TAG, "newActivity() load plugin activity error!", e);
+                    }
+                } else {
+                    Logger.e(TAG, "newActivity() no loaded plugininfo found for " + activityInfo);
+                }
             }
+
+            Logger.e(TAG, "newActivity() no valid plugin activity loaded for stub " + className + ", load fake activity!");
+            Activity fakeActivity = mBase.newActivity(cl, Stubs.Activity.Fake.class.getName(), intent);
+            return fakeActivity;
         }
 
         return mBase.newActivity(cl, className, intent);

@@ -13,7 +13,7 @@ import java.io.StringWriter;
 
 public class Logger {
     public static final String TAG = "PluginM";
-    private static boolean LOG_ENABLED = BuildConfig.DEBUG_LOG;
+    public static boolean LOG_ENABLED = BuildConfig.DEBUG_LOG;
 
     public static void d(String tag, String msg) {
         if (LOG_ENABLED) {

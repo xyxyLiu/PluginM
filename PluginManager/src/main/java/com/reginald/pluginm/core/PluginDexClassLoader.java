@@ -11,35 +11,47 @@ import dalvik.system.DexClassLoader;
 public class PluginDexClassLoader extends DexClassLoader {
 
     private static final String TAG = "PluginDexClassLoader";
+    private static final boolean LOADER_DEBUG = false;
 
     private final ClassLoader mHost;
 
     public PluginDexClassLoader(String dexPath, String optimizedDirectory, String libraryPath, ClassLoader parent, ClassLoader extra) {
         super(dexPath, optimizedDirectory, libraryPath, parent);
-        Logger.d(TAG, "PluginDexClassLoader() " + this);
-        Logger.d(TAG, "PluginDexClassLoader() parent = " + parent);
+        Logger.d(TAG, "PluginDexClassLoader() " + this + ", parent = " + parent);
         mHost = extra;
     }
 
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
-        Logger.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
+        if (LOADER_DEBUG) {
+            Logger.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
+        }
 
         ClassNotFoundException exception = null;
 
         try {
             Class<?> clazz = super.loadClass(className, resolve);
-            Logger.d(TAG, "loadClass() classname = " + className + " ok!");
+            if (LOADER_DEBUG) {
+                Logger.d(TAG, "loadClass() plugin loader: classname = " + className + " ok!");
+            }
             return clazz;
         } catch (ClassNotFoundException e) {
-            Logger.e(TAG, "loadClass() classname = " + className + " fail!");
+            if (LOADER_DEBUG) {
+                Logger.e(TAG, "loadClass() plugin loader:  classname = " + className + " fail!");
+            }
             exception = e;
         }
 
         if (canUseHostLoader(className)) {
             try {
-                return mHost.loadClass(className);
+                Class<?> clazz = mHost.loadClass(className);
+                if (LOADER_DEBUG) {
+                    Logger.d(TAG, "loadClass() host loader: classname = " + className + " ok!");
+                }
+                return clazz;
             } catch (ClassNotFoundException e) {
-                Logger.e(TAG, "loadClass() classname = " + className + " host load fail!");
+                if (LOADER_DEBUG) {
+                    Logger.e(TAG, "loadClass() host loader: classname = " + className + " host load fail!");
+                }
                 exception = e;
             }
         }

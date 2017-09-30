@@ -15,13 +15,27 @@ public class PluginConfigs {
     public static final int PROCESS_TYPE_DUAL = StubManager.PROCESS_TYPE_DUAL;
 
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
-
     private boolean mUseHostLoader = true;
+
+    public PluginConfigs() {
+
+    }
+
+    public PluginConfigs(PluginConfigs pluginConfigs) {
+        mProcessType = pluginConfigs.getProcessType();
+        mUseHostLoader = pluginConfigs.isUseHostLoader();
+    }
 
     public int getProcessType() {
         return mProcessType;
     }
 
+    /**
+     * 设置进程模式：
+     * {@see }
+     * @param processType
+     * @return
+     */
     public PluginConfigs setProcessType(int processType) {
         mProcessType = processType;
         return this;

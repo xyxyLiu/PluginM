@@ -1,9 +1,13 @@
 package com.reginald.pluginm;
 
+import android.app.Activity;
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 
 import com.reginald.pluginm.comm.PluginCommClient;
@@ -24,6 +28,7 @@ import java.util.List;
 public class PluginM {
     private static Context sAppContext;
     private static PluginConfigs sConfigs;
+    private static PluginManager sPluginManager;
 
     public static void onAttachBaseContext(Application app, PluginConfigs configs) {
         if (app == null || configs == null) {
@@ -31,34 +36,68 @@ public class PluginM {
         }
         sAppContext = app;
         sConfigs = configs;
-        PluginManager.init(app);
+        sPluginManager = PluginManager.getInstance(sAppContext);
+        sPluginManager.onAttachBaseContext(app);
     }
 
     public static PluginConfigs getConfigs() {
-        return sConfigs;
+        return new PluginConfigs(sConfigs);
     }
 
     public static PluginInfo install(String apkPath) {
-        return PluginManager.getInstance(sAppContext).installPlugin(apkPath);
+        return sPluginManager.installPlugin(apkPath);
+    }
+
+    public static PluginInfo getInstalledPlugin(String packageName) {
+        return sPluginManager.getInstalledPluginInfo(packageName);
     }
 
     public static List<PluginInfo> getAllInstalledPlugins() {
-        return PluginManager.getInstance(sAppContext).getAllInstalledPlugins();
+        return sPluginManager.getAllInstalledPlugins();
     }
 
     public static Intent getPluginActivityIntent(Intent pluginIntent) {
-        return PluginManager.getInstance(sAppContext).getPluginActivityIntent(pluginIntent);
+        return sPluginManager.getPluginActivityIntent(pluginIntent);
     }
 
-    public static Intent getPluginServiceIntent(Intent pluginIntent) {
-        return PluginManager.getInstance(sAppContext).getPluginServiceIntent(pluginIntent);
+    public static void startActivity(Context context, Intent intent) {
+        sPluginManager.startActivity(context, intent);
     }
 
-    public static ContentResolver getPluginContentResolver() {
-        return new PluginContentResolver(sAppContext, sAppContext.getContentResolver());
+    public static void startActivity(Context context, Intent intent, Bundle options) {
+        sPluginManager.startActivity(context, intent, options);
     }
 
-    public IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
+    public static void startActivityForResult(Activity activity, Intent intent, int requestCode) {
+        sPluginManager.startActivityForResult(activity, intent, requestCode);
+    }
+
+    public static void startActivityForResult(Activity activity, Intent intent, int requestCode, Bundle options) {
+        sPluginManager.startActivityForResult(activity, intent, requestCode, options);
+    }
+
+    public static ComponentName startService(Context context, Intent intent) {
+        return sPluginManager.startService(context, intent);
+    }
+
+    public static boolean stopService(Context context, Intent intent) {
+        return sPluginManager.stopService(context, intent);
+    }
+
+    public static boolean bindService(Context context, Intent intent, ServiceConnection conn,
+            int flags) {
+        return sPluginManager.bindService(context, intent, conn, flags);
+    }
+
+    public static void unbindService(Context context, ServiceConnection conn) {
+        sPluginManager.unbindService(context, conn);
+    }
+
+    public static ContentResolver getContentResolver(Context context) {
+        return new PluginContentResolver(context, context.getContentResolver());
+    }
+
+    public static IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
         InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
 
         final InvokeResult invokeResult = PluginCommClient.getInstance(sAppContext).invoke(packageName, serviceName, methodName, params, invokeCallback);
@@ -66,7 +105,7 @@ public class PluginM {
         return InvokeResult.newIInvokerResult(invokeResult);
     }
 
-    public IBinder fetchService(String packageName, String serviceName) {
+    public static IBinder fetchService(String packageName, String serviceName) {
         return PluginCommClient.getInstance(sAppContext).fetchService(packageName, serviceName);
     }
 }

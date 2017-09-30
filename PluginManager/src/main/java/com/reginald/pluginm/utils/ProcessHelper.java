@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Process;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.stub.StubManager;
+
 import java.util.List;
 
 /**
@@ -34,5 +36,14 @@ public class ProcessHelper {
             }
         }
         return null;
+    }
+
+    public static boolean isPluginProcess(Context context) {
+        StubManager.ProcessInfo processInfo = StubManager.getInstance(context).getProcessInfo(sProcessName);
+        if (processInfo != null) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -290,7 +290,7 @@ public class HostInstrumentation extends Instrumentation {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
-                PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(activityInfo.packageName);
+                PluginInfo pluginInfo = mPluginManager.loadPlugin(activityInfo.packageName);
 
                 if (pluginInfo != null) {
                     try {
@@ -308,8 +308,7 @@ public class HostInstrumentation extends Instrumentation {
                             FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
                             Logger.d(TAG, "newActivity() replace mResources ok! ");
                         } catch (Exception e) {
-                            Logger.e(TAG, "newActivity() replace mResources error! ");
-                            e.printStackTrace();
+                            Logger.e(TAG, "newActivity() replace mResources error! ", e);
                         }
                         return activity;
                     } catch (Exception e) {
@@ -332,6 +331,13 @@ public class HostInstrumentation extends Instrumentation {
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
         Logger.d(TAG, "callActivityOnCreate() activity = " + activity);
 
+        try {
+            Logger.d(TAG, "callActivityOnCreate() activity.themeResource = " + FieldUtils.readField(activity, "mThemeResource"));
+            Logger.d(TAG, "callActivityOnCreate() activity.theme = " + FieldUtils.readField(activity, "mTheme"));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         if (activity instanceof Stubs.Activity.Fake) {
             mBase.callActivityOnCreate(activity, icicle);
             return;
@@ -351,13 +357,30 @@ public class HostInstrumentation extends Instrumentation {
                 try {
                     FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
                     FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
-                    FieldUtils.writeField(activity, "mTheme", pluginContext.getTheme());
                     FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
                     FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);
                     Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
                 } catch (IllegalAccessException e) {
                     Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
                 }
+
+                // orientation:
+                if (activity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                        && activityInfo.screenOrientation != ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED) {
+                    activity.setRequestedOrientation(activityInfo.screenOrientation);
+                }
+
+                // theme:
+                try {
+                    FieldUtils.writeField(activity, "mTheme", null);
+                    int themeResId = activityInfo.getThemeResource();
+                    if (themeResId > 0) {
+                        activity.setTheme(themeResId);
+                    }
+                } catch (Exception e) {
+                    Logger.e(TAG, "modify theme error!", e);
+                }
+
                 activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
                 mPluginManager.callActivityOnCreate(activity, stubInfo, activityInfo);
             }

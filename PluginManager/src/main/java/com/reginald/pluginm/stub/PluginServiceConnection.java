@@ -60,34 +60,53 @@ public class PluginServiceConnection implements ServiceConnection {
         Logger.d(TAG, String.format("onServiceConnected(%s, %s)", name, service));
         if (service != null && service.isBinderAlive()) {
             IPluginServiceStubBinder stubBinder = IPluginServiceStubBinder.Stub.asInterface(service);
+
+            ComponentName componentName = null;
+            IBinder iBinder = null;
             try {
-                ComponentName componentName = stubBinder.getComponentName();
-                IBinder iBinder = stubBinder.getBinder();
-                if (mBase != null && componentName != null) {
-                    ConnectionInfo oldConnectionInfo = mBinderMap.get(componentName);
+                componentName = stubBinder.getComponentName();
+                iBinder = stubBinder.getBinder();
+            } catch (RemoteException e) {
+                Logger.e(TAG, "onServiceConnected() error!", e);
+                return;
+            }
+
+            if (mBase != null && componentName != null) {
+                ConnectionInfo oldConnectionInfo = null;
+                synchronized (this) {
+                    oldConnectionInfo = mBinderMap.get(componentName);
                     Logger.d(TAG, String.format("onServiceConnected() oldConnectionInfo = %s", oldConnectionInfo));
-                    if (oldConnectionInfo != null && oldConnectionInfo.binder != null && oldConnectionInfo.binder == iBinder) {
+                    if (oldConnectionInfo != null && oldConnectionInfo.binder == iBinder) {
                         Logger.w(TAG, String.format("onServiceConnected() componentName = %s, oldBinder = newBinder = %s  same!", componentName, iBinder));
                         return;
                     }
 
-                    ConnectionInfo newConnectionInfo = new ConnectionInfo();
-                    newConnectionInfo.binder = iBinder;
-                    newConnectionInfo.deathMonitor = new DeathMonitor(componentName, iBinder);
-                    mBinderMap.put(componentName, newConnectionInfo);
-                    newConnectionInfo.binder.linkToDeath(newConnectionInfo.deathMonitor, 0);
+                    if (iBinder != null) {
+                        ConnectionInfo newConnectionInfo = new ConnectionInfo();
+                        newConnectionInfo.binder = iBinder;
+                        newConnectionInfo.deathMonitor = new DeathMonitor(componentName, iBinder);
 
-
-                    if (oldConnectionInfo != null) {
-                        death(componentName, oldConnectionInfo.binder, oldConnectionInfo.deathMonitor);
+                        try {
+                            newConnectionInfo.binder.linkToDeath(newConnectionInfo.deathMonitor, 0);
+                            mBinderMap.put(componentName, newConnectionInfo);
+                        } catch (RemoteException e) {
+                            mBinderMap.remove(componentName);
+                            Logger.e(TAG, "onServiceConnected() error!", e);
+                        }
+                    } else {
+                        mBinderMap.remove(componentName);
                     }
+                }
 
+                if (oldConnectionInfo != null) {
+                    death(componentName, oldConnectionInfo.binder, oldConnectionInfo.deathMonitor);
+                }
+
+                if (iBinder != null) {
                     Logger.d(TAG, String.format("call %s onServiceConnected(%s , %s)", mBase, componentName, iBinder));
                     mBase.onServiceConnected(componentName, iBinder);
-
                 }
-            } catch (RemoteException e) {
-                e.printStackTrace();
+
             }
         }
     }
@@ -107,7 +126,15 @@ public class PluginServiceConnection implements ServiceConnection {
         }
     }
 
+    private static class ConnectionInfo {
+        IBinder binder;
+        IBinder.DeathRecipient deathMonitor;
+    }
+
     private final class DeathMonitor implements IBinder.DeathRecipient {
+        final ComponentName mName;
+        final IBinder mService;
+
         DeathMonitor(ComponentName name, IBinder service) {
             mName = name;
             mService = service;
@@ -115,16 +142,11 @@ public class PluginServiceConnection implements ServiceConnection {
 
         public void binderDied() {
             Logger.d(TAG, String.format("binderDied() name = %s, service = %s", mName, mService));
+            synchronized (PluginServiceConnection.this) {
+                mBinderMap.remove(mName);
+            }
             death(mName, mService, this);
-            mBinderMap.remove(mName);
+
         }
-
-        final ComponentName mName;
-        final IBinder mService;
-    }
-
-    private static class ConnectionInfo {
-        IBinder binder;
-        IBinder.DeathRecipient deathMonitor;
     }
 }

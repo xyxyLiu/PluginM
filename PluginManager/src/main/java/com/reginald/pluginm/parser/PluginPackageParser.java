@@ -38,6 +38,8 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.PackageUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -416,7 +418,7 @@ public class PluginPackageParser {
 
 
         if (applicationInfo.dataDir == null) {
-            applicationInfo.dataDir = mPluginFile.getPath();//PluginDirHelper.getPluginDataDir(mHostContext, applicationInfo.packageName);
+            applicationInfo.dataDir = mHostContext.getApplicationInfo().dataDir;
         }
 
         try {
@@ -443,10 +445,11 @@ public class PluginPackageParser {
         applicationInfo.uid = mHostPackageInfo.applicationInfo.uid;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-//            if (applicationInfo.nativeLibraryDir == null) {
-//                applicationInfo.nativeLibraryDir = PluginDirHelper.getPluginNativeLibraryDir(mHostContext, applicationInfo.packageName);
-//            }
+            if (applicationInfo.nativeLibraryDir == null) {
+                applicationInfo.nativeLibraryDir = PackageUtils.getPluginLibDir(mHostContext, mPackageName).getAbsolutePath();
+            }
         }
+        Logger.d("#$#$", "applicationInfo.nativeLibraryDir = " + applicationInfo.nativeLibraryDir);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (applicationInfo.splitSourceDirs == null) {

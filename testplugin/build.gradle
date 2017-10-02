@@ -1,18 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.reginald.andresm'
-
-andresm {
-    packageId = 0x60
-}
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.reginald:andresm:0.1.0'
-    }
-}
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion

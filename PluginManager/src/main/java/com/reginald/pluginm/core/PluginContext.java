@@ -3,13 +3,13 @@ package com.reginald.pluginm.core;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.view.ContextThemeWrapper;
 
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginNotFoundException;
@@ -20,7 +20,7 @@ import com.reginald.pluginm.utils.Logger;
 /**
  * Created by lxy on 16-6-28.
  */
-public class PluginContext extends ContextThemeWrapper {
+public class PluginContext extends ContextWrapper {
 
     private static final String TAG = "PluginContext";
 
@@ -35,8 +35,7 @@ public class PluginContext extends ContextThemeWrapper {
     private PluginManager mPluginManager;
 
     public PluginContext(PluginInfo pluginInfo, Context baseContext) {
-        // test theme
-        super(baseContext, pluginInfo.applicationInfo.theme);
+        super(baseContext);
         Logger.d(TAG, "PluginActivityContext() pluginInfo = " + pluginInfo);
         mBaseContext = baseContext;
         mPluginInfo = pluginInfo;

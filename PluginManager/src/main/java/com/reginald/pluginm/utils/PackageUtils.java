@@ -1,7 +1,6 @@
 package com.reginald.pluginm.utils;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.os.Build;
 
 import java.io.BufferedInputStream;
@@ -12,74 +11,43 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * @version $Id: PackageUtils.java, v 0.1 2015年12月11日 下午4:41:10 mochuan.zhb Exp $
- * @Author Zheng Haibo
- * @Mail mochuan.zhb@alibaba-inc.com
- * @Company Alibaba Group
- * @PersonalWebsite http://www.mobctrl.net
- * @Description
- */
 public class PackageUtils {
 
     private static final boolean DEBUG = true;
-    private static final String TAG = "AssetsApkLoader";
+    private static final String TAG = "PackageUtils";
 
-    //从assets复制出去的apk的目标目录
-    public static final String APK_DIR = "plugin_apk";
+    public static final String PLUGIN_ROOT = "pluginm";
+    public static final String PLUGIN_APK_FOLDER_NAME = "apk";
+    public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
+    public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
 
-    //文件结尾过滤
-    public static final String PLUGIN_ASSET = "plugin.apk";
-
-
-    /**
-     * 将资源文件中的apk文件拷贝到私有目录中
-     * @param context
-     */
-    public static File copyAssetsApk(Context context, String pluginName) {
-
-        AssetManager assetManager = context.getAssets();
-        long startTime = System.currentTimeMillis();
-        try {
-            File dex = context.getDir(APK_DIR, Context.MODE_PRIVATE);
-            dex.mkdir();
-            String[] fileNames = assetManager.list("");
-            for (String fileName : fileNames) {
-                if (fileName.equals(pluginName)) {
-                    InputStream in = null;
-                    OutputStream out = null;
-                    in = assetManager.open(fileName);
-                    File f = new File(dex, fileName);
-                    if (f.exists() && f.length() == in.available()) {
-                        Logger.i(TAG, fileName + "no change");
-                        return f;
-                    }
-                    Logger.i(TAG, fileName + " chaneged");
-
-                    copyFile(in, f.getAbsolutePath());
-                    Logger.i(TAG, fileName + " copy over");
-                    return f;
-                }
-            }
-            Logger.i(TAG, "###copyAssets time = " + (System.currentTimeMillis() - startTime));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static File getPluginRootDir(Context context) {
+        return context.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE);
     }
 
-    public static String getApkPath(Context context, String apkName) {
-        return context.getDir(APK_DIR, Context.MODE_PRIVATE).getAbsolutePath() + "/" + apkName;
+    public static File getPluginDir(Context context, String packageName) {
+        return getOrMakeDir(getPluginRootDir(context), packageName);
     }
 
-    public static File getOrMakeDir(String root, String dir) {
+    public static File getPluginApkDir(Context context, String packageName) {
+        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_APK_FOLDER_NAME);
+    }
+
+    public static File getPluginDexDir(Context context, String packageName) {
+        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_DEX_FOLDER_NAME);
+    }
+
+    public static File getPluginLibDir(Context context, String packageName) {
+        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_LIB_FOLDER_NAME);
+    }
+
+    public static File getOrMakeDir(File root, String dir) {
         File dirFile = new File(root, dir);
         if (!dirFile.exists()) {
             dirFile.mkdir();

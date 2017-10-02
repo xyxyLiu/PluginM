@@ -4,9 +4,6 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.os.IBinder;
 
-import com.reginald.pluginm.pluginapi.IInvokeCallback;
-import com.reginald.pluginm.pluginapi.IInvokeResult;
-
 /**
  * Created by lxy on 16-10-27.
  */

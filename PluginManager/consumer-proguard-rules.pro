@@ -38,7 +38,7 @@
 -dontwarn android.app.**
 
 
--keep class com.reginald.pluginm.HostInstrumentation {
+-keep class com.reginald.pluginm.core.HostInstrumentation {
 <methods>;
 }
 
@@ -51,8 +51,8 @@
 }
 
 # pluginm api start
--keep public class com.reginald.pluginm.pluginapi.PluginHelper {
-    private static <methods>;
-    public static <methods>;
+-keep public class com.reginald.pluginm.pluginapi.** {
+    public <fields>;
+    <methods>;
 }
 # pluginm api end

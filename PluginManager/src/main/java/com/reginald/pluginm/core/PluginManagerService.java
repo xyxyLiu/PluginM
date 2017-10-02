@@ -50,11 +50,6 @@ public class PluginManagerService extends IPluginManager.Stub {
     private static final String TAG = "PluginManagerService";
     private static volatile PluginManagerService sInstance;
 
-    public static final String PLUGIN_ROOT = "pluginm";
-    public static final String PLUGIN_APK_FOLDER_NAME = "apk";
-    public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
-    public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
-
     private final Object mInstallLock = new Object();
 
     // 已安装插件信息：
@@ -205,15 +200,14 @@ public class PluginManagerService extends IPluginManager.Stub {
                     return installedPluginInfo;
                 }
 
-                String rootDir = mContext.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE).getAbsolutePath();
-                File pluginDir = PackageUtils.getOrMakeDir(rootDir, pluginPkgName);
+                File pluginDir = PackageUtils.getPluginDir(mContext, pluginPkgName);
 
                 if (!pluginDir.exists()) {
                     Logger.e(TAG, "install() pluginDir for " + pluginPkgName + " init error!");
                     return null;
                 }
 
-                File pluginApkDir = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_APK_FOLDER_NAME);
+                File pluginApkDir = PackageUtils.getPluginApkDir(mContext, pluginPkgName);
                 if (!pluginApkDir.exists()) {
                     Logger.e(TAG, "install() pluginDir " + pluginApkDir.getAbsolutePath() + " NOT found!");
                     return null;
@@ -235,9 +229,8 @@ public class PluginManagerService extends IPluginManager.Stub {
                 pluginInfo.lastModified = pluginApk.lastModified();
                 pluginInfo.isStandAlone = isStandAlone;
 
-
-                File pluginDexPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_DEX_FOLDER_NAME);
-                File pluginNativeLibPath = PackageUtils.getOrMakeDir(pluginDir.getAbsolutePath(), PLUGIN_LIB_FOLDER_NAME);
+                File pluginDexPath = PackageUtils.getPluginDexDir(mContext, pluginPkgName);
+                File pluginNativeLibPath = PackageUtils.getPluginLibDir(mContext, pluginPkgName);
                 pluginInfo.dexDir = pluginDexPath.getAbsolutePath();
 
                 // create classloader & dexopt

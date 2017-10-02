@@ -110,9 +110,6 @@ public class PluginManager {
             boolean isSuc = IActivityManagerServiceHook.init(app);
             Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
 
-            isSuc = HostHCallback.install(app);
-            Logger.d(TAG, "onAttachBaseContext() replace host mH, success? " + isSuc);
-
             isSuc = PluginClientService.attach(app);
             Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
         }

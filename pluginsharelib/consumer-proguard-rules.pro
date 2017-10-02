@@ -15,5 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
-
--keep public class * implements com.reginald.pluginm.pluginapi.IInvoker
+-keep public class com.reginald.pluginm.demo.pluginsharelib.** {
+    public <fields>;
+    public <methods>;
+}

@@ -449,7 +449,6 @@ public class PluginPackageParser {
                 applicationInfo.nativeLibraryDir = PackageUtils.getPluginLibDir(mHostContext, mPackageName).getAbsolutePath();
             }
         }
-        Logger.d("#$#$", "applicationInfo.nativeLibraryDir = " + applicationInfo.nativeLibraryDir);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             if (applicationInfo.splitSourceDirs == null) {

@@ -154,6 +154,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
 
         public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
             ComponentName component = (ComponentName) args[0];
+            int startId = (int) args[2];
             Logger.d(TAG, "stopServiceToken() onStartInvoke : component = " + component);
             Intent pluginIntent = new Intent();
             pluginIntent.setComponent(component);
@@ -161,6 +162,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             Logger.d(TAG, "stopServiceToken() onStartInvoke : newIntent = " + newIntent);
             if (newIntent != null) {
                 newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
+                newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_STARTID, startId);
                 mPluginManager.getHostContext().startService(newIntent);
                 return false;
             } else {

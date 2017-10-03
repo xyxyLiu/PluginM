@@ -22,6 +22,7 @@ import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.Stubs;
 import com.reginald.pluginm.utils.Logger;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,7 +37,15 @@ public class HostInstrumentation extends Instrumentation {
 
     private Instrumentation mBase;
 
-    PluginManager mPluginManager;
+    private PluginManager mPluginManager;
+
+    private Intent mLastNewTargetIntent;
+    private WeakReference<Activity> mLastNewTargetActivity;
+
+    public HostInstrumentation(PluginManager pluginManager, Instrumentation base) {
+        this.mPluginManager = pluginManager;
+        this.mBase = base;
+    }
 
     public static Instrumentation install(Context hostContext) {
         Object target = ActivityThreadCompat.currentActivityThread();
@@ -56,11 +65,6 @@ public class HostInstrumentation extends Instrumentation {
         }
 
         return null;
-    }
-
-    public HostInstrumentation(PluginManager pluginManager, Instrumentation base) {
-        this.mPluginManager = pluginManager;
-        this.mBase = base;
     }
 
     /**
@@ -303,7 +307,10 @@ public class HostInstrumentation extends Instrumentation {
                         }
 
                         activity = mBase.newActivity(pluginInfo.classLoader, component.getClassName(), intent);
+
                         activity.setIntent(intent);
+                        mLastNewTargetIntent = new Intent(intent);
+                        mLastNewTargetActivity = new WeakReference<Activity>(activity);
                         try {
                             FieldUtils.writeField(ContextThemeWrapper.class, "mResources", activity, pluginInfo.resources);
                             Logger.d(TAG, "newActivity() replace mResources ok! ");
@@ -331,21 +338,35 @@ public class HostInstrumentation extends Instrumentation {
     public void callActivityOnCreate(Activity activity, Bundle icicle) {
         Logger.d(TAG, "callActivityOnCreate() activity = " + activity);
 
-        try {
-            Logger.d(TAG, "callActivityOnCreate() activity.themeResource = " + FieldUtils.readField(activity, "mThemeResource"));
-            Logger.d(TAG, "callActivityOnCreate() activity.theme = " + FieldUtils.readField(activity, "mTheme"));
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
+        // check if Fake activity
         if (activity instanceof Stubs.Activity.Fake) {
             mBase.callActivityOnCreate(activity, icicle);
             return;
         }
 
-        Intent intent = activity.getIntent();
-        ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
-        ActivityInfo stubInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
+        // fetch intent for target activity
+        Intent lastNewTargetIntent = mLastNewTargetIntent;
+        mLastNewTargetIntent = null;
+
+        Activity lastNewActivity = null;
+        if (mLastNewTargetActivity != null) {
+            if (mLastNewTargetActivity.get() != null) {
+                lastNewActivity = mLastNewTargetActivity.get();
+                mLastNewTargetActivity.clear();
+            }
+            mLastNewTargetActivity = null;
+        }
+
+        Intent intent;
+        if (lastNewActivity == activity && lastNewTargetIntent != null) {
+            intent = lastNewTargetIntent;
+        } else {
+            intent = activity.getIntent();
+        }
+
+        // fetch tartget and stub activity info
+        ActivityInfo activityInfo = lastNewTargetIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+        ActivityInfo stubInfo = lastNewTargetIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
 
         Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null && stubInfo != null) {
@@ -374,7 +395,7 @@ public class HostInstrumentation extends Instrumentation {
                 try {
                     FieldUtils.writeField(activity, "mTheme", null);
                     int themeResId = activityInfo.getThemeResource();
-                    if (themeResId > 0) {
+                    if (themeResId != 0) {
                         activity.setTheme(themeResId);
                     }
                 } catch (Exception e) {
@@ -394,21 +415,6 @@ public class HostInstrumentation extends Instrumentation {
         mPluginManager.callActivityOnDestory(activity);
 
         mBase.callActivityOnDestroy(activity);
-    }
-
-    @Override
-    public Context getContext() {
-        return mBase.getContext();
-    }
-
-    @Override
-    public Context getTargetContext() {
-        return mBase.getTargetContext();
-    }
-
-    @Override
-    public ComponentName getComponentName() {
-        return mBase.getComponentName();
     }
 
 }

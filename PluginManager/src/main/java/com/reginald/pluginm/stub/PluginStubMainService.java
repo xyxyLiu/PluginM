@@ -29,6 +29,7 @@ public class PluginStubMainService extends Service {
     public static final String INTENT_EXTRA_START_TYPE_KEY = "extra.plugin.stubservice.start.type";
     public static final String INTENT_EXTRA_START_TYPE_START = "extra.plugin.stubservice.start.type.start";
     public static final String INTENT_EXTRA_START_TYPE_STOP = "extra.plugin.stubservice.start.type.stop";
+    public static final String INTENT_EXTRA_START_TYPE_STARTID = "extra.plugin.stubservice.start.type.startid";
     public static final String INTENT_ACTION_BIND_PREFIX = "action.plugin.stubservice.bind";
 
     private static final String TAG = "PluginStubMainService";
@@ -60,15 +61,18 @@ public class PluginStubMainService extends Service {
                     if (pluginServiceRecord != null) {
                         Intent origIntent = getOriginalIntent(intent, pluginServiceRecord.service);
                         pluginServiceRecord.started = true;
-                        pluginServiceRecord.service.onStartCommand(origIntent, flags, startId);
+                        pluginServiceRecord.service.onStartCommand(origIntent, flags, pluginServiceRecord.makeNextStartId());
                     }
 
                 } else if (commandType.equals(INTENT_EXTRA_START_TYPE_STOP)) {
                     ServiceRecord pluginServiceRecord = fetchCachedServiceRecord(serviceInfo);
                     if (pluginServiceRecord != null) {
-                        pluginServiceRecord.started = false;
-                        if (pluginServiceRecord.canStopped()) {
-                            removePluginService(pluginServiceRecord);
+                        int stopId = intent.getIntExtra(INTENT_EXTRA_START_TYPE_STARTID, -1);
+                        if (stopId < 0 || stopId == pluginServiceRecord.startId) {
+                            pluginServiceRecord.started = false;
+                            if (pluginServiceRecord.canStopped()) {
+                                removePluginService(pluginServiceRecord);
+                            }
                         }
                     }
                 }
@@ -351,6 +355,7 @@ public class PluginStubMainService extends Service {
         public ComponentName componentName;
         public Service service;
         public boolean started;
+        public int startId;
 
         HashMap<Intent.FilterComparison, BindRecord> bindRecords = new HashMap<>();
 
@@ -386,6 +391,18 @@ public class PluginStubMainService extends Service {
         public void removeBindRecord(Intent intent) {
             Intent.FilterComparison filterComparison = new Intent.FilterComparison(intent);
             bindRecords.remove(filterComparison);
+        }
+
+        public int getStartId() {
+            return startId;
+        }
+
+        public int makeNextStartId() {
+            startId++;
+            if (startId < 1) {
+                startId = 1;
+            }
+            return startId;
         }
 
         @Override

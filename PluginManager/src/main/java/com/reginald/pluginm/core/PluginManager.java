@@ -61,15 +61,13 @@ import dalvik.system.DexClassLoader;
  * Created by lxy on 16-11-1.
  */
 public class PluginManager {
-    private static final String TAG = "PluginManager";
-    private static volatile PluginManager sInstance;
-
     public static final String EXTRA_INTENT_TARGET_ACTIVITYINFO = "extra.plugin.target.activityinfo";
     public static final String EXTRA_INTENT_TARGET_SERVICEINFO = "extra.plugin.target.serviceinfo";
     public static final String EXTRA_INTENT_TARGET_PROVIDERINFO = "extra.plugin.target.providerinfo";
     public static final String EXTRA_INTENT_STUB_INFO = "extra.plugin.stub.info";
     public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
-
+    private static final String TAG = "PluginManager";
+    private static volatile PluginManager sInstance;
     // 本进程已经加载的插件信息：
     private final Object mPluginLoadLock = new Object();
     private final Map<String, PluginInfo> mLoadedPluginMap = new ConcurrentHashMap<>();
@@ -83,6 +81,12 @@ public class PluginManager {
 
     private Context mContext;
     private volatile IPluginManager mService;
+
+    private PluginManager(Context hostContext) {
+        Context appContext = hostContext.getApplicationContext();
+        mContext = appContext != null ? appContext : hostContext;
+        initCoreService();
+    }
 
     public static synchronized PluginManager getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -115,10 +119,74 @@ public class PluginManager {
         }
     }
 
-    private PluginManager(Context hostContext) {
-        Context appContext = hostContext.getApplicationContext();
-        mContext = appContext != null ? appContext : hostContext;
-        initCoreService();
+    private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
+        Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
+        Class<?> pluginHelperClazz = null;
+        try {
+            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
+
+            if (pluginHelperClazz.getClassLoader() != PluginHelper.class.getClassLoader()) {
+                throw new IllegalStateException("PluginHelper is complied in plugin! error!");
+            }
+
+            IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
+            if (pluginHelperClazz != null) {
+                Method initMethod = pluginHelperClazz.getDeclaredMethod("init", Object.class);
+                initMethod.setAccessible(true);
+                initMethod.invoke(null, pluginLocalManager);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Logger.e(TAG, "initPluginHelper() error!", e);
+        }
+
+        return false;
+    }
+
+    public static String getPackageNameCompat(String plugin, String host) {
+        String pkg = host;
+
+        //TODO 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        Logger.d(TAG, "getPackageNameCompat(): ");
+        int i = 0;
+        int lookupIndex = -1;
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
+//            Logger.d(TAG, "#  " + stackTraceElement.toString());
+            String className = stackTraceElement.getClassName();
+            String methodName = stackTraceElement.getMethodName();
+            if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
+                    methodName.equals("getPackageName")) {
+                lookupIndex = i + 1;
+                continue;
+            }
+
+            if (i >= lookupIndex && className.equals(ContextWrapper.class.getName()) &&
+                    methodName.equals("getPackageName")) {
+                lookupIndex = i + 1;
+                continue;
+            }
+
+            if (i == lookupIndex) {
+                if (!className.startsWith("android.")) {
+                    pkg = plugin;
+                } else if (className.startsWith("android.support.multidex")) {
+                    // support multidex
+                    pkg = plugin;
+                } else if (className.startsWith("android.content.ComponentName") ||
+                        methodName.equals("<init>")) {
+                    pkg = plugin;
+                }
+
+                break;
+            }
+
+            i++;
+        }
+
+        Logger.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
+        return pkg;
     }
 
     private void initCoreService() {
@@ -273,31 +341,6 @@ public class PluginManager {
         return isSuc.get();
     }
 
-    private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
-        Logger.d(TAG, "initPluginHelper() pluginInfo = " + pluginInfo);
-        Class<?> pluginHelperClazz = null;
-        try {
-            pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
-
-            if (pluginHelperClazz.getClassLoader() != PluginHelper.class.getClassLoader()) {
-                throw new IllegalStateException("PluginHelper is complied in plugin! error!");
-            }
-
-            IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
-            if (pluginHelperClazz != null) {
-                Method initMethod = pluginHelperClazz.getDeclaredMethod("init", Object.class);
-                initMethod.setAccessible(true);
-                initMethod.invoke(null, pluginLocalManager);
-                return true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            Logger.e(TAG, "initPluginHelper() error!", e);
-        }
-
-        return false;
-    }
-
     private boolean loadPluginApplication(PluginInfo pluginInfo, Context hostContext) {
         Logger.d(TAG, "loadPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
         try {
@@ -310,6 +353,7 @@ public class PluginManager {
             if (applicationInfo.className == null) {
                 applicationInfo.className = Application.class.getName();//BasePluginApplication.class.getName();
             }
+            Logger.d(TAG, "loadPluginApplication() applicationInfo.className = " + applicationInfo.className);
 
             Class pluginAppClass = pluginInfo.classLoader.loadClass(applicationInfo.className);
             pluginInfo.application = (Application) pluginAppClass.newInstance();
@@ -355,6 +399,8 @@ public class PluginManager {
         PluginStubMainProvider.loadProviders(pluginInfo, targetProviderInfos);
     }
 
+    // public api
+
     private void loadStaticReceivers(PluginInfo pluginInfo) {
         Map<ActivityInfo, List<IntentFilter>> receiverIntentFilters = pluginInfo.pkgParser.getReceiverIntentFilter();
 
@@ -384,8 +430,6 @@ public class PluginManager {
             }
         }
     }
-
-    // public api
 
     /**
      * find plugin class by plugin packageName and className
@@ -592,6 +636,9 @@ public class PluginManager {
         }
     }
 
+
+    // IPC:
+
     public void callProviderOnCreate(ContentProvider provider, ProviderInfo stubInfo, ProviderInfo targetInfo) {
         if (mRunningProviderMap.containsKey(provider)) {
             throw new IllegalStateException("duplicate provider created! " + provider);
@@ -603,9 +650,6 @@ public class PluginManager {
         mRunningProviderMap.put(provider, new Pair<>(stubInfo, targetInfo));
         onProviderCreated(stubInfo, targetInfo);
     }
-
-
-    // IPC:
 
     public PluginInfo installPlugin(String apkPath) {
         if (mService != null) {
@@ -891,47 +935,5 @@ public class PluginManager {
             }
         }
         return null;
-    }
-
-    public static String getPackageNameCompat(String plugin, String host) {
-        String pkg = host;
-
-        //TODO 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        Logger.d(TAG, "getPackageNameCompat(): ");
-        int i = 0;
-        int lookupIndex = -1;
-        for (StackTraceElement stackTraceElement : stackTraceElements) {
-//            Logger.d(TAG, "#  " + stackTraceElement.toString());
-            String className = stackTraceElement.getClassName();
-            String methodName = stackTraceElement.getMethodName();
-            if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
-                    methodName.equals("getPackageName")) {
-                lookupIndex = i + 1;
-                continue;
-            }
-
-            if (i >= lookupIndex && className.equals(ContextWrapper.class.getName()) &&
-                    methodName.equals("getPackageName")) {
-                lookupIndex = i + 1;
-                continue;
-            }
-
-            if (i == lookupIndex) {
-                if (!className.startsWith("android.")) {
-                    pkg = plugin;
-                } else if (className.startsWith("android.content.ComponentName") ||
-                        methodName.equals("<init>")) {
-                    pkg = plugin;
-                }
-
-                break;
-            }
-
-            i++;
-        }
-
-        Logger.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
-        return pkg;
     }
 }

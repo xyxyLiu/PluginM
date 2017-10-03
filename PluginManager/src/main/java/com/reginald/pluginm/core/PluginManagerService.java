@@ -723,7 +723,11 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     public static Intent recoverOriginalIntent(Intent pluginIntent, ClassLoader classLoader) {
         Intent origIntent = pluginIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_ORIGINAL_INTENT);
-        origIntent.setExtrasClassLoader(classLoader);
-        return origIntent;
+        if (origIntent != null) {
+            origIntent.setExtrasClassLoader(classLoader);
+            return origIntent;
+        }
+
+        return pluginIntent;
     }
 }

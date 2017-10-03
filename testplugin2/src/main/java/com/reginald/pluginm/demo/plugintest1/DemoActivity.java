@@ -1,5 +1,6 @@
 package com.reginald.pluginm.demo.plugintest1;
 
+import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;

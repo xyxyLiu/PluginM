@@ -33,11 +33,12 @@ public class PluginServiceA extends Service {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG,"onStartCommand()");
+        Log.d(TAG, "onStartCommand() intent = " + intent + " , startId = " + startId);
 
         if (intent != null && "killself".equals(intent.getAction())) {
-            Log.d(TAG,"onStartCommand() stopself!");
-            stopSelf();
+            int stopId = 3;
+            Log.d(TAG,"onStartCommand() stopself(" + stopId + ")!");
+            stopSelf(stopId);
         } else if (intent != null && "startactivity".equals(intent.getAction())) {
             Intent actIntent = new Intent(this, PluginMainActivity.class);
 

@@ -36,61 +36,72 @@ public class PluginM {
         }
         sAppContext = app;
         sConfigs = configs;
-        sPluginManager = PluginManager.getInstance(sAppContext);
-        sPluginManager.onAttachBaseContext(app);
+        PluginManager.onAttachBaseContext(app);
     }
 
     public static PluginConfigs getConfigs() {
         return new PluginConfigs(sConfigs);
     }
 
-    public static PluginInfo install(String apkPath) {
-        return sPluginManager.installPlugin(apkPath);
+    public static PluginInfo install(String apkPath, boolean loadDex) {
+        return PluginManager.getInstance(sAppContext).installPlugin(apkPath, loadDex);
+    }
+
+    public static PluginInfo uninstall(String packageName) {
+        return PluginManager.getInstance(sAppContext).uninstallPlugin(packageName);
     }
 
     public static PluginInfo getInstalledPlugin(String packageName) {
-        return sPluginManager.getInstalledPluginInfo(packageName);
+        return PluginManager.getInstance(sAppContext).getInstalledPluginInfo(packageName);
     }
 
     public static List<PluginInfo> getAllInstalledPlugins() {
-        return sPluginManager.getAllInstalledPlugins();
+        return PluginManager.getInstance(sAppContext).getAllInstalledPlugins();
+    }
+
+    public static List<PluginInfo> getAllRunningPlugins() {
+        return PluginManager.getInstance(sAppContext).getAllRunningPlugins();
+    }
+
+    public static boolean isPluginRunning(String pkgName) {
+        return PluginManager.getInstance(sAppContext).isPluginRunning(pkgName);
     }
 
     public static Intent getPluginActivityIntent(Intent pluginIntent) {
-        return sPluginManager.getPluginActivityIntent(pluginIntent);
+        return PluginManager.getInstance(sAppContext).getPluginActivityIntent(pluginIntent);
     }
 
     public static void startActivity(Context context, Intent intent) {
-        sPluginManager.startActivity(context, intent);
+        PluginManager.getInstance(sAppContext).startActivity(context, intent);
     }
 
     public static void startActivity(Context context, Intent intent, Bundle options) {
-        sPluginManager.startActivity(context, intent, options);
+        PluginManager.getInstance(sAppContext).startActivity(context, intent, options);
     }
 
     public static void startActivityForResult(Activity activity, Intent intent, int requestCode) {
-        sPluginManager.startActivityForResult(activity, intent, requestCode);
+        PluginManager.getInstance(sAppContext).startActivityForResult(activity, intent, requestCode);
     }
 
     public static void startActivityForResult(Activity activity, Intent intent, int requestCode, Bundle options) {
-        sPluginManager.startActivityForResult(activity, intent, requestCode, options);
+        PluginManager.getInstance(sAppContext).startActivityForResult(activity, intent, requestCode, options);
     }
 
     public static ComponentName startService(Context context, Intent intent) {
-        return sPluginManager.startService(context, intent);
+        return PluginManager.getInstance(sAppContext).startService(context, intent);
     }
 
     public static boolean stopService(Context context, Intent intent) {
-        return sPluginManager.stopService(context, intent);
+        return PluginManager.getInstance(sAppContext).stopService(context, intent);
     }
 
     public static boolean bindService(Context context, Intent intent, ServiceConnection conn,
             int flags) {
-        return sPluginManager.bindService(context, intent, conn, flags);
+        return PluginManager.getInstance(sAppContext).bindService(context, intent, conn, flags);
     }
 
     public static void unbindService(Context context, ServiceConnection conn) {
-        sPluginManager.unbindService(context, conn);
+        PluginManager.getInstance(sAppContext).unbindService(context, conn);
     }
 
     public static ContentResolver getContentResolver(Context context) {

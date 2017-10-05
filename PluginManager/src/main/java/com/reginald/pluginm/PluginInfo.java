@@ -27,7 +27,6 @@ public final class PluginInfo implements Parcelable {
     public String dataDir;
     public String dexDir;
     public String nativeLibDir;
-    public boolean isStandAlone;
     public final Map<String, Map<String, String>> pluginInvokerClassMap = new HashMap<>();
 
     // loaded info
@@ -54,7 +53,6 @@ public final class PluginInfo implements Parcelable {
         dataDir = in.readString();
         dexDir = in.readString();
         nativeLibDir = in.readString();
-        isStandAlone = in.readByte() != 0;
         in.readMap(pluginInvokerClassMap, PluginInfo.class.getClassLoader());
 
         applicationInfo = in.readParcelable(ApplicationInfo.class.getClassLoader());
@@ -71,7 +69,6 @@ public final class PluginInfo implements Parcelable {
         dest.writeString(dataDir);
         dest.writeString(dexDir);
         dest.writeString(nativeLibDir);
-        dest.writeByte((byte) (isStandAlone ? 1 : 0));
         dest.writeMap(pluginInvokerClassMap);
         dest.writeParcelable(applicationInfo, flags);
     }
@@ -95,9 +92,9 @@ public final class PluginInfo implements Parcelable {
 
     public String toString() {
         return String.format("PluginInfo[ packageName = %s, apkPath = %s, versionName = %s, versionCode = %d, fileSize = %d, " +
-                        "lastModified = %d, dataDir = %s, dexDir = %s, nativeLibDir = %s, isStandAlone = %b pluginInvokerClassMap = %s]",
+                        "lastModified = %d, dataDir = %s, dexDir = %s, nativeLibDir = %s, pluginInvokerClassMap = %s]",
                 packageName, apkPath, versionName, versionCode, fileSize, lastModified,
-                dataDir, dexDir, nativeLibDir, isStandAlone, pluginInvokerClassMap);
+                dataDir, dexDir, nativeLibDir, pluginInvokerClassMap);
     }
 
 }

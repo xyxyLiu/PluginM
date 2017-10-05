@@ -24,6 +24,7 @@ public class PackageUtils {
 
     public static final String PLUGIN_ROOT = "pluginm";
     public static final String PLUGIN_APK_FOLDER_NAME = "apk";
+    public static final String PLUGIN_APK_FILE_NAME = "base.apk";
     public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
     public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
 
@@ -32,19 +33,23 @@ public class PackageUtils {
     }
 
     public static File getPluginDir(Context context, String packageName) {
+        return new File(getPluginRootDir(context), packageName);
+    }
+
+    public static File makePluginDir(Context context, String packageName) {
         return getOrMakeDir(getPluginRootDir(context), packageName);
     }
 
-    public static File getPluginApkDir(Context context, String packageName) {
-        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_APK_FOLDER_NAME);
+    public static File makePluginApkDir(Context context, String packageName) {
+        return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_APK_FOLDER_NAME);
     }
 
-    public static File getPluginDexDir(Context context, String packageName) {
-        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_DEX_FOLDER_NAME);
+    public static File makePluginDexDir(Context context, String packageName) {
+        return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_DEX_FOLDER_NAME);
     }
 
-    public static File getPluginLibDir(Context context, String packageName) {
-        return getOrMakeDir(getPluginDir(context, packageName), PLUGIN_LIB_FOLDER_NAME);
+    public static File makePluginLibDir(Context context, String packageName) {
+        return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_LIB_FOLDER_NAME);
     }
 
     public static File getOrMakeDir(File root, String dir) {

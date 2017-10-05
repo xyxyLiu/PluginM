@@ -46,6 +46,10 @@
 <methods>;
 }
 
+-keep class com.reginald.pluginm.core.PluginPackageManager {
+<methods>;
+}
+
 -keep class com.reginald.pluginm.stub.Stubs$**{
     *;
 }

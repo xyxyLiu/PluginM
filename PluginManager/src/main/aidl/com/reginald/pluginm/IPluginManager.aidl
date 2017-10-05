@@ -6,9 +6,14 @@ import com.reginald.pluginm.PluginInfo;
 // Declare any non-default types here with import statements
 
 interface IPluginManager {
-    PluginInfo install(in String pluginPackageName);
+    PluginInfo install(in String pluginPackageName, boolean isInternal, boolean loadDex);
+    PluginInfo uninstall(in String pluginPackageName);
+
     PluginInfo getInstalledPluginInfo(in String packageName);
     List<PluginInfo> getAllInstalledPlugins();
+    List<PluginInfo> getAllRunningPlugins();
+    boolean isPluginRunning(String pkgName);
+
     Intent getPluginActivityIntent(in Intent originIntent);
     Intent getPluginServiceIntent(in Intent originIntent);
     Bundle getPluginProviderUri(in String auth);

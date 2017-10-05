@@ -68,6 +68,7 @@ public class PluginManager {
     public static final String EXTRA_INTENT_ORIGINAL_INTENT = "extra.plugin.origin.intent";
     private static final String TAG = "PluginManager";
     private static volatile PluginManager sInstance;
+
     // 本进程已经加载的插件信息：
     private final Object mPluginLoadLock = new Object();
     private final Map<String, PluginInfo> mLoadedPluginMap = new ConcurrentHashMap<>();
@@ -85,7 +86,6 @@ public class PluginManager {
     private PluginManager(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
-        initCoreService();
     }
 
     public static synchronized PluginManager getInstance(Context hostContext) {
@@ -189,7 +189,17 @@ public class PluginManager {
         return pkg;
     }
 
-    private void initCoreService() {
+    private IPluginManager ensureService(IPluginManager service) {
+
+        if (service != null) {
+            final IBinder iBinder = service.asBinder();
+            if (iBinder != null && iBinder.isBinderAlive()) {
+                return service;
+            }
+        }
+
+        Logger.d(TAG, "ensureService() fetch binder");
+
         try {
             final ContentResolver contentResolver = mContext.getContentResolver();
             final Bundle bundle = contentResolver.call(PluginManagerServiceProvider.URI,
@@ -206,23 +216,23 @@ public class PluginManager {
                                 onCoreServiceDied();
                             }
                         }, 0);
+                        service = IPluginManager.Stub.asInterface(iBinder);
                     }
-                    mService = IPluginManager.Stub.asInterface(iBinder);
-                    Logger.d(TAG, "initCoreService() success! mService = " + mService);
+                    Logger.d(TAG, "ensureService() service = " + service);
                 }
             }
         } catch (Throwable e) {
-            Logger.e(TAG, "initCoreService() error!", e);
+            Logger.e(TAG, "ensureService() error!", e);
         }
+
+        mService = service;
+        return service;
     }
 
     private void onCoreServiceDied() {
         Logger.e(TAG, "onCoreServiceDied() receive core process died. dump info = " + toDumpString());
         // 检测到常驻进程退出，插件进程自杀
-        if (!mRunningApplicationMap.isEmpty()) {
-            Logger.e(TAG, "onCoreServiceDied() exit!");
-            System.exit(0);
-        }
+        System.exit(0);
     }
 
     private String toDumpString() {
@@ -269,11 +279,8 @@ public class PluginManager {
                 // create classloader
                 Logger.d(TAG, "loadPlugin() mContext.getClassLoader() = " + mContext.getClassLoader());
 
-                if (pluginInfo.isStandAlone) {
-                    parentClassLoader = hostClassLoader.getParent();
-                } else {
-                    parentClassLoader = hostClassLoader;
-                }
+                parentClassLoader = hostClassLoader.getParent();
+
                 DexClassLoader pluginClassLoader = new PluginDexClassLoader(
                         pluginInfo.apkPath, pluginInfo.dexDir, pluginInfo.nativeLibDir, parentClassLoader, hostClassLoader);
                 Logger.d(TAG, "loadPlugin() pluginClassLoader = " + pluginClassLoader);
@@ -636,9 +643,6 @@ public class PluginManager {
         }
     }
 
-
-    // IPC:
-
     public void callProviderOnCreate(ContentProvider provider, ProviderInfo stubInfo, ProviderInfo targetInfo) {
         if (mRunningProviderMap.containsKey(provider)) {
             throw new IllegalStateException("duplicate provider created! " + provider);
@@ -651,10 +655,14 @@ public class PluginManager {
         onProviderCreated(stubInfo, targetInfo);
     }
 
-    public PluginInfo installPlugin(String apkPath) {
-        if (mService != null) {
+
+    // IPC:
+
+    public PluginInfo installPlugin(String apkPath, boolean loadDex) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.install(apkPath);
+                return service.install(apkPath, false, loadDex);
             } catch (RemoteException e) {
                 Logger.e(TAG, "installPlugin() error!", e);
             }
@@ -662,10 +670,23 @@ public class PluginManager {
         return null;
     }
 
-    public Intent getPluginActivityIntent(Intent originIntent) {
-        if (mService != null) {
+    public PluginInfo uninstallPlugin(String packageName) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getPluginActivityIntent(originIntent);
+                return service.uninstall(packageName);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "uninstallPlugin() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public Intent getPluginActivityIntent(Intent originIntent) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
+            try {
+                return service.getPluginActivityIntent(originIntent);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getPluginActivityIntent() error!", e);
             }
@@ -674,9 +695,10 @@ public class PluginManager {
     }
 
     public Intent getPluginServiceIntent(Intent originIntent) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getPluginServiceIntent(originIntent);
+                return service.getPluginServiceIntent(originIntent);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getPluginServiceIntent() error!", e);
             }
@@ -685,9 +707,10 @@ public class PluginManager {
     }
 
     public Pair<Uri, Bundle> getPluginProviderUri(String auth) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                Bundle bundle = mService.getPluginProviderUri(auth);
+                Bundle bundle = service.getPluginProviderUri(auth);
                 Logger.d(TAG, "getPluginProviderUri() bundle = " + bundle);
                 if (bundle != null) {
                     bundle.setClassLoader(PluginManager.class.getClassLoader());
@@ -703,9 +726,10 @@ public class PluginManager {
     }
 
     public String selectStubProcessName(String processName, String pkgName) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.selectStubProcessName(processName, pkgName);
+                return service.selectStubProcessName(processName, pkgName);
             } catch (RemoteException e) {
                 Logger.e(TAG, "selectStubProcessName() error!", e);
             }
@@ -714,9 +738,10 @@ public class PluginManager {
     }
 
     public ActivityInfo resolveActivityInfo(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.resolveActivityInfo(intent, flags);
+                return service.resolveActivityInfo(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "resolveActivityInfo() error!", e);
             }
@@ -725,9 +750,10 @@ public class PluginManager {
     }
 
     public ServiceInfo resolveServiceInfo(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.resolveServiceInfo(intent, flags);
+                return service.resolveServiceInfo(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "resolveServiceInfo() error!", e);
             }
@@ -736,9 +762,10 @@ public class PluginManager {
     }
 
     public ProviderInfo resolveProviderInfo(String name) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.resolveProviderInfo(name);
+                return service.resolveProviderInfo(name);
             } catch (RemoteException e) {
                 Logger.e(TAG, "resolveProviderInfo() error!", e);
             }
@@ -747,9 +774,10 @@ public class PluginManager {
     }
 
     public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.queryIntentActivities(intent, flags);
+                return service.queryIntentActivities(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "queryIntentActivities() error!", e);
             }
@@ -758,9 +786,10 @@ public class PluginManager {
     }
 
     public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.queryIntentServices(intent, flags);
+                return service.queryIntentServices(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "queryIntentServices() error!", e);
             }
@@ -769,9 +798,10 @@ public class PluginManager {
     }
 
     public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.queryBroadcastReceivers(intent, flags);
+                return service.queryBroadcastReceivers(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "queryBroadcastReceivers() error!", e);
             }
@@ -780,9 +810,10 @@ public class PluginManager {
     }
 
     public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.queryIntentContentProviders(intent, flags);
+                return service.queryIntentContentProviders(intent, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "queryIntentContentProviders() error!", e);
             }
@@ -791,9 +822,10 @@ public class PluginManager {
     }
 
     public ActivityInfo getActivityInfo(ComponentName componentName, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getActivityInfo(componentName, flags);
+                return service.getActivityInfo(componentName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getActivityInfo() error!", e);
             }
@@ -802,9 +834,10 @@ public class PluginManager {
     }
 
     public ServiceInfo getServiceInfo(ComponentName componentName, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getServiceInfo(componentName, flags);
+                return service.getServiceInfo(componentName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getServiceInfo() error!", e);
             }
@@ -813,9 +846,10 @@ public class PluginManager {
     }
 
     public ActivityInfo getReceiverInfo(ComponentName componentName, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getReceiverInfo(componentName, flags);
+                return service.getReceiverInfo(componentName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getReceiverInfo() error!", e);
             }
@@ -824,9 +858,10 @@ public class PluginManager {
     }
 
     public ProviderInfo getProviderInfo(ComponentName componentName, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getProviderInfo(componentName, flags);
+                return service.getProviderInfo(componentName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getProviderInfo() error!", e);
             }
@@ -835,9 +870,10 @@ public class PluginManager {
     }
 
     public PackageInfo getPackageInfo(String packageName, int flags) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getPackageInfo(packageName, flags);
+                return service.getPackageInfo(packageName, flags);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getPackageInfo() error!", e);
             }
@@ -846,9 +882,10 @@ public class PluginManager {
     }
 
     public void onPluginProcessAttached(IBinder client) throws RemoteException {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onPluginProcessAttached(client);
+                service.onPluginProcessAttached(client);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onPluginProcessAttached() error!", e);
             }
@@ -856,9 +893,10 @@ public class PluginManager {
     }
 
     public void onApplicationAttached(ApplicationInfo targetInfo, String processName) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onApplicationAttached(targetInfo, processName);
+                service.onApplicationAttached(targetInfo, processName);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onActivityCreated() error!", e);
             }
@@ -866,9 +904,10 @@ public class PluginManager {
     }
 
     public void onActivityCreated(ActivityInfo stubInfo, ActivityInfo targetInfo) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onActivityCreated(stubInfo, targetInfo);
+                service.onActivityCreated(stubInfo, targetInfo);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onActivityCreated() error!", e);
             }
@@ -876,9 +915,10 @@ public class PluginManager {
     }
 
     public void onActivityDestory(ActivityInfo stubInfo, ActivityInfo targetInfo) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onActivityDestory(stubInfo, targetInfo);
+                service.onActivityDestory(stubInfo, targetInfo);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onActivityDestory() error!", e);
             }
@@ -886,9 +926,10 @@ public class PluginManager {
     }
 
     public void onServiceCreated(ServiceInfo stubInfo, ServiceInfo targetInfo) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onServiceCreated(stubInfo, targetInfo);
+                service.onServiceCreated(stubInfo, targetInfo);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onServiceCreated() error!", e);
             }
@@ -896,9 +937,10 @@ public class PluginManager {
     }
 
     public void onServiceDestory(ServiceInfo stubInfo, ServiceInfo targetInfo) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onServiceDestory(stubInfo, targetInfo);
+                service.onServiceDestory(stubInfo, targetInfo);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onServiceDestory() error!", e);
             }
@@ -906,9 +948,10 @@ public class PluginManager {
     }
 
     public void onProviderCreated(ProviderInfo stubInfo, ProviderInfo targetInfo) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                mService.onProviderCreated(stubInfo, targetInfo);
+                service.onProviderCreated(stubInfo, targetInfo);
             } catch (RemoteException e) {
                 Logger.e(TAG, "onProviderCreated() error!", e);
             }
@@ -916,9 +959,10 @@ public class PluginManager {
     }
 
     public PluginInfo getInstalledPluginInfo(String packageName) {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getInstalledPluginInfo(packageName);
+                return service.getInstalledPluginInfo(packageName);
             } catch (RemoteException e) {
                 Logger.e(TAG, "getInstalledPluginInfo() error!", e);
             }
@@ -927,13 +971,38 @@ public class PluginManager {
     }
 
     public List<PluginInfo> getAllInstalledPlugins() {
-        if (mService != null) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
             try {
-                return mService.getAllInstalledPlugins();
+                return service.getAllInstalledPlugins();
             } catch (RemoteException e) {
                 Logger.e(TAG, "getInstalledPluginInfo() error!", e);
             }
         }
         return null;
+    }
+
+    public List<PluginInfo> getAllRunningPlugins() {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
+            try {
+                return service.getAllRunningPlugins();
+            } catch (RemoteException e) {
+                Logger.e(TAG, "getAllRunningPlugins() error!", e);
+            }
+        }
+        return null;
+    }
+
+    public boolean isPluginRunning(String pkgName) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
+            try {
+                return service.isPluginRunning(pkgName);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "isPluginRunning() error!", e);
+            }
+        }
+        return false;
     }
 }

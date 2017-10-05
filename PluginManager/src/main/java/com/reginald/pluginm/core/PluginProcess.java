@@ -36,6 +36,10 @@ public class PluginProcess {
         mStubProcess = stubProcess;
     }
 
+    public List<String> getRunningPlugins() {
+        return new ArrayList<>(mRunningPluginMap.keySet());
+    }
+
     public void onApplicationAttached(ApplicationInfo targetInfo) {
         Logger.d(TAG, String.format("onApplicationAttached() processName = %s, targetInfo = %s",
                 mStubProcess.processName, targetInfo));

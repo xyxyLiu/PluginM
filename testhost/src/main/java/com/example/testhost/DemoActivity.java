@@ -80,7 +80,21 @@ public class DemoActivity extends Activity {
     }
 
     private void refreshData() {
-        mAapter.setData(PluginM.getAllInstalledPlugins());
+        showLoading(true, "列表加载中 ...");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final List<PluginInfo> pluginInfos = PluginM.getAllInstalledPlugins();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAapter.setData(pluginInfos);
+                        showLoading(false, null);
+                    }
+                });
+            }
+        }).start();
+
     }
 
 
@@ -110,27 +124,27 @@ public class DemoActivity extends Activity {
 
     private void install(final String apkPath) {
         Log.d(TAG, "start install " + apkPath);
-        showLoading(true);
+        showLoading(true, "安装中 ...");
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final PluginInfo pluginInfo = PluginM.install(apkPath);
+                final PluginInfo pluginInfo = PluginM.install(apkPath, true);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        showLoading(false);
+                        showLoading(false, null);
                         if (pluginInfo != null) {
                             refreshData();
-                            Toast.makeText(DemoActivity.this, pluginInfo.packageName + "install success！",
-                                    Toast.LENGTH_SHORT).show();
                         }
+                        Toast.makeText(DemoActivity.this, "install " + (pluginInfo != null ? pluginInfo.packageName + " ok!" : "error!"),
+                                Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         }).start();
     }
 
-    private void showLoading(boolean isShow) {
+    private void showLoading(boolean isShow, String msg) {
         if (mLoadingDlg != null && mLoadingDlg.isShowing()) {
             mLoadingDlg.dismiss();
             mLoadingDlg = null;
@@ -139,7 +153,7 @@ public class DemoActivity extends Activity {
         if (isShow) {
             mLoadingDlg = new ProgressDialog(this);
             mLoadingDlg.setCancelable(false);
-            mLoadingDlg.setMessage("安装中...");
+            mLoadingDlg.setMessage(msg);
             mLoadingDlg.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             mLoadingDlg.show();
         }
@@ -207,13 +221,14 @@ public class DemoActivity extends Activity {
             }
 
             TextView textView = (TextView) itemView.findViewById(R.id.title);
-            Button btn = (Button) itemView.findViewById(R.id.btn);
+            Button installBtn = (Button) itemView.findViewById(R.id.install_btn);
+            Button uninstallBtn = (Button) itemView.findViewById(R.id.uninstall_btn);
 
             final PluginInfo pluginInfo = mDatas.get(position);
 
             textView.setText(getPluginShowInfo(pluginInfo));
-            btn.setText("load");
-            btn.setOnClickListener(new View.OnClickListener() {
+            installBtn.setText("load");
+            installBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent pluginIntent = new Intent();
@@ -223,6 +238,16 @@ public class DemoActivity extends Activity {
                     pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     Intent intent = PluginM.getPluginActivityIntent(pluginIntent);
                     DemoActivity.this.startActivity(intent);
+                }
+            });
+            uninstallBtn.setText("uninstall");
+            uninstallBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    PluginInfo uninstallInfo = PluginM.uninstall(pluginInfo.packageName);
+                    Toast.makeText(DemoActivity.this, pluginInfo.packageName + " uninstall " + (uninstallInfo != null ? "ok!" : "error!"),
+                            Toast.LENGTH_SHORT).show();
+                    refreshData();
                 }
             });
 

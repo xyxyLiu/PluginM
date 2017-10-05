@@ -57,9 +57,9 @@ public class PluginStubMainService extends Service {
                 if (commandType.equals(INTENT_EXTRA_START_TYPE_START)) {
                     ServiceRecord pluginServiceRecord = fetchCachedOrCreateServiceRecord(serviceInfo);
 
-                    Logger.d(TAG, "onStartCommand() call Service.onStartCommand() of " + pluginServiceRecord.service);
                     if (pluginServiceRecord != null) {
                         Intent origIntent = getOriginalIntent(intent, pluginServiceRecord.service);
+                        Logger.d(TAG, "onStartCommand() call Service.onStartCommand() of " + pluginServiceRecord.service);
                         pluginServiceRecord.started = true;
                         pluginServiceRecord.service.onStartCommand(origIntent, flags, pluginServiceRecord.makeNextStartId());
                     }
@@ -77,9 +77,6 @@ public class PluginStubMainService extends Service {
                     }
                 }
             }
-        } else {
-            Logger.d(TAG, "onStartCommand() not intent, stop stub service!");
-            stopSelf();
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -105,7 +102,6 @@ public class PluginStubMainService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Logger.d(TAG, "onBind()");
-        showAction(intent);
 
         ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
         if (serviceInfo != null) {
@@ -144,7 +140,6 @@ public class PluginStubMainService extends Service {
     public boolean onUnbind(Intent intent) {
         boolean res = false;
         Logger.d(TAG, "onUnbind()");
-        showAction(intent);
 
         ServiceInfo serviceInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_SERVICEINFO);
         if (serviceInfo != null) {
@@ -331,10 +326,6 @@ public class PluginStubMainService extends Service {
             stopSelf();
             Logger.d(TAG, "stopStubServiceIfNeededLocked() stop stub service!");
         }
-    }
-
-    public void showAction(Intent intent) {
-        Logger.d(TAG, "ACTION = " + intent.getAction());
     }
 
     public static String getPluginAppendAction(Intent pluginIntent) {

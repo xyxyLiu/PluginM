@@ -19,6 +19,8 @@ import com.reginald.pluginm.core.PluginProcess;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -49,14 +51,18 @@ public class StubManager {
     private static final String TAG = "StubManager";
     private static final String CATEGORY_ACTIVITY_PROXY_STUB = "com.reginald.pluginm.category.STUB";
     private static volatile StubManager sInstance;
-
+    private final Set<String> mStubRequestedPermission = new HashSet<>();
+    private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
+    // PROCESS_TYPE_INDEPENDENT 模式下的进程分配map: pkgname -> ProcessInfo
+    private final Map<String, ProcessInfo> mPluginSingleProcessMap = new HashMap<>(10);
     private Context mContext;
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
 
-    private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
-
-    // PROCESS_TYPE_INDEPENDENT 模式下的进程分配map: pkgname -> ProcessInfo
-    private final Map<String, ProcessInfo> mPluginSingleProcessMap = new HashMap<>(10);
+    private StubManager(Context context) {
+        mContext = context;
+        mProcessType = PluginM.getConfigs().getProcessType();
+        init();
+    }
 
     public static synchronized StubManager getInstance(Context hostContext) {
         if (sInstance == null) {
@@ -66,19 +72,46 @@ public class StubManager {
         return sInstance;
     }
 
-    private StubManager(Context context) {
-        mContext = context;
-        mProcessType = PluginM.getConfigs().getProcessType();
-        init();
+    public static String getProcessName(String processName, String pkgName) {
+        if (TextUtils.isEmpty(processName)) {
+            return pkgName;
+        } else {
+            return processName;
+        }
+    }
+
+    public static boolean isStubIntent(Context hostContext, Intent intent) {
+        ComponentName componentName = intent.getComponent();
+        if (componentName != null && hostContext.getPackageName().equals(componentName.getPackageName()) &&
+                !TextUtils.isEmpty(componentName.getClassName()) &&
+                componentName.getClassName().startsWith(Stubs.class.getName())) {
+            return true;
+        }
+
+        return false;
     }
 
     private void init() {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(CATEGORY_ACTIVITY_PROXY_STUB);
         intent.setPackage(mContext.getPackageName());
-
-
         PackageManager pm = mContext.getPackageManager();
+
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), PackageManager.GET_PERMISSIONS);
+            if (packageInfo != null) {
+                String[] permissions = packageInfo.requestedPermissions;
+                if (permissions != null && permissions.length > 0) {
+                    for (String permission : permissions) {
+                        mStubRequestedPermission.add(permission);
+                    }
+                }
+            }
+            Logger.d(TAG, "init() requested permissions size = " + mStubRequestedPermission.size());
+        } catch (Exception e) {
+            Logger.e(TAG, "CAN NOT GET stub pakageInfo!", e);
+        }
+
         List<ResolveInfo> activities = pm.queryIntentActivities(intent, PackageManager.GET_META_DATA);
         for (ResolveInfo activity : activities) {
             ProcessInfo processInfo = getOrCreateProcess(activity.activityInfo);
@@ -107,6 +140,10 @@ public class StubManager {
 
         Logger.d(TAG, "init() " + this);
 
+    }
+
+    public Set<String> getStubPermissions() {
+        return mStubRequestedPermission;
     }
 
     public ProcessInfo getProcessInfo(String processName) {
@@ -255,6 +292,12 @@ public class StubManager {
         }
     }
 
+    @Override
+    public String toString() {
+        return String.format("StubManager[ mProcessType = %d, mStubProcessInfoMap = %s, mPermissions = %s]",
+                mProcessType, mStubProcessInfoMap, mStubRequestedPermission);
+    }
+
     public static class ProcessInfo {
         public final String processName;
 
@@ -310,31 +353,6 @@ public class StubManager {
 
             return false;
         }
-    }
-
-    @Override
-    public String toString() {
-        return String.format("StubManager[ mProcessType = %d, mStubProcessInfoMap = %s ]",
-                mProcessType, mStubProcessInfoMap);
-    }
-
-    public static String getProcessName(String processName, String pkgName) {
-        if (TextUtils.isEmpty(processName)) {
-            return pkgName;
-        } else {
-            return processName;
-        }
-    }
-
-    public static boolean isStubIntent(Context hostContext, Intent intent) {
-        ComponentName componentName = intent.getComponent();
-        if (componentName != null && hostContext.getPackageName().equals(componentName.getPackageName()) &&
-                !TextUtils.isEmpty(componentName.getClassName()) &&
-                componentName.getClassName().startsWith(Stubs.class.getName())) {
-            return true;
-        }
-
-        return false;
     }
 
 

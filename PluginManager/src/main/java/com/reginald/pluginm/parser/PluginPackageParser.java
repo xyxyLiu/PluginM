@@ -29,6 +29,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PermissionGroupInfo;
 import android.content.pm.PermissionInfo;
 import android.content.pm.ProviderInfo;
@@ -38,7 +39,6 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.PackageUtils;
 
 import java.io.File;
@@ -61,6 +61,8 @@ public class PluginPackageParser {
     private final String mPackageName;
     private final Context mHostContext;
     private final PackageInfo mHostPackageInfo;
+
+    private Signature[] mSignatures;
 
     private Map<ComponentName, Object> mActivityObjCache = new TreeMap<ComponentName, Object>(new ComponentNameComparator());
     private Map<ComponentName, Object> mServiceObjCache = new TreeMap<ComponentName, Object>(new ComponentNameComparator());
@@ -361,10 +363,19 @@ public class PluginPackageParser {
     }
 
     public PackageInfo getPackageInfo(int flags) throws Exception {
-        //TODO
-        mParser.collectCertificates(flags);
+        // TODO
+        if ((flags & PackageManager.GET_SIGNATURES)!= 0 && mSignatures == null) {
+            collectCertificates(flags);
+        }
+
         PackageInfo packageInfo = mParser.generatePackageInfo(mHostPackageInfo.gids, flags, mPluginFile.lastModified(), mPluginFile.lastModified(), new HashSet<String>(getRequestedPermissions()));
         fixPackageInfo(packageInfo);
+
+        if ((flags & PackageManager.GET_SIGNATURES)!= 0 && mSignatures == null &&
+                packageInfo.signatures != null && packageInfo.signatures.length > 0) {
+            mSignatures = packageInfo.signatures;
+        }
+
         return packageInfo;
     }
 
@@ -446,7 +457,7 @@ public class PluginPackageParser {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
             if (applicationInfo.nativeLibraryDir == null) {
-                applicationInfo.nativeLibraryDir = PackageUtils.getPluginLibDir(mHostContext, mPackageName).getAbsolutePath();
+                applicationInfo.nativeLibraryDir = PackageUtils.makePluginLibDir(mHostContext, mPackageName).getAbsolutePath();
             }
         }
 

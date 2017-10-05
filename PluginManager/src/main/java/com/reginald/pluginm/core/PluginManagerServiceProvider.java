@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -18,21 +19,31 @@ import com.reginald.pluginm.utils.Logger;
  */
 
 public class PluginManagerServiceProvider extends ContentProvider {
-    private static final String TAG = "PluginManagerServiceProvider";
-    private static final String AUTH = "com.reginald.pluginm.provider.core";
-
-    public static final Uri URI = Uri.parse("content://" + AUTH);
     public static final String METHOD_GET_CORE_SERVICE = "method.get_core_service";
     public static final String METHOD_GET_COMM_SERVICE = "method.get_comm_service";
     public static final String KEY_SERVICE = "key.service";
-
-    private PluginManagerService mCoreService;
+    private static final String TAG = "PluginManagerServiceProvider";
+    private static final String AUTH = "com.reginald.pluginm.provider.core";
+    public static final Uri URI = Uri.parse("content://" + AUTH);
 
     @Override
     public boolean onCreate() {
         Logger.d(TAG, "onCreate()");
-        mCoreService = PluginManagerService.getInstance(getContext());
-        return false;
+        initCoreService();
+        return true;
+    }
+
+    private void initCoreService() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Logger.d(TAG, "initCoreService ...");
+                long startTime = SystemClock.elapsedRealtime();
+                PluginManagerService.getInstance(getContext());
+                Logger.d(TAG, String.format("initCoreService finished! cost %d ms",
+                        SystemClock.elapsedRealtime() - startTime));
+            }
+        }).start();
     }
 
     public
@@ -43,12 +54,12 @@ public class PluginManagerServiceProvider extends ContentProvider {
 
         if (!TextUtils.isEmpty(method)) {
             if (method.equals(METHOD_GET_CORE_SERVICE)) {
-                if (mCoreService != null) {
-                    BinderParcelable binderParcelable = new BinderParcelable(mCoreService);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable(KEY_SERVICE, binderParcelable);
-                    return bundle;
-                }
+                // delayed init core service
+                PluginManagerService coreService = PluginManagerService.getInstance(getContext());
+                BinderParcelable binderParcelable = new BinderParcelable(coreService);
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(KEY_SERVICE, binderParcelable);
+                return bundle;
             } else if (method.equals(METHOD_GET_COMM_SERVICE)) {
                 BinderParcelable binderParcelable = new BinderParcelable(PluginCommService.getInstance(getContext()));
                 Bundle bundle = new Bundle();

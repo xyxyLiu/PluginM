@@ -6,9 +6,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.os.SystemClock;
 import android.util.Log;
 import android.util.LogPrinter;
 
+import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.utils.Logger;
 
@@ -21,13 +23,16 @@ import java.util.List;
 public class ApkParser {
 
     private static final String TAG = "ApkParser";
-
+    private static final boolean DEBUG = BuildConfig.DEBUG_LOG & false;
 
     public static PluginInfo parsePluginInfo(Context context, String apkFile) {
-        PluginPackageParser pluginPackageParser = getPackageParser(context, apkFile);
+        long startTime = SystemClock.elapsedRealtime();
+        try {
+            PluginPackageParser pluginPackageParser = getPackageParser(context, apkFile);
+            Logger.d(TAG, String.format("parsePluginInfo() apk = %s, create parser cost %d ms",
+                    apkFile, SystemClock.elapsedRealtime() - startTime));
+            if (pluginPackageParser != null) {
 
-        if (pluginPackageParser != null) {
-            try {
                 PluginInfo pluginInfo = new PluginInfo();
                 pluginInfo.pkgParser = pluginPackageParser;
                 pluginInfo.packageName = pluginPackageParser.getPackageName();
@@ -40,13 +45,19 @@ public class ApkParser {
                 }
 
                 //test:
-                showPluginInfo(pluginInfo.pkgParser);
+                if (DEBUG) {
+                    showPluginInfo(pluginInfo.pkgParser);
+                }
 
                 return pluginInfo;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+
             }
+        } catch (Exception e) {
+            Logger.e(TAG, "parsePluginInfo() error!", e);
+            return null;
+        } finally {
+            Logger.d(TAG, String.format("parsePluginInfo() apk = %s, all cost %d ms",
+                    apkFile, SystemClock.elapsedRealtime() - startTime));
         }
 
         return null;

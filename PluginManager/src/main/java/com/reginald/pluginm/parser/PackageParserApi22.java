@@ -67,7 +67,7 @@ class PackageParserApi22 extends PackageParserApi21 {
             Constructor constructor = sArraySetClass.getConstructor(Collection.class);
             grantedPermissionsArray = constructor.newInstance(constructor, grantedPermissions);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "generatePackageInfo error!", e);
         }
         if (grantedPermissionsArray == null) {
             grantedPermissionsArray = grantedPermissions;

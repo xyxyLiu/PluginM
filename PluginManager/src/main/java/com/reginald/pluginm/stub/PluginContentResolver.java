@@ -40,7 +40,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "acquireProvider() error!", e);
         }
 
         return null;
@@ -58,7 +58,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "acquireExistingProvider() error!", e);
         }
 
         return null;
@@ -72,7 +72,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             method.invoke(mOriginContentResolver, provider);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "releaseProvider() error!", e);
         }
 
         return false;
@@ -91,7 +91,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "acquireUnstableProvider() error!", e);
         }
 
         return null;
@@ -105,7 +105,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             return (Boolean) method.invoke(mOriginContentResolver, icp);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "releaseUnstableProvider() error!", e);
         }
 
         return false;
@@ -119,7 +119,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             method.invoke(mOriginContentResolver, icp);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "acquireProvider() error!", e);
         }
     }
 
@@ -131,7 +131,7 @@ public class PluginContentResolver extends ContentResolver {
             method.setAccessible(true);
             method.invoke(mOriginContentResolver, icp);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "appNotRespondingViaProvider() error!", e);
         }
     }
 

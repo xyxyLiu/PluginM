@@ -345,8 +345,7 @@ public class PluginManagerService extends IPluginManager.Stub {
 
             return pluginInfo;
         } catch (Exception e) {
-            Logger.e(TAG, "install() error! exception: " + e);
-            e.printStackTrace();
+            Logger.e(TAG, "install() error!", e);
             return null;
         }
 
@@ -524,7 +523,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             ResolveInfo finalInfo = resolveInfos.get(0);
             return finalInfo.activityInfo;
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "resolveActivityInfo() error!", e);
         }
 
         return null;
@@ -544,7 +543,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             ResolveInfo finalInfo = resolveInfos.get(0);
             return finalInfo.serviceInfo;
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "resolveServiceInfo() error!", e);
         }
 
         return null;
@@ -564,7 +563,7 @@ public class PluginManagerService extends IPluginManager.Stub {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "resolveProviderInfo() error!", e);
         }
         return null;
     }
@@ -621,7 +620,7 @@ public class PluginManagerService extends IPluginManager.Stub {
         try {
             return pluginPackageParser.getActivityInfo(componentName, flags);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "getActivityInfo() error!", e);
         }
 
         return null;
@@ -639,7 +638,7 @@ public class PluginManagerService extends IPluginManager.Stub {
         try {
             return pluginPackageParser.getServiceInfo(componentName, flags);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "getServiceInfo() error!", e);
         }
 
         return null;
@@ -647,7 +646,7 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public ActivityInfo getReceiverInfo(ComponentName componentName, int flags) {
-        Logger.d(TAG, "getActivityInfo() componentName = " + componentName);
+        Logger.d(TAG, "getReceiverInfo() componentName = " + componentName);
 
         PluginPackageParser pluginPackageParser = getPackageParserForComponent(componentName);
         if (pluginPackageParser == null) {
@@ -657,7 +656,7 @@ public class PluginManagerService extends IPluginManager.Stub {
         try {
             return pluginPackageParser.getReceiverInfo(componentName, flags);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "getReceiverInfo() error!", e);
         }
 
         return null;
@@ -676,7 +675,7 @@ public class PluginManagerService extends IPluginManager.Stub {
         try {
             return pluginPackageParser.getProviderInfo(componentName, flags);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "getProviderInfo() error!", e);
         }
 
         return null;

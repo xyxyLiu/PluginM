@@ -5,12 +5,10 @@ package com.reginald.pluginm;
  */
 
 public class PluginNotFoundException extends RuntimeException {
-    public PluginNotFoundException()
-    {
+    public PluginNotFoundException() {
     }
 
-    public PluginNotFoundException(String message)
-    {
+    public PluginNotFoundException(String message) {
         super(message);
     }
 }

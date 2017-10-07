@@ -123,7 +123,7 @@ public class ApkParser {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "showPluginInfo error!", e);
         }
     }
 
@@ -131,7 +131,7 @@ public class ApkParser {
         try {
             return new PluginPackageParser(context, new File(apkFile));
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "parsePackage error!", e);
         }
         return null;
     }

@@ -61,7 +61,7 @@ public class HostInstrumentation extends Instrumentation {
             Logger.i(TAG, "HostInstrumentation has installed!");
             return newInstrumentation;
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "install() error!", e);
         }
 
         return null;

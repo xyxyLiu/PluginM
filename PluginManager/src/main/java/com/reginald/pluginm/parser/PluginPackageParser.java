@@ -364,14 +364,14 @@ public class PluginPackageParser {
 
     public PackageInfo getPackageInfo(int flags) throws Exception {
         // TODO
-        if ((flags & PackageManager.GET_SIGNATURES)!= 0 && mSignatures == null) {
+        if ((flags & PackageManager.GET_SIGNATURES) != 0 && mSignatures == null) {
             collectCertificates(flags);
         }
 
         PackageInfo packageInfo = mParser.generatePackageInfo(mHostPackageInfo.gids, flags, mPluginFile.lastModified(), mPluginFile.lastModified(), new HashSet<String>(getRequestedPermissions()));
         fixPackageInfo(packageInfo);
 
-        if ((flags & PackageManager.GET_SIGNATURES)!= 0 && mSignatures == null &&
+        if ((flags & PackageManager.GET_SIGNATURES) != 0 && mSignatures == null &&
                 packageInfo.signatures != null && packageInfo.signatures.length > 0) {
             mSignatures = packageInfo.signatures;
         }

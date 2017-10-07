@@ -36,7 +36,6 @@ public class UserHandleCompat {
         try {
             return (int) MethodUtils.invokeStaticMethod(UserHandle.class, "getCallingUserId");
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return 0;
     }

@@ -64,7 +64,7 @@ public class PackageUtils {
         try {
             return copyFile(new FileInputStream(new File(source)), dest);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Logger.e(TAG, "copyFile() error!", e);
         }
         return false;
     }
@@ -88,20 +88,20 @@ public class PackageUtils {
             return true;
         } catch (Exception e) {
             Logger.e(TAG, "copyFile to " + dest + " error! ", e);
-            e.printStackTrace();
+            Logger.e(TAG, "copyFile() error!", e);
         } finally {
             if (oputStream != null) {
                 try {
                     oputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "copyFile() oputStream close error!", e);
                 }
             }
             if (inputStream != null) {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "copyFile() inputStream close error!", e);
                 }
             }
         }
@@ -127,9 +127,6 @@ public class PackageUtils {
                                 Logger.d(TAG, "use " + name);
                                 return true;
                             }
-                            //api21 64位系统的目录可能有些不同
-                            //copyFile(sourceFile.getAbsolutePath(), dest + File.separator +  name);
-//							break;
                         }
                     }
                 }
@@ -155,7 +152,7 @@ public class PackageUtils {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "copySo() error!", e);
         }
 
 
@@ -245,27 +242,27 @@ public class PackageUtils {
             }
             isSuccess = true;
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.e(TAG, "unZipSo() error!", e);
         } finally {
             if (fos != null) {
                 try {
                     fos.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "unZipSo() error!", e);
                 }
             }
             if (bis != null) {
                 try {
                     bis.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "unZipSo() error!", e);
                 }
             }
             if (zfile != null) {
                 try {
                     zfile.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "unZipSo() error!", e);
                 }
             }
         }

@@ -19,8 +19,6 @@ import com.reginald.pluginm.core.PluginProcess;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -135,7 +133,7 @@ public class StubManager {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "init() error!", e);
         }
 
         Logger.d(TAG, "init() " + this);

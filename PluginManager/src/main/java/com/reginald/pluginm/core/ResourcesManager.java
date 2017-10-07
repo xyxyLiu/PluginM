@@ -4,10 +4,14 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
+import com.reginald.pluginm.utils.Logger;
+
 /**
  * Created by lxy on 16-6-2.
  */
 public class ResourcesManager {
+
+    private static final String TAG = "ResourcesManager";
 
     public static Resources getPluginResources(Context hostContext, String apkPath) {
         try {
@@ -16,7 +20,7 @@ public class ResourcesManager {
                 return new Resources(assetManager, hostContext.getResources().getDisplayMetrics(), hostContext.getResources().getConfiguration());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "getPluginResources() error!", e);
         }
         return null;
     }
@@ -27,7 +31,7 @@ public class ResourcesManager {
             AssetManager.class.getDeclaredMethod("addAssetPath", String.class).invoke(assetManager, apkPath);
             return assetManager;
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "createAssetManager() error!", e);
         }
 
         return null;

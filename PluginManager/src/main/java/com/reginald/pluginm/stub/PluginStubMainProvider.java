@@ -42,7 +42,7 @@ public class PluginStubMainProvider extends ContentProvider {
         try {
             sContentProviderNativeClass = Class.forName("android.content.ContentProviderNative");
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "find android.content.ContentProviderNative error!", e);
         }
     }
 
@@ -173,7 +173,7 @@ public class PluginStubMainProvider extends ContentProvider {
             try {
                 return (IContentProvider) MethodUtils.invokeStaticMethod(sContentProviderNativeClass, "asInterface", iBinder);
             } catch (Exception e) {
-                e.printStackTrace();
+                Logger.e(TAG, "parseIContentProvider() error!", e);
             }
         }
 
@@ -187,7 +187,7 @@ public class PluginStubMainProvider extends ContentProvider {
             try {
                 return binderParcelable.iBinder;
             } catch (Exception e) {
-                e.printStackTrace();
+                Logger.e(TAG, "parseBinderParacelable() error!", e);
             }
         }
 

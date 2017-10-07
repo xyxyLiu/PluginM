@@ -56,7 +56,6 @@ public class CommonUtils {
             try {
                 return pm.getServiceInfo(componentName, 0);
             } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
             }
         }
 
@@ -70,7 +69,6 @@ public class CommonUtils {
             try {
                 return pm.getProviderInfo(componentName, 0);
             } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
             }
         }
 

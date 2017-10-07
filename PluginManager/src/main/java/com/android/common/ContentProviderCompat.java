@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
  * Created by lxy on 16-10-26.
  */
 public class ContentProviderCompat {
-    private static final boolean DEBUG = false;
     private static final String TAG = "ContentProviderCompat";
 
     private static Method sAcquireProviderMethod;
@@ -22,7 +21,7 @@ public class ContentProviderCompat {
 
     static {
         try {
-            Class[] arrayOfClass = new Class[] { Uri.class };
+            Class[] arrayOfClass = new Class[]{Uri.class};
             sAcquireProviderMethod = ContentResolver.class.getMethod("acquireProvider",
                     arrayOfClass);
             sGetIContentProviderMethod = ContentProvider.class.getMethod("getIContentProvider");
@@ -54,7 +53,7 @@ public class ContentProviderCompat {
             try {
                 return (IContentProvider) sGetIContentProviderMethod.invoke(cp);
             } catch (Exception e) {
-                if (DEBUG) e.printStackTrace();
+                Logger.e(TAG, "getIContentProvider() error!", e);
             }
         }
         return null;

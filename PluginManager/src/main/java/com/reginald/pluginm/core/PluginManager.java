@@ -137,7 +137,6 @@ public class PluginManager {
                 return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             Logger.e(TAG, "initPluginHelper() error!", e);
         }
 
@@ -147,12 +146,13 @@ public class PluginManager {
     public static String getPackageNameCompat(String plugin, String host) {
         String pkg = host;
 
-        //TODO 通过调用栈判断返回包名，属投机取巧的做法，后期需要考虑其它处理方法
+        //TODO 通过调用栈判断返回包名，属投机取巧的做法，且可能存在性能问题，后期需要考虑其它处理方法
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         Logger.d(TAG, "getPackageNameCompat(): ");
-        int i = 0;
+
         int lookupIndex = -1;
-        for (StackTraceElement stackTraceElement : stackTraceElements) {
+        for (int i = 0; i < stackTraceElements.length; i++) {
+            StackTraceElement stackTraceElement = stackTraceElements[i];
 //            Logger.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();
@@ -181,8 +181,6 @@ public class PluginManager {
 
                 break;
             }
-
-            i++;
         }
 
         Logger.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
@@ -389,7 +387,7 @@ public class PluginManager {
         try {
             providerInfos = pluginInfo.pkgParser.getProviders();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "loadProviders() error!");
         }
         List<ProviderInfo> targetProviderInfos = new ArrayList<>();
         if (providerInfos != null) {

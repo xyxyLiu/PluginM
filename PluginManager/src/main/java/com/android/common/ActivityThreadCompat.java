@@ -56,7 +56,7 @@ public class ActivityThreadCompat {
         return sMtd_currentActivityThread != null;
     }
 
-    public static Class<?> getActivityThreadClass(){
+    public static Class<?> getActivityThreadClass() {
         return sClass_ActivityThread;
     }
 

@@ -22,13 +22,13 @@ public class IActivityManagerServiceHook extends ServiceHook {
     private static final String TAG = "IActivityManagerHook";
     private PluginManager mPluginManager;
 
+    public IActivityManagerServiceHook(Context context) {
+        mPluginManager = PluginManager.getInstance(context);
+    }
+
     public static boolean init(Context context) {
         IActivityManagerServiceHook hook = new IActivityManagerServiceHook(context);
         return hook.install();
-    }
-
-    public IActivityManagerServiceHook(Context context) {
-        mPluginManager = PluginManager.getInstance(context);
     }
 
     @Override
@@ -58,8 +58,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
                 }
             }
         } catch (Exception e) {
-            Logger.e(TAG, "install() hook error! " + e);
-            e.printStackTrace();
+            Logger.e(TAG, "install() hook error! ", e);
             return false;
         }
         Logger.d(TAG, "install() hook ok!");

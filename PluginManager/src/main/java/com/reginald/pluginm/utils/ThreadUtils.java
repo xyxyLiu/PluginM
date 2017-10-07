@@ -24,8 +24,6 @@ public class ThreadUtils {
                 public void run() {
                     try {
                         runnable.run();
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     } finally {
                         mIsRunning.set(true);
                         synchronized (lock) {

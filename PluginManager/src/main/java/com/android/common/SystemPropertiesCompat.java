@@ -49,7 +49,6 @@ public class SystemPropertiesCompat {
         try {
             return getInner(key, defaultValue);
         } catch (Exception e) {
-            e.printStackTrace();
             return defaultValue;
         }
     }

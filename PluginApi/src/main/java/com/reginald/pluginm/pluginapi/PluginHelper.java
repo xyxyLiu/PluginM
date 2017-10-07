@@ -44,7 +44,7 @@ public class PluginHelper {
         try {
             return context.getPackageManager().getPackageInfo(packageName, flags);
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            // ignore
         }
 
         return null;

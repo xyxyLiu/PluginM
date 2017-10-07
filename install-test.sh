@@ -34,7 +34,7 @@ echo "plugin_pkg1 = $plugin_pkg1"
 echo "plugin_pkg2 = $plugin_pkg2"
 
 # build pluginlib
-./gradlew pluginlib:clean pluginlib:makeJar && \
+./gradlew PluginApi:clean PluginApi:makeJar && \
 # build plugin share library
 ./gradlew pluginsharelib:clean pluginsharelib:makeJar && \
 

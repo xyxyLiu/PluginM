@@ -52,7 +52,7 @@ public class HostInvokerManager {
                 mHostInvokerConfigMap.putAll(map);
             }
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            Logger.e(TAG, "init() error!", e);
         }
     }
 
@@ -101,7 +101,6 @@ public class HostInvokerManager {
             return iBinder;
         }
     }
-
 
 
     private IInvoker fetchHostInvoker(String serviceName) {

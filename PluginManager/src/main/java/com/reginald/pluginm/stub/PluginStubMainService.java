@@ -249,7 +249,7 @@ public class PluginStubMainService extends Service {
             pluginServiceRecord.service = (Service) serviceClass.newInstance();
             Logger.d(TAG, "createPluginService() create service " + pluginServiceRecord.service);
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "createPluginService() error!", e);
         }
 
 
@@ -281,7 +281,7 @@ public class PluginStubMainService extends Service {
 
                 return pluginServiceRecord;
             } catch (Exception e) {
-                e.printStackTrace();
+                Logger.e(TAG, "createPluginService() error!", e);
             }
         }
 
@@ -317,7 +317,7 @@ public class PluginStubMainService extends Service {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.e(TAG, "scheduleFinalCleanup() error!", e);
         }
     }
 

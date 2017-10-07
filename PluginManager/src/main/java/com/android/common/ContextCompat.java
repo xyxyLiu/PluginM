@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
 public class ContextCompat {
     private final static String TAG = "ContextCompat";
     private final static boolean DEBUG = true;
-    
+
     private static Class<?> sClassContextImpl;
     private static Method sMethodSetOuterContext;
 
@@ -31,7 +31,7 @@ public class ContextCompat {
         if (sMethodSetOuterContext != null) {
             while (!sClassContextImpl.isInstance(context)) {
                 if (context instanceof ContextWrapper) {
-                    context = ((ContextWrapper)context).getBaseContext();
+                    context = ((ContextWrapper) context).getBaseContext();
                 } else {
                     Logger.e(TAG, "setOuterContext error context=" + context);
                     return;

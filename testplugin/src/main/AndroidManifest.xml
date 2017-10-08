@@ -154,8 +154,7 @@
 
         <meta-data android:name="pluginm_invoker"
             android:value="[
-            {'service':'main', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin'},
-            {'service':'main_remote', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin:remote'}
+            {'service':'main', 'class':'com.example.testplugin.MyPluginInvoker', 'process':'com.example.testplugin'}
             ]" />
 
         <activity android:name=".PluginMainActivity"

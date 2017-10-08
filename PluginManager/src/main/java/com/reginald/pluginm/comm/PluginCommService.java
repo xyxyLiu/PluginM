@@ -48,7 +48,7 @@ public class PluginCommService extends IPluginComm.Stub {
 
     @Override
     public InvokeResult invoke(String packageName, String serviceName, String methodName, String params, InvokeCallback callback) throws RemoteException {
-        if (TextUtils.isEmpty(packageName)) {
+        if (mContext.getPackageName().equals(packageName)) {
             return invokeHost(serviceName, methodName, params, callback);
         } else {
             return invokePlugin(packageName, serviceName, methodName, params, callback);
@@ -57,7 +57,7 @@ public class PluginCommService extends IPluginComm.Stub {
 
     @Override
     public IBinder fetchService(String packageName, String serviceName) throws RemoteException {
-        if (TextUtils.isEmpty(packageName)) {
+        if (mContext.getPackageName().equals(packageName)) {
             return mHostInvokerManager.fetchHostServiceBinder(serviceName);
         } else {
             return fetchPluginServiceBinder(packageName, serviceName);

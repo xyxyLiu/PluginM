@@ -18,6 +18,7 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.IPluginClient;
 import com.reginald.pluginm.IPluginManager;
 import com.reginald.pluginm.PluginInfo;
@@ -47,7 +48,7 @@ import dalvik.system.DexClassLoader;
 
 public class PluginManagerService extends IPluginManager.Stub {
 
-
+    private static final boolean DEBUG = BuildConfig.DEBUG_LOG;
     private static final String TAG = "PluginManagerService";
     private static volatile PluginManagerService sInstance;
 
@@ -376,6 +377,13 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     private boolean checkUpdate(PluginInfo newPlugin, PluginInfo oldPlugin) {
         // check version
+
+        // debug模式下允许同版本覆盖
+        if (DEBUG && newPlugin.versionCode == oldPlugin.versionCode) {
+            Logger.w(TAG, "equal version update approved in DEBUG MODE!");
+            return true;
+        }
+
         if (newPlugin.versionCode > oldPlugin.versionCode) {
             return true;
         }

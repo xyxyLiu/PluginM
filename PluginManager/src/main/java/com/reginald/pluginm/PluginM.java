@@ -43,6 +43,10 @@ public class PluginM {
         return new PluginConfigs(sConfigs);
     }
 
+    public static PluginInfo install(String apkPath) {
+        return install(apkPath, true);
+    }
+
     public static PluginInfo install(String apkPath, boolean loadDex) {
         return PluginManager.getInstance(sAppContext).installPlugin(apkPath, loadDex);
     }

@@ -1,4 +1,4 @@
-package com.reginald.pluginm.demo.plugintest1;
+package com.reginald.pluginm.demo.plugintest2;
 
 import android.os.Bundle;
 import android.os.IBinder;
@@ -47,12 +47,8 @@ public class DemoActivity extends AppCompatActivity {
         mBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IInvokeResult result = PluginHelper.invokePlugin("com.example.testplugin", "main", "start_main", null, null);
-                Log.d(TAG, "invokePlugin() main result = " + (result == null ? "null" :
-                        String.format("[ resultCode = %d, result = %s ]", result.getResultCode(), result.getResult())));
-
-                result = PluginHelper.invokePlugin("com.example.testplugin", "main_remote", "start_main", null, null);
-                Log.d(TAG, "invokePlugin() main_remote result = " + (result == null ? "null" :
+                IInvokeResult result = PluginHelper.invoke("com.example.testplugin", "main", "start_main", null, null);
+                Log.d(TAG, "invoke() main result = " + (result == null ? "null" :
                         String.format("[ resultCode = %d, result = %s ]", result.getResultCode(), result.getResult())));
             }
         });
@@ -62,7 +58,8 @@ public class DemoActivity extends AppCompatActivity {
         mBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IInvokeResult result = PluginHelper.invokeHost("main", "start_host_main", null, null);
+                IInvokeResult result = PluginHelper.invoke(PluginHelper.getHostPackageName(DemoActivity.this),
+                        "main", "start_host_main", null, null);
                 Log.d(TAG, "invokeHost() result = " + (result == null ? "null" :
                         String.format("[ resultCode = %d, result = %s ]", result.getResultCode(), result.getResult())));
             }
@@ -73,7 +70,7 @@ public class DemoActivity extends AppCompatActivity {
         mBtn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IBinder iHostBinder = PluginHelper.fetchService(null, "main");
+                IBinder iHostBinder = PluginHelper.fetchService(PluginHelper.getHostPackageName(DemoActivity.this), "main");
                 ITestServiceBinder iTestServiceBinder = ITestServiceBinder.Stub.asInterface(iHostBinder);
                 if (iTestServiceBinder != null) {
                     try {

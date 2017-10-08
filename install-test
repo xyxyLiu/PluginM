@@ -1,5 +1,9 @@
 #!/bin/sh
 
+###########################################
+### Demo编译脚本，可以根据自己的需要进行修改 ###
+###########################################
+
 host_pkg=com.example.testhost
 plugin_pkg1=com.example.testplugin
 plugin_pkg2=com.example.testplugin2
@@ -24,6 +28,7 @@ do
         \?)
             echo "Usage: args [-r] [-h]"
             echo "-r means make release build"
+            echo "-h means only build host demo"
             exit 2
             ;;
     esac
@@ -33,24 +38,28 @@ echo "host pkg = $host_pkg"
 echo "plugin_pkg1 = $plugin_pkg1"
 echo "plugin_pkg2 = $plugin_pkg2"
 
-# build pluginlib
+# 编译PluginApi，生成相应jar包，以provided形式供插件进行依赖，不要编译到最终的插件apk中！
 ./gradlew PluginApi:clean PluginApi:makeJar && \
-# build plugin share library
+
+# 编译插件的共享代码库，生成相应jar包，以provided形式供插件进行依赖，不要编译到最终的插件apk中！
 ./gradlew pluginsharelib:clean pluginsharelib:makeJar && \
 
+# 是否需要编译两个插件demo
 if [ $only_host_build -eq 0 ]
 then
     adb shell mkdir /sdcard/$plugin_apk_dir/
+    # 编译testplugin2 demo
     ./gradlew testplugin2:clean testplugin2:$buildType && \
     adb push testplugin2/build/outputs/apk/testplugin2-$apk_suffix.apk /sdcard/$plugin_apk_dir/ && \
+    # 编译testplugin demo
     ./gradlew testplugin:clean testplugin:$buildType && \
     adb push testplugin/build/outputs/apk/testplugin-$apk_suffix.apk /sdcard/$plugin_apk_dir/
 fi && \
 
-# build host
+# 编译宿主demo
 ./gradlew testhost:clean testhost:$buildType && \
 adb push testhost/build/outputs/apk/testhost-$apk_suffix.apk /data/local/tmp/com.example.testhost && \
 
-# start host
+# 启动宿主demo
 adb shell pm install -r "/data/local/tmp/$host_pkg" && \
 adb shell am start -n "$host_pkg/com.example.testhost.DemoActivity" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER

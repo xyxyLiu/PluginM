@@ -141,10 +141,12 @@ public class PluginActivityB extends Activity {
             public void onClick(View v) {
                 Log.d(TAG, "testPackageManager PluginHelper.getPluginPackageName() = " +
                         PluginHelper.getPluginPackageName(PluginActivityB.this));
+                Log.d(TAG, "testPackageManager PluginHelper.getHostPackageName() = " +
+                        PluginHelper.getHostPackageName(PluginActivityB.this));
                 Log.d(TAG, "testPackageManager PluginHelper.getHostContext() = " +
                         PluginHelper.getHostContext(PluginActivityB.this));
                 Log.d(TAG, "testPackageManager PluginHelper.invokePlugin() = " +
-                        PluginHelper.invokePlugin(PluginHelper.getPluginPackageName(PluginActivityB.this), "main", "test", "paramstest", new IInvokeCallback() {
+                        PluginHelper.invoke(PluginHelper.getPluginPackageName(PluginActivityB.this), "main", "test", "paramstest", new IInvokeCallback() {
                             @Override
                             public IInvokeResult onCallback(String params) {
                                 Log.d(TAG, "testPackageManager onCallback() params = " + params);

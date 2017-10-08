@@ -5,7 +5,7 @@ Android插件化框架，支持APK免安装运行
 
 如果你需要类似应用双开加载任意第三方Apk的能力，请参考[VirtualApp](https://github.com/asLody/VirtualApp)或[DroidPlugin](https://github.com/DroidPluginTeam/DroidPlugin)，
 
-### 特性
+## 特性
 * 支持 API 14+
 * 低入侵，对插件开发透明，无需任何修改即可直接加载插件apk
 * 支持Android四大组件，Activity, Service, ContentProvider, Broadcast等，支持so加载。
@@ -14,24 +14,24 @@ Android插件化框架，支持APK免安装运行
 * 框架原理较为简洁，Hook单一，易于集成。
 * 插件间，插件与宿主间除了可以通过标准的系统api通信，PluginApi中还提供一套**IInvoker框架**，提供支持跨进程的函数调用，Binder服务获取。
 
-### 限制
+## 限制
 * 不支持Activity的TaskAffinity属性, 不支持overridePendingTransition中携带插件自定义资源(可以通过PluginApi接口动态的获取宿主的资源)
 * 不支持通知中携带插件自定义资源。
 * 不支持系统或其它App直接调起插件组件，需要宿主预埋相应的组件做桥接*处理（即调用关系为： 系统或其它App->宿主->插件）。
 * 暂不支持插件中宿主资源与插件资源合并，即插件的资源是隔离的，无法在插件中直接使用宿主的资源(可以通过PluginApi接口动态的获取宿主的资源)
 * 插件中需要的所有权限需要预埋到宿主中。
 
-### 项目结构
+## 项目结构
 * PluginApi: 插件通信Api模块。此模块专门为非独立插件提供插件间，插件与宿主间的通信。如果插件不需要与宿主或其它插件进行通信，可以不用依赖此模块。
 * PluginManager: 插件核心框架。
 
-* testhost: 测试宿主Demo，可以免安装启动testplugin, testplugin2的apk
-* testplugin: 测试插件Demo, 主要包含Android4大组件的测试，so加载。
-* testplugin2: 另一个测试插件Demo, 主要包含插件间，插件与宿主间调用。
+* testhost: 测试宿主Demo，可以免安装启动/sdcard/PluginM/目录中的apk
+* testplugin: 测试插件Demo, 主要包含Android四大组件，so加载的测试。
+* testplugin2: 另一个测试插件Demo, 主要包含插件间，插件与宿主间调用测试。
 * pluginsharelib: 插件共享代码库，可以作为公共功能模块在插件中直接使用。
 
 
-### 运行Demo
+## 运行Demo
 执行这个脚本直接为为你编译好testplugin,testplugin2的apk，并启动testhost, 进行插件测试：
 ```
 chmod +x install-test
@@ -39,9 +39,9 @@ chmod +x install-test
 ```
 如果你还想测试其它apk作为插件，可以将apk放入/sdcard/PluginM/目录中即可。
 
-### 项目接入
+## 项目接入
 
-#### 宿主工程：
+### 宿主工程：
 
 1. 将PluginM作为library引入到您的主项目中
 2. 预埋插件中需要使用到的权限
@@ -71,15 +71,15 @@ chmod +x install-test
 ```
 
 
-#### 插件工程：
+### 插件工程：
 * 如果插件不依赖于宿主或其它插件，则**不用做任何处理**，直接编译出APK即可被加载
 * 如果插件依赖与宿主或其它插件，则需要依赖于PluginApi，请以provided形式依赖PluginApi编译生成的Jar.
 
 
 
-### 主要接口
+## 主要接口
 
-#### 宿主中
+### 宿主中:
 ``` java
     // 安装插件
     PluginM.install(pluginApkPath);
@@ -107,7 +107,7 @@ chmod +x install-test
     
 ```
 
-#### 插件中
+### 插件中:
 **插件中启动四大组件不需要任何特殊处理**
 ``` java
     // 插件中启动四大组件不需要任何特殊处理。
@@ -127,7 +127,7 @@ chmod +x install-test
     IBinder binder = PluginHelper.fetchService(packageName, serviceName);
 ```
 
-#### IInvoker框架
+## IInvoker框架
 
 除了四大组件的标准系统api提供的通信机制，PluginApi还为插件间，插件与宿主间的通讯提供了另一种标准接口框架。详细api请参考[IInvoker](./PluginApi/src/main/java/com/reginald/pluginm/pluginapi/IInvoker.java)
 
@@ -154,10 +154,13 @@ class: 每个IInvoker都必须配置一个实现IInvoker接口的实现类。
 
 process: 每个IInvoker都必须存在于一个进程，如果未填写，则默认为与包名相同的进程。
 
-### License
+## License
 [Apache v2.0](./LICENSE)
 
-### 参考
+## 参考
 * [DroidPlugin](https://github.com/DroidPluginTeam/DroidPlugin)
 * [RePlugin](https://github.com/Qihoo360/RePlugin)
 * [VirtualApk](https://github.com/didi/VirtualAPK)
+
+## 反馈
+tonyreginald@gmail.com

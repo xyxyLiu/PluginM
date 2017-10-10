@@ -275,9 +275,8 @@ public class PluginStubMainService extends Service {
                     mInstalledServices.put(pluginServiceRecord.componentName, pluginServiceRecord);
                 }
                 Logger.d(TAG, "createPluginService() call Service.onCreate() of " + pluginServiceRecord.service);
-                pluginServiceRecord.service.onCreate();
-
                 mPluginManager.callServiceOnCreate(pluginServiceRecord.service, mStubInfo, serviceInfo);
+                pluginServiceRecord.service.onCreate();
 
                 return pluginServiceRecord;
             } catch (Exception e) {
@@ -303,8 +302,8 @@ public class PluginStubMainService extends Service {
 
     private void destroyPluginService(ServiceRecord serviceRecord) {
         Logger.d(TAG, "destroyPluginService() for " + serviceRecord.service.getClass().getName());
-        serviceRecord.service.onDestroy();
         mPluginManager.callServiceOnDestory(serviceRecord.service);
+        serviceRecord.service.onDestroy();
         try {
             Object contextImpl = ((ContextWrapper) serviceRecord.service.getBaseContext()).getBaseContext();
             Class<?> contextImplClazz = Class.forName("android.app.ContextImpl");

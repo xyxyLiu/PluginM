@@ -16,6 +16,7 @@ import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
@@ -82,6 +83,7 @@ public class PluginManager {
 
     private Context mContext;
     private volatile IPluginManager mService;
+    private PackageManager mPluginPackageManager;
 
     private PluginManager(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
@@ -144,8 +146,7 @@ public class PluginManager {
     }
 
     public static String getPackageNameCompat(String plugin, String host) {
-        String pkg = host;
-
+        String pkg = plugin;
         //TODO 通过调用栈判断返回包名，属投机取巧的做法，且可能存在性能问题，后期需要考虑其它处理方法
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         Logger.d(TAG, "getPackageNameCompat(): ");
@@ -169,14 +170,18 @@ public class PluginManager {
             }
 
             if (i == lookupIndex) {
-                if (!className.startsWith("android.")) {
-                    pkg = plugin;
-                } else if (className.startsWith("android.support.multidex")) {
-                    // support multidex
-                    pkg = plugin;
-                } else if (className.startsWith("android.content.ComponentName") ||
-                        methodName.equals("<init>")) {
-                    pkg = plugin;
+                if (className.startsWith("android.")) {
+                    if (className.startsWith("android.support.multidex")) {
+                        // support multidex
+                        pkg = plugin;
+                    } else if (className.startsWith("android.content.ComponentName") &&
+                            methodName.equals("<init>")) {
+                        pkg = plugin;
+                    } else {
+                        pkg = host;
+                    }
+                } else if (className.startsWith("com.google.android.gms")) {
+                    pkg = host;
                 }
 
                 break;
@@ -362,13 +367,14 @@ public class PluginManager {
 
             Class pluginAppClass = pluginInfo.classLoader.loadClass(applicationInfo.className);
             pluginInfo.application = (Application) pluginAppClass.newInstance();
+
+            callApplicationOnAttach(pluginInfo.application, applicationInfo);
+
             Method attachMethod = android.app.Application.class
                     .getDeclaredMethod("attach", Context.class);
             attachMethod.setAccessible(true);
             attachMethod.invoke(pluginInfo.application, pluginInfo.baseContext);
             ContextCompat.setOuterContext(pluginInfo.baseContext, pluginInfo.application);
-
-            callApplicationOnAttach(pluginInfo.application, applicationInfo);
 
             loadProviders(pluginInfo);
 
@@ -471,6 +477,14 @@ public class PluginManager {
 
     public List<PluginInfo> getLoadedPluginInfos() {
         return new ArrayList<>(mLoadedPluginMap.values());
+    }
+
+    public PackageManager getPluginPackageManager() {
+        if (mPluginPackageManager == null) {
+            mPluginPackageManager = new PluginPackageManager(mContext, mContext.getPackageManager());
+        }
+
+        return mPluginPackageManager;
     }
 
     public void startActivity(Context context, Intent intent) {

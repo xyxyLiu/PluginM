@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -71,8 +72,8 @@ public class PluginM {
         return PluginManager.getInstance(sAppContext).isPluginRunning(pkgName);
     }
 
-    public static Intent getPluginActivityIntent(Intent pluginIntent) {
-        return PluginManager.getInstance(sAppContext).getPluginActivityIntent(pluginIntent);
+    public static PackageManager getPluginPackageManager(Context context) {
+        return PluginManager.getInstance(sAppContext).getPluginPackageManager();
     }
 
     public static void startActivity(Context context, Intent intent) {

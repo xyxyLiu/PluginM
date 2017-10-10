@@ -6,6 +6,8 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -105,7 +108,7 @@ public class DemoActivity extends Activity {
             return;
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("选择一个apk");
+        builder.setTitle(String.format("选择一个apk(%s)", PLUGINS_PATH));
         List<String> pkgs = new ArrayList<>();
         for (String apk : apks) {
             PackageInfo pkgInfo = getPackageManager().getPackageArchiveInfo(apk, 0);
@@ -220,24 +223,27 @@ public class DemoActivity extends Activity {
                 itemView = LayoutInflater.from(DemoActivity.this).inflate(R.layout.plugin_list_item_layout, null);
             }
 
+            ImageView iconView = (ImageView) itemView.findViewById(R.id.icon);
             TextView textView = (TextView) itemView.findViewById(R.id.title);
             Button installBtn = (Button) itemView.findViewById(R.id.install_btn);
             Button uninstallBtn = (Button) itemView.findViewById(R.id.uninstall_btn);
 
             final PluginInfo pluginInfo = mDatas.get(position);
 
+            iconView.setImageDrawable(getPluginIcon(pluginInfo));
             textView.setText(getPluginShowInfo(pluginInfo));
             installBtn.setText("load");
             installBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent pluginIntent = new Intent();
-                    pluginIntent.setPackage(pluginInfo.packageName);
-                    pluginIntent.setAction(Intent.ACTION_MAIN);
-                    pluginIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                    pluginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Intent intent = PluginM.getPluginActivityIntent(pluginIntent);
-                    DemoActivity.this.startActivity(intent);
+                    Intent pluginIntent = PluginM.getPluginPackageManager(DemoActivity.this).
+                            getLaunchIntentForPackage(pluginInfo.packageName);
+                    if (pluginIntent != null) {
+                        PluginM.startActivity(DemoActivity.this, pluginIntent);
+                    } else {
+                        Toast.makeText(DemoActivity.this, pluginInfo.packageName + "未找到入口Intent",
+                                Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
             uninstallBtn.setText("uninstall");
@@ -255,8 +261,25 @@ public class DemoActivity extends Activity {
         }
 
         private String getPluginShowInfo(PluginInfo pluginInfo) {
-            return String.format("pkg = %s\nversion = %s, %s\nsize = %s",
-                    pluginInfo.packageName, pluginInfo.versionName, pluginInfo.versionCode, pluginInfo.fileSize);
+            PackageManager pluginPM = PluginM.getPluginPackageManager(DemoActivity.this);
+            String label = "";
+            try {
+                label = pluginPM.getApplicationInfo(pluginInfo.packageName, 0).loadLabel(pluginPM).toString();
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            return String.format("%s\npkg = %s\nversion = %s, %s\nsize = %s",
+                    label,pluginInfo.packageName, pluginInfo.versionName, pluginInfo.versionCode, pluginInfo.fileSize);
+        }
+
+        private Drawable getPluginIcon(PluginInfo pluginInfo) {
+            PackageManager pluginPM = PluginM.getPluginPackageManager(DemoActivity.this);
+            try {
+                return pluginPM.getApplicationIcon(pluginInfo.packageName);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 

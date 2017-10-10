@@ -135,12 +135,18 @@ public class PluginStubMainProvider extends ContentProvider {
             synchronized (mContentProviderMap) {
                 contentProvider = mContentProviderMap.get(providerInfo.name);
             }
+
+            if (contentProvider == null) {
+                contentProvider = installProvider(pluginInfo, providerInfo);
+            }
+
             if (contentProvider != null) {
                 return ContentProviderCompat.getIContentProvider(contentProvider);
             } else {
                 throw new RuntimeException("CAN NOT get IContentProvider for " + providerInfo);
             }
         }
+
         return null;
     }
 
@@ -148,22 +154,40 @@ public class PluginStubMainProvider extends ContentProvider {
         if (providerInfos != null) {
             for (ProviderInfo providerInfo : providerInfos) {
                 try {
-                    Logger.d(TAG, "installProviders() providerInfo = " + providerInfo);
-                    Class clazz = pluginInfo.classLoader.loadClass(providerInfo.name);
-                    ContentProvider contentProvider = (ContentProvider) clazz.newInstance();
-                    contentProvider.attachInfo(pluginInfo.baseContext, providerInfo);
-                    synchronized (mContentProviderMap) {
-                        mContentProviderMap.put(providerInfo.name, contentProvider);
-                    }
-
-                    PluginManager.getInstance(getContext()).callProviderOnCreate(contentProvider, mStubInfo, providerInfo);
-
+                    installProvider(pluginInfo, providerInfo);
                     Logger.d(TAG, "installProviders() providerInfo ok!");
                 } catch (Exception e) {
                     Logger.e(TAG, "installProviders() error! providerInfo = " + providerInfo, e);
                 }
             }
         }
+    }
+
+    private ContentProvider installProvider(PluginInfo pluginInfo, ProviderInfo providerInfo) {
+        try {
+            Logger.d(TAG, "installProvider() providerInfo = " + providerInfo);
+            Class clazz = pluginInfo.classLoader.loadClass(providerInfo.name);
+            ContentProvider contentProvider = (ContentProvider) clazz.newInstance();
+            contentProvider.attachInfo(pluginInfo.baseContext, providerInfo);
+
+            synchronized (mContentProviderMap) {
+                ContentProvider cp = mContentProviderMap.get(providerInfo.name);
+                if (cp != null) {
+                    Logger.d(TAG, "installProvider() lose race!");
+                    contentProvider = cp;
+                } else {
+                    mContentProviderMap.put(providerInfo.name, contentProvider);
+                    PluginManager.getInstance(getContext()).callProviderOnCreate(contentProvider, mStubInfo, providerInfo);
+                }
+            }
+
+            Logger.d(TAG, "installProvider() providerInfo -> " + contentProvider);
+            return contentProvider;
+        } catch (Exception e) {
+            Logger.e(TAG, "installProvider() error! providerInfo = " + providerInfo, e);
+        }
+
+        return null;
     }
 
     public static IContentProvider parseIContentProvider(Bundle bundle) {

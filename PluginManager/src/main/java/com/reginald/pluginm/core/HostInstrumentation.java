@@ -52,7 +52,6 @@ public class HostInstrumentation extends Instrumentation {
         Class ActivityThreadClass = target.getClass();
 
         try {
-        /*替换ActivityThread.mH.mCallback，拦截组件调度消息*/
             Field mInstrumentationField = FieldUtils.getField(ActivityThreadClass, "mInstrumentation");
             Instrumentation baseInstrumentation = (Instrumentation) FieldUtils.readField(mInstrumentationField, target);
             Instrumentation newInstrumentation = new HostInstrumentation(
@@ -261,6 +260,8 @@ public class HostInstrumentation extends Instrumentation {
             resolvedIntent = intent;
         }
 
+        Logger.d(TAG, "resolveIntent() intent = " + intent + " -> result = " + resolvedIntent);
+
         return resolvedIntent;
     }
 
@@ -400,6 +401,21 @@ public class HostInstrumentation extends Instrumentation {
                     }
                 } catch (Exception e) {
                     Logger.e(TAG, "modify theme error!", e);
+                }
+
+                // mActivityInfo
+                try {
+                    FieldUtils.writeField(Activity.class, "mActivityInfo", activity, activityInfo);
+                } catch (Exception e) {
+                    Logger.e(TAG, "modify mActivityInfo error!", e);
+                }
+
+                // mTitle
+                try {
+                    FieldUtils.writeField(Activity.class, "mTitle", activity,
+                            activityInfo.loadLabel(pluginContext.getPackageManager()));
+                } catch (Exception e) {
+                    Logger.e(TAG, "modify mActivityInfo error!", e);
                 }
 
                 activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));

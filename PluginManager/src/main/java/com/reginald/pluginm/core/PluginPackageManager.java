@@ -491,7 +491,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public Drawable getApplicationIcon(ApplicationInfo info) {
-        return info.loadIcon(this);
+        return mBase.getApplicationIcon(info);
     }
 
     @Override

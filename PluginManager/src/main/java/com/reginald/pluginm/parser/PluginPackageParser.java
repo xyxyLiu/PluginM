@@ -212,9 +212,12 @@ public class PluginPackageParser {
 
         datas = mParser.getPermissionGroups();
         for (Object data : datas) {
-            ComponentName componentName = new ComponentName(mPackageName, mParser.readNameFromComponent(data));
-            synchronized (mPermissionGroupObjCache) {
-                mPermissionGroupObjCache.put(componentName, data);
+            String cls = mParser.readNameFromComponent(data);
+            if (cls != null) {
+                ComponentName componentName = new ComponentName(mPackageName, mParser.readNameFromComponent(data));
+                synchronized (mPermissionGroupObjCache) {
+                    mPermissionGroupObjCache.put(componentName, data);
+                }
             }
         }
 

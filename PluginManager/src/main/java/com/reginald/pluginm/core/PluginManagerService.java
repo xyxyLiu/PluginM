@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
+import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.IPluginClient;
 import com.reginald.pluginm.IPluginManager;
 import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.parser.IntentMatcher;
 import com.reginald.pluginm.parser.PluginPackageParser;
@@ -261,7 +263,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             pluginInfo.lastModified = originApk.lastModified();
 
 
-            if (!checkInstall(pluginInfo)) {
+            if (!checkInstall(pluginInfo, isInternal)) {
                 Logger.e(TAG, String.format("install() invalid plugin! plugin = %s", pluginInfo));
                 return null;
             }
@@ -390,19 +392,58 @@ public class PluginManagerService extends IPluginManager.Stub {
         return false;
     }
 
-    private boolean checkInstall(PluginInfo newPlugin) {
+    private boolean checkInstall(PluginInfo newPlugin, boolean isInternal) {
         try {
-            PackageInfo pkgInfo = newPlugin.pkgParser.getPackageInfo(PackageManager.GET_PERMISSIONS /** | PackageManager.GET_SIGNATURES **/);
-            // TODO check signature here
+            // load cached signatures
+            Signature[] signatures = null;
+            if (isInternal) {
+                // read signature from cache
+                signatures = PackageUtils.readSignatures(mContext, newPlugin.packageName);
+                if (signatures != null) {
+                    // write cached signature to package parser.
+                    newPlugin.pkgParser.writeSignature(signatures);
+                }
+            }
 
+            int flags = PackageManager.GET_PERMISSIONS;
+            if (signatures == null) {
+                flags |= PackageManager.GET_SIGNATURES;
+            }
+            PackageInfo pkgInfo = newPlugin.pkgParser.getPackageInfo(flags);
 
-            // check permission
+            if (signatures == null) {
+                if (pkgInfo.signatures == null || pkgInfo.signatures.length <= 0) {
+                    throw new IllegalStateException("CAN NOT get signatures for " + newPlugin.packageName);
+                }
+                signatures = pkgInfo.signatures;
+                PackageUtils.saveSignatures(mContext, pkgInfo);
+            }
+
+            // check signatures:
+            if (PluginM.getConfigs().isSignatureCheckEnabled()) {
+                Logger.e(TAG, String.format("checkInstall() check signatures for plugin %s!",
+                        newPlugin.packageName));
+                Set<Signature> configSignatures = PluginM.getConfigs().getSignatures();
+                if (configSignatures.isEmpty()) {
+                    throw new IllegalStateException("Signature check is enabled, but no signatures provided in config!");
+                }
+                Signature[] checkSignatures = configSignatures.toArray(new Signature[configSignatures.size()]);
+                boolean isSuc = PackageUtils.checkSignatures(signatures, checkSignatures);
+                if (!isSuc) {
+                    Logger.e(TAG, String.format("checkInstall() signature check not approved for plugin %s!",
+                            newPlugin.packageName));
+                    return false;
+                }
+            }
+
+            // check permission:
             String[] pluginPerms = pkgInfo.requestedPermissions;
             Set<String> stubPermissions = mStubManager.getStubPermissions();
             if (pluginPerms != null && pluginPerms.length > 0 && !stubPermissions.isEmpty()) {
                 for (String perm : pluginPerms) {
                     if (!stubPermissions.contains(perm)) {
-                        Logger.e(TAG, String.format("checkInstall: no permission %s for plugin %s!", perm, newPlugin.packageName));
+                        Logger.e(TAG, String.format("checkInstall: no permission %s for plugin %s!",
+                                perm, newPlugin.packageName));
                     }
                 }
             }

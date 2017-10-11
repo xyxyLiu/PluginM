@@ -23,6 +23,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.reginald.pluginm.PluginConfigs;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginM;
 
@@ -40,6 +41,7 @@ public class DemoActivity extends Activity {
     private static final String TAG = "DemoActivity";
     private static final String PLUGINS_PATH = Environment.getExternalStorageDirectory().getPath() + "/PluginM/";
 
+    private TextView mConfigText;
     private ListView mListView;
     private PluginAdapter mAapter;
     private Button mSelectBtn;
@@ -52,10 +54,14 @@ public class DemoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.demo_layout);
 
+        mConfigText = (TextView) findViewById(R.id.config_text);
         mSelectBtn = (Button) findViewById(R.id.select_btn);
         mListView = (ListView) findViewById(R.id.plugin_list);
         mAapter = new PluginAdapter();
         mListView.setAdapter(mAapter);
+
+        PluginConfigs pluginConfigs = PluginM.getConfigs();
+        mConfigText.setText(pluginConfigs.toString());
 
         mSelectBtn.setOnClickListener(new View.OnClickListener() {
             @Override

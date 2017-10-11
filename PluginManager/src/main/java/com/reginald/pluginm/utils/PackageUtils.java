@@ -1,18 +1,25 @@
 package com.reginald.pluginm.utils;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.Signature;
 import android.os.Build;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -27,6 +34,8 @@ public class PackageUtils {
     public static final String PLUGIN_APK_FILE_NAME = "base.apk";
     public static final String PLUGIN_DEX_FOLDER_NAME = "dexes";
     public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
+    public static final String PLUGIN_SIGNATURE_FOLDER_NAME = "signatures";
+    public static final String PLUGIN_SIGNATURE_FILE_PREFIX = "sig_";
 
     public static File getPluginRootDir(Context context) {
         return context.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE);
@@ -34,6 +43,20 @@ public class PackageUtils {
 
     public static File getPluginDir(Context context, String packageName) {
         return new File(getPluginRootDir(context), packageName);
+    }
+
+    public static List<File> getSignatureFiles(Context context, String packageName) {
+        File sigFile = new File(makePluginDir(context, packageName), PLUGIN_SIGNATURE_FOLDER_NAME);
+        if (sigFile.exists()) {
+            List<File> sigFiles = new ArrayList<>();
+            for (File file : sigFile.listFiles()) {
+                if (file.getName().startsWith(PLUGIN_SIGNATURE_FILE_PREFIX)) {
+                    sigFiles.add(file);
+                }
+            }
+            return sigFiles;
+        }
+        return Collections.emptyList();
     }
 
     public static File makePluginDir(Context context, String packageName) {
@@ -52,12 +75,62 @@ public class PackageUtils {
         return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_LIB_FOLDER_NAME);
     }
 
+    public static File makePluginSignatureDir(Context context, String packageName) {
+        return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_SIGNATURE_FOLDER_NAME);
+    }
+
     public static File getOrMakeDir(File root, String dir) {
         File dirFile = new File(root, dir);
         if (!dirFile.exists()) {
             dirFile.mkdir();
         }
         return dirFile;
+    }
+
+    public static boolean writeToFile(File file, byte[] data) {
+        FileOutputStream fou = null;
+        try {
+            fou = new FileOutputStream(file);
+            fou.write(data);
+            return true;
+        } catch (IOException e) {
+            Logger.e(TAG, "writeToFile() error!", e);
+        } finally{
+            if (fou != null) {
+                try {
+                    fou.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return false;
+    }
+
+    public static byte[] readFromFile(File file) {
+        FileInputStream fin = null;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            fin = new FileInputStream(file);
+            byte[] buffer = new byte[8192];
+            int read = 0;
+            while ((read = fin.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            byte[] data = out.toByteArray();
+            out.close();
+            return data;
+        } catch (IOException e) {
+            Logger.e(TAG, "readFromFile() error!", e);
+        }  finally {
+            if (fin != null) {
+                try {
+                    fin.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+
+        return null;
     }
 
     public static boolean copyFile(String source, String dest) {
@@ -282,6 +355,76 @@ public class PackageUtils {
         }
         Logger.d(TAG, "delete " + file.getAbsolutePath());
         return file.delete();
+    }
+
+    public static boolean saveSignatures(Context context, PackageInfo pkgInfo) {
+        File sigDir = makePluginSignatureDir(context, pkgInfo.packageName);
+        Signature[] signatures = pkgInfo.signatures;
+        if (signatures == null || signatures.length <= 0) {
+            return false;
+        }
+
+        for (int i = 0; i < signatures.length; i++) {
+            Signature signature = signatures[i];
+            File sigFile = new File(sigDir, PLUGIN_SIGNATURE_FILE_PREFIX + i);
+            if (!writeToFile(sigFile, signature.toByteArray())) {
+                Logger.e(TAG, "saveSignatures() error!");
+                deleteAll(sigDir);
+                return false;
+            }
+        }
+
+        Logger.d(TAG, String.format("saveSignatures() save %d signature(s) for %s!",
+                signatures.length, pkgInfo.packageName));
+        return true;
+    }
+
+    public static Signature[] readSignatures(Context context, String packageName) {
+        List<File> sigFiles = getSignatureFiles(context, packageName);
+        if (sigFiles.isEmpty()) {
+            return null;
+        }
+
+        List<Signature> signatures = new ArrayList<>();
+        for (File sigFile : sigFiles) {
+            byte[] sigData = readFromFile(sigFile);
+            if (sigData == null) {
+                Logger.e(TAG, "saveSignatures() error in reading " + sigFile.getAbsolutePath());
+                return null;
+            }
+            Signature signature = new Signature(sigData);
+            signatures.add(signature);
+        }
+
+        Logger.d(TAG, String.format("writeSignatures() save %d signature(s) for %s!",
+                signatures.size(), packageName));
+        return signatures.toArray(new Signature[signatures.size()]);
+    }
+
+    public static boolean checkSignatures(Signature[] signatures, Signature[] checkers) {
+        if (signatures == null || checkers == null) {
+            Logger.e(TAG, "checkSignatures() null input!");
+            return false;
+        }
+
+        for (Signature signature : signatures) {
+            boolean match = false;
+            for (Signature check : checkers) {
+                if (signature.equals(check)) {
+                    match = true;
+                    break;
+                }
+            }
+            if (!match) {
+                Logger.e(TAG, String.format("checkSignatures() signature %s is not approved in %s !",
+                        signature, Arrays.asList(checkers)));
+                return false;
+            }
+        }
+
+        Logger.d(TAG, String.format("checkSignatures() signature(s) %s are approved!",
+                Arrays.asList(signatures)));
+        return true;
     }
 
 }

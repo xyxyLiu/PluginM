@@ -13,7 +13,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:textStyle="bold"
         android:text="PluginM Demo" />
+
+    <TextView
+        android:id="@+id/config_text"
+        android:textSize="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        />
 
     <ListView
         android:id="@+id/plugin_list"

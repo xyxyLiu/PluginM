@@ -1,6 +1,12 @@
 package com.reginald.pluginm;
 
+import android.content.pm.Signature;
+
 import com.reginald.pluginm.stub.StubManager;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by lxy on 17-9-21.
@@ -26,6 +32,8 @@ public class PluginConfigs {
 
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
     private boolean mUseHostLoader = true;
+    private final Set<Signature> mSignatures = new HashSet<>();
+    private boolean mSignatureCheckEnabled = false;
 
     public PluginConfigs() {
 
@@ -34,6 +42,8 @@ public class PluginConfigs {
     public PluginConfigs(PluginConfigs pluginConfigs) {
         mProcessType = pluginConfigs.getProcessType();
         mUseHostLoader = pluginConfigs.isUseHostLoader();
+        mSignatureCheckEnabled = pluginConfigs.isSignatureCheckEnabled();
+        mSignatures.addAll(pluginConfigs.getSignatures());
     }
 
     public int getProcessType() {
@@ -60,4 +70,41 @@ public class PluginConfigs {
         return this;
     }
 
+    public boolean isSignatureCheckEnabled() {
+        return mSignatureCheckEnabled;
+    }
+
+    public PluginConfigs setSignatureCheckEnabled(boolean isEnabled) {
+        mSignatureCheckEnabled = isEnabled;
+        return this;
+    }
+
+    public Set<Signature> getSignatures() {
+        return Collections.unmodifiableSet(mSignatures);
+    }
+
+    public PluginConfigs addSignatures(Signature... signatures) {
+        if (signatures != null && signatures.length > 0) {
+            Collections.addAll(mSignatures, signatures);
+        }
+        return this;
+    }
+
+    public String toString() {
+        String processType = "UNKNOWN";
+        switch (mProcessType) {
+            case PROCESS_TYPE_INDEPENDENT:
+                processType = "INDEPENDENT";
+                break;
+            case PROCESS_TYPE_SINGLE:
+                processType = "SINGLE";
+                break;
+            case PROCESS_TYPE_DUAL:
+                processType = "DUAL";
+                break;
+        }
+        return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, " +
+                        "mSignatureCheckEnabled = %b, mSignatures = %d ]",
+                processType, mUseHostLoader, mSignatureCheckEnabled, mSignatures.size());
+    }
 }

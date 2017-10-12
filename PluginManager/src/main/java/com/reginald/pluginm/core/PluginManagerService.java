@@ -13,6 +13,7 @@ import android.content.pm.ServiceInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -411,6 +412,44 @@ public class PluginManagerService extends IPluginManager.Stub {
             }
             PackageInfo pkgInfo = newPlugin.pkgParser.getPackageInfo(flags);
 
+            // check sdk config
+            ApplicationInfo stubAppInfo = mStubManager.getStubApplicationInfo();
+            ApplicationInfo pluginAppInfo = pkgInfo.applicationInfo;
+            int sdkVersion = Build.VERSION.SDK_INT;
+            int minSdkVersion = -1;
+            int pluginTargetSdkVersion = -1;
+            if (stubAppInfo == null || pluginAppInfo == null) {
+                throw new IllegalStateException("application is null!");
+            }
+
+            try {
+                minSdkVersion = pluginAppInfo.minSdkVersion;
+            } catch (Throwable t) {
+                Logger.e(TAG, "error get minSdkVersion configs", t);
+            }
+
+            try {
+                pluginTargetSdkVersion = stubAppInfo.targetSdkVersion;
+            } catch (Throwable t) {
+                Logger.e(TAG, "error get targetSdkVersion configs", t);
+            }
+
+            if (minSdkVersion > 0 && minSdkVersion > sdkVersion) {
+                Logger.e(TAG, String.format("checkInstall() minSdkVersion for " +
+                        "plugin %s is %d, but current sdk version is %d!",
+                        newPlugin.packageName, pluginAppInfo.minSdkVersion, sdkVersion));
+                return false;
+            }
+            if (pluginTargetSdkVersion > 0 && stubAppInfo.targetSdkVersion > pluginTargetSdkVersion &&
+                    sdkVersion >= pluginTargetSdkVersion) {
+                Logger.e(TAG, String.format("checkInstall() targetSdkVersion for plugin %s is %d " +
+                                "which is smaller than stub targetSdkVersion %d , and current sdk version is %d!",
+                        newPlugin.packageName, pluginAppInfo.targetSdkVersion,
+                        stubAppInfo.targetSdkVersion, sdkVersion));
+//                return false;
+            }
+
+            // load signature from packageManager
             if (signatures == null) {
                 if (pkgInfo.signatures == null || pkgInfo.signatures.length <= 0) {
                     throw new IllegalStateException("CAN NOT get signatures for " + newPlugin.packageName);
@@ -442,7 +481,7 @@ public class PluginManagerService extends IPluginManager.Stub {
             if (pluginPerms != null && pluginPerms.length > 0 && !stubPermissions.isEmpty()) {
                 for (String perm : pluginPerms) {
                     if (!stubPermissions.contains(perm)) {
-                        Logger.e(TAG, String.format("checkInstall: no permission %s for plugin %s!",
+                        Logger.w(TAG, String.format("checkInstall: no permission %s for plugin %s!",
                                 perm, newPlugin.packageName));
                     }
                 }

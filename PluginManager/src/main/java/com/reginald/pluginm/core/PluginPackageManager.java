@@ -250,12 +250,20 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public int checkPermission(String permName, String pkgName) {
+        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pkgName);
+        if (pluginInfo != null) {
+            pkgName = mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.checkPermission(permName, pkgName);
     }
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     public boolean isPermissionRevokedByPolicy(@NonNull String permName, @NonNull String pkgName) {
+        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pkgName);
+        if (pluginInfo != null) {
+            pkgName = mPluginManager.getHostContext().getPackageName();
+        }
         return mBase.isPermissionRevokedByPolicy(permName, pkgName);
     }
 
@@ -732,5 +740,18 @@ public class PluginPackageManager extends PackageManager {
     @Override
     public PackageInstaller getPackageInstaller() {
         return mBase.getPackageInstaller();
+    }
+
+
+    public boolean shouldShowRequestPermissionRationale(String permission) {
+        Object bool = MethodUtils.invokeMethodNoThrow(mBase, "shouldShowRequestPermissionRationale", permission);
+        return bool != null ? (boolean)bool : false;
+    }
+
+
+    public Intent buildRequestPermissionsIntent(@NonNull String[] permissions) {
+        Object intent = MethodUtils.invokeMethodNoThrow(mBase, "buildRequestPermissionsIntent",
+                new Object[]{permissions}, new Class[]{String[].class});
+        return (Intent)intent;
     }
 }

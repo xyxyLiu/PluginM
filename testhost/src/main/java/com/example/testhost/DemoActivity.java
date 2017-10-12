@@ -30,6 +30,7 @@ import com.reginald.pluginm.PluginM;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -109,25 +110,77 @@ public class DemoActivity extends Activity {
 
     private void chooseFile(String targetDir) {
         final List<String> apks = getAllPlugins(targetDir);
-        if (apks.isEmpty()) {
-            Toast.makeText(DemoActivity.this, "请将apk放入" + mPluginDir.getAbsolutePath() + "中", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(String.format("选择一个apk(%s)", PLUGINS_PATH));
-        List<String> pkgs = new ArrayList<>();
-        for (String apk : apks) {
+        final List<String> pkgs = new ArrayList<>();
+        Iterator<String> iterator = apks.iterator();
+        while (iterator.hasNext()) {
+            String apk = iterator.next();
             PackageInfo pkgInfo = getPackageManager().getPackageArchiveInfo(apk, 0);
             if (pkgInfo != null && !TextUtils.isEmpty(pkgInfo.packageName)) {
                 pkgs.add(pkgInfo.packageName);
+            } else {
+                Toast.makeText(DemoActivity.this, "apk解析错误: " + apk, Toast.LENGTH_SHORT).show();
+                iterator.remove();
             }
         }
-        builder.setItems(pkgs.toArray(new String[pkgs.size()]), new DialogInterface.OnClickListener() {
+
+        if (apks.isEmpty()) {
+            Toast.makeText(DemoActivity.this, "未找到合法apk, 请将apk放入" + mPluginDir.getAbsolutePath() + "中", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        builder.setAdapter(new BaseAdapter() {
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-                install(apks.get(which));
+            public int getCount() {
+                return pkgs.size();
             }
-        });
+
+            @Override
+            public Object getItem(int position) {
+                return pkgs.get(position);
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return 0;
+            }
+
+            @Override
+            public View getView(final int position, View convertView, ViewGroup parent) {
+                View itemView;
+                if (convertView != null) {
+                    itemView = convertView;
+                } else {
+                    itemView = LayoutInflater.from(DemoActivity.this).inflate(R.layout.apk_list_item_layout, null);
+                }
+
+                TextView textView = (TextView) itemView.findViewById(R.id.title);
+                Button installBtn = (Button) itemView.findViewById(R.id.install_btn);
+                Button deleteBtn = (Button) itemView.findViewById(R.id.delete_btn);
+                final String pkg = (String)getItem(position);
+                textView.setText(pkg);
+                installBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        install(apks.get(position));
+                    }
+                });
+                deleteBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean isSuc = delete(apks.get(position));
+                        if (isSuc && apks.remove(position) != null && pkgs.remove(position) != null) {
+                            notifyDataSetChanged();
+                        }
+                    }
+                });
+
+                return itemView;
+            }
+        }, null);
+
         builder.show();
     }
 
@@ -151,6 +204,11 @@ public class DemoActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    private boolean delete(final String apkPath) {
+        File apkFile = new File(apkPath);
+        return apkFile.delete();
     }
 
     private void showLoading(boolean isShow, String msg) {
@@ -238,7 +296,7 @@ public class DemoActivity extends Activity {
 
             iconView.setImageDrawable(getPluginIcon(pluginInfo));
             textView.setText(getPluginShowInfo(pluginInfo));
-            installBtn.setText("load");
+            installBtn.setText("加载");
             installBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -252,7 +310,7 @@ public class DemoActivity extends Activity {
                     }
                 }
             });
-            uninstallBtn.setText("uninstall");
+            uninstallBtn.setText("卸载");
             uninstallBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

@@ -377,7 +377,12 @@ public class HostInstrumentation extends Instrumentation {
                 Context pluginContext = mPluginManager.createPluginContext(
                         activityInfo.packageName, activity.getBaseContext());
                 try {
-                    FieldUtils.writeField(activity.getBaseContext().getClass(), "mResources", activity.getBaseContext(), pluginInfo.resources);
+                    Context baseContext = activity.getBaseContext();
+                    while (baseContext instanceof ContextWrapper) {
+                        baseContext = ((ContextWrapper) baseContext).getBaseContext();
+                    }
+                    Logger.d(TAG, "baseContext = " + baseContext);
+                    FieldUtils.writeField(baseContext, "mResources", pluginInfo.resources);
                     FieldUtils.writeField(ContextWrapper.class, "mBase", activity, pluginContext);
                     FieldUtils.writeField(activity, "mApplication", pluginInfo.application);
                     FieldUtils.writeField(ContextThemeWrapper.class, "mBase", activity, pluginContext);

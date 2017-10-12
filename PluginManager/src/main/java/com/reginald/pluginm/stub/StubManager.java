@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -55,6 +56,7 @@ public class StubManager {
     private final Map<String, ProcessInfo> mPluginSingleProcessMap = new HashMap<>(10);
     private Context mContext;
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
+    private ApplicationInfo mStubApplicationInfo;
 
     private StubManager(Context context) {
         mContext = context;
@@ -98,6 +100,7 @@ public class StubManager {
         try {
             PackageInfo packageInfo = pm.getPackageInfo(mContext.getPackageName(), PackageManager.GET_PERMISSIONS);
             if (packageInfo != null) {
+                mStubApplicationInfo = packageInfo.applicationInfo;
                 String[] permissions = packageInfo.requestedPermissions;
                 if (permissions != null && permissions.length > 0) {
                     for (String permission : permissions) {
@@ -138,6 +141,10 @@ public class StubManager {
 
         Logger.d(TAG, "init() " + this);
 
+    }
+
+    public ApplicationInfo getStubApplicationInfo() {
+        return mStubApplicationInfo;
     }
 
     public Set<String> getStubPermissions() {

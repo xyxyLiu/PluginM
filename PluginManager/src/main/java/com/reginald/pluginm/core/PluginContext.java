@@ -78,11 +78,6 @@ public class PluginContext extends ContextThemeWrapper {
 
     @Override
     public Resources.Theme getTheme() {
-        Logger.d(TAG, "getTheme() super theme = " + super.getTheme());
-        Resources.Theme theme = mPluginInfo.resources.newTheme();
-        theme.applyStyle(mPluginInfo.applicationInfo.theme, false);
-        Logger.d(TAG, "getTheme() mPluginInfo.applicationInfo.theme = " + mPluginInfo.applicationInfo.theme);
-
         return super.getTheme();
     }
 

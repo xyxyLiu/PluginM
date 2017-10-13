@@ -34,11 +34,14 @@ public class PluginContentResolver extends ContentResolver {
         try {
             IContentProvider iContentProvider = getTargetProvider(auth);
             if (iContentProvider != null) {
+                Logger.d(TAG, "acquireProvider() plugin result = " + iContentProvider);
                 return iContentProvider;
             }
             Method method = mOriginContentResolver.getClass().getDeclaredMethod("acquireProvider", new Class[]{Context.class, String.class});
             method.setAccessible(true);
-            return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
+            iContentProvider = (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
+            Logger.d(TAG, "acquireProvider() host result = " + iContentProvider);
+            return iContentProvider;
         } catch (Exception e) {
             Logger.e(TAG, "acquireProvider() error!", e);
         }
@@ -84,12 +87,15 @@ public class PluginContentResolver extends ContentResolver {
         try {
             IContentProvider iContentProvider = getTargetProvider(auth);
             if (iContentProvider != null) {
+                Logger.d(TAG, "acquireUnstableProvider() plugin result = " + iContentProvider);
                 return iContentProvider;
             }
 
             Method method = mOriginContentResolver.getClass().getDeclaredMethod("acquireUnstableProvider", new Class[]{Context.class, String.class});
             method.setAccessible(true);
-            return (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
+            iContentProvider = (IContentProvider) method.invoke(mOriginContentResolver, context, auth);
+            Logger.d(TAG, "acquireUnstableProvider() host result = " + iContentProvider);
+            return iContentProvider;
         } catch (Exception e) {
             Logger.e(TAG, "acquireUnstableProvider() error!", e);
         }

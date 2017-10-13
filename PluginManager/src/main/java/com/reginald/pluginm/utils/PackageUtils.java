@@ -67,6 +67,10 @@ public class PackageUtils {
         return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_APK_FOLDER_NAME);
     }
 
+    public static File getPluginApk(Context context, String packageName) {
+        return new File(makePluginApkDir(context, packageName), PLUGIN_APK_FILE_NAME);
+    }
+
     public static File makePluginDexDir(Context context, String packageName) {
         return getOrMakeDir(makePluginDir(context, packageName), PLUGIN_DEX_FOLDER_NAME);
     }

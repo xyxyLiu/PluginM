@@ -259,10 +259,9 @@ public class PluginManagerService extends IPluginManager.Stub {
             resolveConfigInfo(pluginInfo);
             pluginInfo.dexDir = PackageUtils.makePluginDexDir(mContext, pluginPkgName).getAbsolutePath();
             pluginInfo.nativeLibDir = PackageUtils.makePluginLibDir(mContext, pluginPkgName).getAbsolutePath();
-            pluginInfo.apkPath = originApk.getAbsolutePath();
+            pluginInfo.apkPath = PackageUtils.getPluginApk(mContext, pluginPkgName).getAbsolutePath();
             pluginInfo.fileSize = originApk.length();
             pluginInfo.lastModified = originApk.lastModified();
-
 
             if (!checkInstall(pluginInfo, isInternal)) {
                 Logger.e(TAG, String.format("install() invalid plugin! plugin = %s", pluginInfo));
@@ -288,24 +287,12 @@ public class PluginManagerService extends IPluginManager.Stub {
 
                 // if not from internal apk
                 if (!isInternal) {
-                    File pluginDir = PackageUtils.makePluginDir(mContext, pluginPkgName);
-                    if (!pluginDir.exists()) {
-                        Logger.e(TAG, "install() pluginDir for " + pluginPkgName + " init error!");
-                        return null;
-                    }
-
-                    File pluginApkDir = PackageUtils.makePluginApkDir(mContext, pluginPkgName);
-                    if (!pluginApkDir.exists()) {
-                        Logger.e(TAG, "install() pluginDir " + pluginApkDir.getAbsolutePath() + " NOT found!");
-                        return null;
-                    }
-
-                    File pluginApk = new File(pluginApkDir, "base.apk");
-                    boolean isSuccess = PackageUtils.copyFile(originApk.getAbsolutePath(), pluginApk.getAbsolutePath());
+                    boolean isSuccess = PackageUtils.copyFile(originApk.getAbsolutePath(), pluginInfo.apkPath);
                     if (!isSuccess) {
-                        Logger.e(TAG, "install() pluginApk = " + pluginApk.getAbsolutePath() + " copy error!");
+                        Logger.e(TAG, String.format("install() copy apk from %s to %s error!", originApk.getAbsolutePath(), pluginInfo.apkPath));
                         return null;
                     }
+                    File apkFile = new File(pluginInfo.apkPath);
 
                     // create classloader & dexopt
                     if (isLoadDex) {
@@ -315,7 +302,7 @@ public class PluginManagerService extends IPluginManager.Stub {
 
                         parentClassLoader = hostClassLoader.getParent();
                         DexClassLoader dexClassLoader = new PluginDexClassLoader(
-                                pluginApk.getAbsolutePath(), pluginInfo.dexDir,
+                                pluginInfo.apkPath, pluginInfo.dexDir,
                                 pluginInfo.nativeLibDir, parentClassLoader, hostClassLoader);
 
                         Logger.d(TAG, "install() dexClassLoader = " + dexClassLoader);
@@ -326,9 +313,8 @@ public class PluginManagerService extends IPluginManager.Stub {
                     }
 
                     // install so
-                    File apkParent = pluginApk.getParentFile();
-                    File tempSoDir = new File(apkParent, "temp");
-                    Set<String> soList = PackageUtils.unZipSo(pluginApk, tempSoDir);
+                    File tempSoDir = new File(apkFile.getParentFile(), "temp");
+                    Set<String> soList = PackageUtils.unZipSo(apkFile, tempSoDir);
                     if (soList != null) {
                         for (String soName : soList) {
                             PackageUtils.copySo(tempSoDir, soName, pluginInfo.nativeLibDir);

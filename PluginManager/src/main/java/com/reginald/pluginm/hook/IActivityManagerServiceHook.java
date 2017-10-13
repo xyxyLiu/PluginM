@@ -134,7 +134,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             }
 
             return true;
-        }
+       }
 
         public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
             return invokeResult;

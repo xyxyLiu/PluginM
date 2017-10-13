@@ -1,5 +1,6 @@
 package com.reginald.pluginm.core;
 
+import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.utils.Logger;
 
@@ -11,7 +12,7 @@ import dalvik.system.DexClassLoader;
 public class PluginDexClassLoader extends DexClassLoader {
 
     private static final String TAG = "PluginDexClassLoader";
-    private static final boolean LOADER_DEBUG = false;
+    private static final boolean LOADER_DEBUG = BuildConfig.DEBUG_LOG && false;
 
     private final ClassLoader mHost;
 

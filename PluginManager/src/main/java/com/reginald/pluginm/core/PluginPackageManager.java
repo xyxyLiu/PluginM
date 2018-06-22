@@ -11,6 +11,7 @@ import android.content.pm.FeatureInfo;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
+import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionGroupInfo;
 import android.content.pm.PermissionInfo;
@@ -753,5 +754,17 @@ public class PluginPackageManager extends PackageManager {
         Object intent = MethodUtils.invokeMethodNoThrow(mBase, "buildRequestPermissionsIntent",
                 new Object[]{permissions}, new Class[]{String[].class});
         return (Intent)intent;
+    }
+
+    public Drawable loadItemIcon(PackageItemInfo itemInfo, ApplicationInfo appInfo) {
+        Object obj = MethodUtils.invokeMethodNoThrow(mBase, "loadItemIcon",
+                new Object[]{itemInfo, appInfo}, new Class[]{PackageItemInfo.class, ApplicationInfo.class});
+        return (Drawable)obj;
+    }
+
+    public Drawable loadUnbadgedItemIcon(PackageItemInfo itemInfo, ApplicationInfo appInfo) {
+        Object obj = MethodUtils.invokeMethodNoThrow(mBase, "loadUnbadgedItemIcon",
+                new Object[]{itemInfo, appInfo}, new Class[]{PackageItemInfo.class, ApplicationInfo.class});
+        return (Drawable)obj;
     }
 }

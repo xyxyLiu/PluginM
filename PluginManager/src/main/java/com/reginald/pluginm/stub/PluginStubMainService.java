@@ -265,7 +265,8 @@ public class PluginStubMainService extends Service {
                 Context pluginServiceContext = new PluginContext(loadedPluginInfo, getBaseContext());
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
-                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this, "mThread"), serviceInfo.name,
+                attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this,
+                        "mThread"), mStubInfo.name,
                         FieldUtils.readField(this, "mToken"), loadedPluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
                 // test

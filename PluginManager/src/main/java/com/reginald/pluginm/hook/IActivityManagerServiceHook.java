@@ -1,8 +1,8 @@
 package com.reginald.pluginm.hook;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.List;
 
 import com.reginald.pluginm.core.PluginManager;
 import com.reginald.pluginm.reflect.FieldUtils;
@@ -10,9 +10,9 @@ import com.reginald.pluginm.reflect.Utils;
 import com.reginald.pluginm.stub.PluginStubMainService;
 import com.reginald.pluginm.utils.Logger;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.List;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 
 /**
  * Created by lxy on 17-8-16.
@@ -44,15 +44,19 @@ public class IActivityManagerServiceHook extends ServiceHook {
             if (targetObj != null) {
                 if (iActivityManagerCls.isInstance(targetObj)) {
                     List<Class<?>> interfaces = Utils.getAllInterfaces(targetObj.getClass());
-                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces.toArray(new Class[interfaces.size()]) : new Class[0];
-                    Object proxiedActivityManager = Proxy.newProxyInstance(targetObj.getClass().getClassLoader(), ifs, this);
+                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
+                            .toArray(new Class[interfaces.size()]) : new Class[0];
+                    Object proxiedActivityManager =
+                            Proxy.newProxyInstance(targetObj.getClass().getClassLoader(), ifs, this);
                     FieldUtils.writeStaticField(activityManagerNativeCls, "gDefault", proxiedActivityManager);
                     mBase = targetObj;
                 } else if (singletonCls.isInstance(targetObj)) {
                     Object iActivityManagerObj = FieldUtils.readField(targetObj, "mInstance");
                     List<Class<?>> interfaces = Utils.getAllInterfaces(iActivityManagerObj.getClass());
-                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces.toArray(new Class[interfaces.size()]) : new Class[0];
-                    Object proxiedActivityManager = Proxy.newProxyInstance(iActivityManagerObj.getClass().getClassLoader(), ifs, this);
+                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
+                            .toArray(new Class[interfaces.size()]) : new Class[0];
+                    Object proxiedActivityManager =
+                            Proxy.newProxyInstance(iActivityManagerObj.getClass().getClassLoader(), ifs, this);
                     FieldUtils.writeField(targetObj, "mInstance", proxiedActivityManager);
                     mBase = iActivityManagerObj;
                 }
@@ -67,6 +71,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         addMethodHandler(new getIntentSender());
         addMethodHandler(new stopServiceToken());
         addMethodHandler(new overridePendingTransition());
+        addMethodHandler(new setServiceForeground());
 
         Logger.d(TAG, "install() install ok!");
         return true;
@@ -80,6 +85,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         /**
          * Type for IActivityManaqer.getIntentSender: this PendingIntent is
          * for a sendBroadcast operation.
+         *
          * @hide
          */
         public static final int INTENT_SENDER_BROADCAST = 1;
@@ -87,6 +93,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         /**
          * Type for IActivityManaqer.getIntentSender: this PendingIntent is
          * for a startActivity operation.
+         *
          * @hide
          */
         public static final int INTENT_SENDER_ACTIVITY = 2;
@@ -94,6 +101,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         /**
          * Type for IActivityManaqer.getIntentSender: this PendingIntent is
          * for an activity result operation.
+         *
          * @hide
          */
         public static final int INTENT_SENDER_ACTIVITY_RESULT = 3;
@@ -101,6 +109,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         /**
          * Type for IActivityManaqer.getIntentSender: this PendingIntent is
          * for a startService operation.
+         *
          * @hide
          */
         public static final int INTENT_SENDER_SERVICE = 4;
@@ -124,6 +133,8 @@ public class IActivityManagerServiceHook extends ServiceHook {
                     break;
                 case INTENT_SENDER_SERVICE:
                     newIntent = mPluginManager.getPluginServiceIntent(pluginIntent);
+                    newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY,
+                            PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
                     break;
             }
 
@@ -134,7 +145,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             }
 
             return true;
-       }
+        }
 
         public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
             return invokeResult;
@@ -160,13 +171,41 @@ public class IActivityManagerServiceHook extends ServiceHook {
             Intent newIntent = mPluginManager.getPluginServiceIntent(pluginIntent);
             Logger.d(TAG, "stopServiceToken() onStartInvoke : newIntent = " + newIntent);
             if (newIntent != null) {
-                newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY, PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
+                newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY,
+                        PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
                 newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_STARTID, startId);
                 mPluginManager.getHostContext().startService(newIntent);
                 return false;
             } else {
                 return true;
             }
+        }
+
+        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
+            return invokeResult == null ? true : invokeResult;
+        }
+    }
+
+    /**
+     * public void setServiceForeground(ComponentName className, IBinder token,
+     * int id, Notification notification, int flags) throws RemoteException;
+     */
+    private class setServiceForeground extends ServiceHook.MethodHandler {
+
+        @Override
+        public String getName() {
+            return "setServiceForeground";
+        }
+
+        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+            ComponentName component = (ComponentName) args[0];
+            Logger.d(TAG, "setServiceForeground() component = " + component);
+            if (component != null) {
+                ComponentName newComponentName = new ComponentName(mPluginManager.getHostContext().getPackageName(),
+                        component.getClassName());
+                args[0] = newComponentName;
+            }
+            return true;
         }
 
         public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {

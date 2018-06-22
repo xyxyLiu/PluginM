@@ -2,6 +2,7 @@ package com.reginald.pluginm.core;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ActivityGroup;
 import android.app.Fragment;
 import android.app.Instrumentation;
 import android.content.ComponentName;
@@ -19,6 +20,7 @@ import com.android.common.ActivityThreadCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.stub.PluginStubLocalActivityManager;
 import com.reginald.pluginm.stub.Stubs;
 import com.reginald.pluginm.utils.Logger;
 
@@ -309,6 +311,13 @@ public class HostInstrumentation extends Instrumentation {
 
                         activity = mBase.newActivity(pluginInfo.classLoader, component.getClassName(), intent);
 
+                        if (activity instanceof ActivityGroup) {
+                            Logger.d(TAG, "replace LocalActivityManager for ActivityGroup " + activity);
+                            ActivityGroup ag = (ActivityGroup) activity;
+                            FieldUtils.writeField(ag, "mLocalActivityManager",
+                                    new PluginStubLocalActivityManager(ag.getLocalActivityManager()));
+                        }
+
                         activity.setIntent(intent);
                         mLastNewTargetIntent = new Intent(intent);
                         mLastNewTargetActivity = new WeakReference<Activity>(activity);
@@ -429,6 +438,12 @@ public class HostInstrumentation extends Instrumentation {
         }
 
         mBase.callActivityOnCreate(activity, icicle);
+    }
+
+    @Override
+    public void callActivityOnNewIntent(Activity activity, Intent intent) {
+        Intent origIntent = PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader());
+        mBase.callActivityOnNewIntent(activity, origIntent);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.reginald.pluginm.stub;
 
 import com.reginald.pluginm.core.PluginManager;
-import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.utils.Logger;
 
@@ -27,7 +26,7 @@ public class PluginStubLocalActivityManager extends LocalActivityManager {
      */
     public PluginStubLocalActivityManager(Activity parent, boolean singleMode) {
         super(parent, singleMode);
-        mPluginManager = PluginManager.getInstance(PluginHelper.getHostContext(parent));
+        mPluginManager = PluginManager.getInstance();
     }
 
     public PluginStubLocalActivityManager(LocalActivityManager base) throws IllegalAccessException {

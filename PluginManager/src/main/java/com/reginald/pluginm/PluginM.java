@@ -27,7 +27,7 @@ import java.util.List;
  */
 
 public class PluginM {
-    private static Context sAppContext;
+    private static Context sContext;
     private static PluginConfigs sConfigs;
     private static PluginManager sPluginManager;
 
@@ -35,7 +35,7 @@ public class PluginM {
         if (app == null || configs == null) {
             throw new IllegalStateException("app and configs MUST be provided!");
         }
-        sAppContext = app;
+        sContext = app;
         sConfigs = configs;
         PluginManager.onAttachBaseContext(app);
     }
@@ -49,64 +49,64 @@ public class PluginM {
     }
 
     public static PluginInfo install(String apkPath, boolean loadDex) {
-        return PluginManager.getInstance(sAppContext).installPlugin(apkPath, loadDex);
+        return PluginManager.getInstance().installPlugin(apkPath, loadDex);
     }
 
     public static PluginInfo uninstall(String packageName) {
-        return PluginManager.getInstance(sAppContext).uninstallPlugin(packageName);
+        return PluginManager.getInstance().uninstallPlugin(packageName);
     }
 
     public static PluginInfo getInstalledPlugin(String packageName) {
-        return PluginManager.getInstance(sAppContext).getInstalledPluginInfo(packageName);
+        return PluginManager.getInstance().getInstalledPluginInfo(packageName);
     }
 
     public static List<PluginInfo> getAllInstalledPlugins() {
-        return PluginManager.getInstance(sAppContext).getAllInstalledPlugins();
+        return PluginManager.getInstance().getAllInstalledPlugins();
     }
 
     public static List<PluginInfo> getAllRunningPlugins() {
-        return PluginManager.getInstance(sAppContext).getAllRunningPlugins();
+        return PluginManager.getInstance().getAllRunningPlugins();
     }
 
     public static boolean isPluginRunning(String pkgName) {
-        return PluginManager.getInstance(sAppContext).isPluginRunning(pkgName);
+        return PluginManager.getInstance().isPluginRunning(pkgName);
     }
 
     public static PackageManager getPluginPackageManager(Context context) {
-        return PluginManager.getInstance(sAppContext).getPluginPackageManager();
+        return PluginManager.getInstance().getPluginPackageManager();
     }
 
     public static void startActivity(Context context, Intent intent) {
-        PluginManager.getInstance(sAppContext).startActivity(context, intent);
+        PluginManager.getInstance().startActivity(context, intent);
     }
 
     public static void startActivity(Context context, Intent intent, Bundle options) {
-        PluginManager.getInstance(sAppContext).startActivity(context, intent, options);
+        PluginManager.getInstance().startActivity(context, intent, options);
     }
 
     public static void startActivityForResult(Activity activity, Intent intent, int requestCode) {
-        PluginManager.getInstance(sAppContext).startActivityForResult(activity, intent, requestCode);
+        PluginManager.getInstance().startActivityForResult(activity, intent, requestCode);
     }
 
     public static void startActivityForResult(Activity activity, Intent intent, int requestCode, Bundle options) {
-        PluginManager.getInstance(sAppContext).startActivityForResult(activity, intent, requestCode, options);
+        PluginManager.getInstance().startActivityForResult(activity, intent, requestCode, options);
     }
 
     public static ComponentName startService(Context context, Intent intent) {
-        return PluginManager.getInstance(sAppContext).startService(context, intent);
+        return PluginManager.getInstance().startService(context, intent);
     }
 
     public static boolean stopService(Context context, Intent intent) {
-        return PluginManager.getInstance(sAppContext).stopService(context, intent);
+        return PluginManager.getInstance().stopService(context, intent);
     }
 
     public static boolean bindService(Context context, Intent intent, ServiceConnection conn,
             int flags) {
-        return PluginManager.getInstance(sAppContext).bindService(context, intent, conn, flags);
+        return PluginManager.getInstance().bindService(context, intent, conn, flags);
     }
 
     public static void unbindService(Context context, ServiceConnection conn) {
-        PluginManager.getInstance(sAppContext).unbindService(context, conn);
+        PluginManager.getInstance().unbindService(context, conn);
     }
 
     public static ContentResolver getContentResolver(Context context) {
@@ -116,12 +116,12 @@ public class PluginM {
     public static IInvokeResult invoke(String packageName, String serviceName, String methodName, String params, IInvokeCallback callback) {
         InvokeCallback invokeCallback = InvokeCallbackWrapper.build(callback);
 
-        final InvokeResult invokeResult = PluginCommClient.getInstance(sAppContext).invoke(packageName, serviceName, methodName, params, invokeCallback);
+        final InvokeResult invokeResult = PluginCommClient.getInstance(sContext).invoke(packageName, serviceName, methodName, params, invokeCallback);
 
         return InvokeResult.newIInvokerResult(invokeResult);
     }
 
     public static IBinder fetchService(String packageName, String serviceName) {
-        return PluginCommClient.getInstance(sAppContext).fetchService(packageName, serviceName);
+        return PluginCommClient.getInstance(sContext).fetchService(packageName, serviceName);
     }
 }

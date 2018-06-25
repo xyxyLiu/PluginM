@@ -10,9 +10,11 @@ import com.reginald.pluginm.reflect.Utils;
 import com.reginald.pluginm.stub.PluginStubMainService;
 import com.reginald.pluginm.utils.Logger;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 /**
  * Created by lxy on 17-8-16.
@@ -23,7 +25,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
     private PluginManager mPluginManager;
 
     public IActivityManagerServiceHook(Context context) {
-        mPluginManager = PluginManager.getInstance(context);
+        mPluginManager = PluginManager.getInstance();
     }
 
     public static boolean init(Context context) {
@@ -36,31 +38,46 @@ public class IActivityManagerServiceHook extends ServiceHook {
         Logger.d(TAG, "install() ");
         // hook
         try {
-            Class activityManagerNativeCls = Class.forName("android.app.ActivityManagerNative");
-            Class iActivityManagerCls = Class.forName("android.app.IActivityManager");
-            Class singletonCls = Class.forName("android.util.Singleton");
-            Object targetObj = FieldUtils.readStaticField(activityManagerNativeCls, "gDefault");
 
-            if (targetObj != null) {
-                if (iActivityManagerCls.isInstance(targetObj)) {
-                    List<Class<?>> interfaces = Utils.getAllInterfaces(targetObj.getClass());
-                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
-                            .toArray(new Class[interfaces.size()]) : new Class[0];
-                    Object proxiedActivityManager =
-                            Proxy.newProxyInstance(targetObj.getClass().getClassLoader(), ifs, this);
-                    FieldUtils.writeStaticField(activityManagerNativeCls, "gDefault", proxiedActivityManager);
-                    mBase = targetObj;
-                } else if (singletonCls.isInstance(targetObj)) {
-                    Object iActivityManagerObj = FieldUtils.readField(targetObj, "mInstance");
-                    List<Class<?>> interfaces = Utils.getAllInterfaces(iActivityManagerObj.getClass());
-                    Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
-                            .toArray(new Class[interfaces.size()]) : new Class[0];
-                    Object proxiedActivityManager =
-                            Proxy.newProxyInstance(iActivityManagerObj.getClass().getClassLoader(), ifs, this);
-                    FieldUtils.writeField(targetObj, "mInstance", proxiedActivityManager);
-                    mBase = iActivityManagerObj;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                Class activityManagerNativeCls = Class.forName("android.app.ActivityManagerNative");
+                Class iActivityManagerCls = Class.forName("android.app.IActivityManager");
+                Class singletonCls = Class.forName("android.util.Singleton");
+                Object targetObj = FieldUtils.readStaticField(activityManagerNativeCls, "gDefault");
+
+                if (targetObj != null) {
+                    if (iActivityManagerCls.isInstance(targetObj)) {
+                        List<Class<?>> interfaces = Utils.getAllInterfaces(targetObj.getClass());
+                        Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
+                                .toArray(new Class[interfaces.size()]) : new Class[0];
+                        Object proxiedActivityManager =
+                                Proxy.newProxyInstance(targetObj.getClass().getClassLoader(), ifs, this);
+                        FieldUtils.writeStaticField(activityManagerNativeCls, "gDefault", proxiedActivityManager);
+                        mBase = targetObj;
+                    } else if (singletonCls.isInstance(targetObj)) {
+                        Object iActivityManagerObj = FieldUtils.readField(targetObj, "mInstance");
+                        List<Class<?>> interfaces = Utils.getAllInterfaces(iActivityManagerObj.getClass());
+                        Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
+                                .toArray(new Class[interfaces.size()]) : new Class[0];
+                        Object proxiedActivityManager =
+                                Proxy.newProxyInstance(iActivityManagerObj.getClass().getClassLoader(), ifs, this);
+                        FieldUtils.writeField(targetObj, "mInstance", proxiedActivityManager);
+                        mBase = iActivityManagerObj;
+                    }
                 }
+            } else {
+                Object targetObj = FieldUtils.readStaticField(ActivityManager.class, "IActivityManagerSingleton");
+                Object iActivityManagerObj = FieldUtils.readField(targetObj, "mInstance");
+                List<Class<?>> interfaces = Utils.getAllInterfaces(iActivityManagerObj.getClass());
+                Class[] ifs = interfaces != null && interfaces.size() > 0 ? interfaces
+                        .toArray(new Class[interfaces.size()]) : new Class[0];
+                Object proxiedActivityManager =
+                        Proxy.newProxyInstance(iActivityManagerObj.getClass().getClassLoader(), ifs, this);
+                FieldUtils.writeField(targetObj, "mInstance", proxiedActivityManager);
+                mBase = iActivityManagerObj;
             }
+
+
         } catch (Exception e) {
             Logger.e(TAG, "install() hook error! ", e);
             return false;
@@ -201,9 +218,12 @@ public class IActivityManagerServiceHook extends ServiceHook {
             ComponentName component = (ComponentName) args[0];
             Logger.d(TAG, "setServiceForeground() component = " + component);
             if (component != null) {
-                ComponentName newComponentName = new ComponentName(mPluginManager.getHostContext().getPackageName(),
-                        component.getClassName());
-                args[0] = newComponentName;
+                ComponentName newComponentName = mPluginManager.getStubServiceComponent(component);
+                if (newComponentName != null) {
+                    args[0] = newComponentName;
+                } else {
+                    Logger.e(TAG, "setServiceForeground() can not found stub service info!");
+                }
             }
             return true;
         }

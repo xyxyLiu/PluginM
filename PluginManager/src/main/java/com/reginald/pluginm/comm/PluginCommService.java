@@ -42,7 +42,7 @@ public class PluginCommService extends IPluginComm.Stub {
     private PluginCommService(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
-        mPluginManager = PluginManager.getInstance(mContext);
+        mPluginManager = PluginManager.getInstance();
         mHostInvokerManager = HostInvokerManager.getInstance(mContext);
     }
 

@@ -52,7 +52,7 @@ public class PluginLocalManager implements IPluginLocalManager {
 
     @Override
     public PackageInfo getPluginPackageInfo(String packageName, int flags) {
-        return PluginManager.getInstance(mContext).getPackageInfo(packageName, flags);
+        return PluginManager.getInstance().getPackageInfo(packageName, flags);
     }
 
     @Override
@@ -73,6 +73,6 @@ public class PluginLocalManager implements IPluginLocalManager {
         if (pluginContext == null) {
             return null;
         }
-        return PluginManager.getInstance(mContext).getPluginInfoByClassLoader(pluginContext.getClassLoader());
+        return PluginManager.getInstance().getPluginInfoByClassLoader(pluginContext.getClassLoader());
     }
 }

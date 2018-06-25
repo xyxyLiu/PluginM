@@ -42,7 +42,7 @@ public class PluginStubMainService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        mPluginManager = PluginManager.getInstance(getApplicationContext());
+        mPluginManager = PluginManager.getInstance();
         mStubInfo = CommonUtils.getServiceInfo(this);
         Logger.d(TAG, "onCreate() mStubInfo = " + mStubInfo);
     }
@@ -68,6 +68,8 @@ public class PluginStubMainService extends Service {
                     ServiceRecord pluginServiceRecord = fetchCachedServiceRecord(serviceInfo);
                     if (pluginServiceRecord != null) {
                         int stopId = intent.getIntExtra(INTENT_EXTRA_START_TYPE_STARTID, -1);
+                        Logger.d(TAG, "onStartCommand() triggered by stopself of " + pluginServiceRecord.service +
+                                ", stopId = " + stopId);
                         if (stopId < 0 || stopId == pluginServiceRecord.startId) {
                             pluginServiceRecord.started = false;
                             if (pluginServiceRecord.canStopped()) {
@@ -236,7 +238,7 @@ public class PluginStubMainService extends Service {
 
 
     private ServiceRecord createPluginService(ServiceInfo serviceInfo) {
-        PluginInfo loadedPluginInfo = PluginManager.getInstance(getApplicationContext()).loadPlugin(serviceInfo.packageName);
+        PluginInfo loadedPluginInfo = PluginManager.getInstance().loadPlugin(serviceInfo.packageName);
         if (loadedPluginInfo == null) {
             Logger.e(TAG, "createPluginService() no loaded plugininfo found for " + serviceInfo);
             return null;
@@ -266,7 +268,7 @@ public class PluginStubMainService extends Service {
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
                 attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this,
-                        "mThread"), mStubInfo.name,
+                        "mThread"), serviceInfo.name,
                         FieldUtils.readField(this, "mToken"), loadedPluginInfo.application, FieldUtils.readField(this, "mActivityManager"));
 
                 // test

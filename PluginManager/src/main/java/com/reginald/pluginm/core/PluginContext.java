@@ -45,7 +45,7 @@ public class PluginContext extends ContextThemeWrapper {
         mResources = pluginInfo.resources;
         mClassLoader = pluginInfo.classLoader;
         mContentResolver = new PluginContentResolver(mBaseContext, super.getContentResolver());
-        mPluginManager = PluginManager.getInstance(mBaseContext);
+        mPluginManager = PluginManager.getInstance();
     }
 
     public String getPackageResourcePath() {

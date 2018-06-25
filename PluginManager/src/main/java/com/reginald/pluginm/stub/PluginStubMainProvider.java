@@ -74,7 +74,7 @@ public class PluginStubMainProvider extends ContentProvider {
             final ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
             final Bundle resultBundle = new Bundle();
 
-            PluginInfo loadedPluginInfo = PluginManager.getInstance(getContext()).loadPlugin(providerInfo.packageName);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance().loadPlugin(providerInfo.packageName);
 
             if (loadedPluginInfo == null) {
                 return null;
@@ -177,7 +177,7 @@ public class PluginStubMainProvider extends ContentProvider {
                     contentProvider = cp;
                 } else {
                     mContentProviderMap.put(providerInfo.name, contentProvider);
-                    PluginManager.getInstance(getContext()).callProviderOnCreate(contentProvider, mStubInfo, providerInfo);
+                    PluginManager.getInstance().callProviderOnCreate(contentProvider, mStubInfo, providerInfo);
                 }
             }
 

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ChangedPackages;
 import android.content.pm.FeatureInfo;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageInfo;
@@ -18,6 +19,8 @@ import android.content.pm.PermissionInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
+import android.content.pm.SharedLibraryInfo;
+import android.content.pm.VersionedPackage;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.Rect;
@@ -48,7 +51,7 @@ public class PluginPackageManager extends PackageManager {
     private PackageManager mBase;
 
     public PluginPackageManager(Context hostContext, PackageManager base) {
-        mPluginManager = PluginManager.getInstance(hostContext);
+        mPluginManager = PluginManager.getInstance();
         mBase = base;
     }
 
@@ -64,6 +67,22 @@ public class PluginPackageManager extends PackageManager {
         }
 
         return mBase.getPackageInfo(packageName, flags);
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public PackageInfo getPackageInfo(VersionedPackage versionedPackage, int flags)
+            throws NameNotFoundException {
+        try {
+            PackageInfo packageInfo = mPluginManager.getPackageInfo(versionedPackage.getPackageName(), flags);
+            if (packageInfo != null) {
+                return packageInfo;
+            }
+        } catch (Exception e) {
+            Logger.e(TAG, "getPackageInfo() versionedPackage = " + versionedPackage, e);
+        }
+
+        return mBase.getPackageInfo(versionedPackage, flags);
     }
 
     @Override
@@ -331,9 +350,64 @@ public class PluginPackageManager extends PackageManager {
         return applicationInfos;
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public boolean isInstantApp() {
+        return mBase.isInstantApp();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public boolean isInstantApp(String packageName) {
+        if (mPluginManager.getInstalledPluginInfo(packageName) != null) {
+            // if plugin
+            return isInstantApp();
+        }
+        return mBase.isInstantApp(packageName);
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public int getInstantAppCookieMaxBytes() {
+        return mBase.getInstantAppCookieMaxBytes();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @NonNull
+    @Override
+    public byte[] getInstantAppCookie() {
+        return mBase.getInstantAppCookie();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public void clearInstantAppCookie() {
+        mBase.clearInstantAppCookie();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public void updateInstantAppCookie(@Nullable byte[] cookie) {
+        mBase.updateInstantAppCookie(cookie);
+    }
+
     @Override
     public String[] getSystemSharedLibraryNames() {
         return mBase.getSystemSharedLibraryNames();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @NonNull
+    @Override
+    public List<SharedLibraryInfo> getSharedLibraries(int flags) {
+        return mBase.getSharedLibraries(flags);
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    @Nullable
+    @Override
+    public ChangedPackages getChangedPackages(int sequenceNumber) {
+        return mBase.getChangedPackages(sequenceNumber);
     }
 
     @Override
@@ -736,6 +810,16 @@ public class PluginPackageManager extends PackageManager {
         return mBase.isSafeMode();
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public void setApplicationCategoryHint(@NonNull String packageName, int categoryHint) {
+        if (mPluginManager.getInstalledPluginInfo(packageName) != null) {
+            // if plugin
+            return;
+        }
+        mBase.setApplicationCategoryHint(packageName, categoryHint);
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     @NonNull
     @Override
@@ -743,6 +827,11 @@ public class PluginPackageManager extends PackageManager {
         return mBase.getPackageInstaller();
     }
 
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    public boolean canRequestPackageInstalls() {
+        return mBase.canRequestPackageInstalls();
+    }
 
     public boolean shouldShowRequestPermissionRationale(String permission) {
         Object bool = MethodUtils.invokeMethodNoThrow(mBase, "shouldShowRequestPermissionRationale", permission);

@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
@@ -85,14 +86,13 @@ public class PluginManager {
     private volatile IPluginManager mService;
     private PackageManager mPluginPackageManager;
 
-    private PluginManager(Context hostContext) {
-        Context appContext = hostContext.getApplicationContext();
-        mContext = appContext != null ? appContext : hostContext;
+    private PluginManager() {
+        mContext = ProcessHelper.getHostContext();
     }
 
-    public static synchronized PluginManager getInstance(Context hostContext) {
+    public static synchronized PluginManager getInstance() {
         if (sInstance == null) {
-            sInstance = new PluginManager(hostContext);
+            sInstance = new PluginManager();
         }
 
         return sInstance;
@@ -715,6 +715,18 @@ public class PluginManager {
                 Logger.e(TAG, "getPluginServiceIntent() error!", e);
             }
         }
+        return null;
+    }
+
+    public ComponentName getStubServiceComponent(ComponentName pluginComponent) {
+        Intent pluginIntent = new Intent();
+        pluginIntent.setComponent(pluginComponent);
+        Intent stubIntent = getPluginServiceIntent(pluginIntent);
+
+        if (stubIntent != null) {
+            return stubIntent.getComponent();
+        }
+
         return null;
     }
 

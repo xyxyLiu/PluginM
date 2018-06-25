@@ -19,12 +19,19 @@ public class ProcessHelper {
 
     public static String sProcessName;
 
+    public static Context sApp;
+
     public static void init(Context context) {
+        sApp = context;
         sPid = Process.myPid();
         sProcessName = getProcessName(context, sPid);
         if (TextUtils.isEmpty(sProcessName)) {
             throw new IllegalStateException("CAN NOT get processName for pid " + sPid);
         }
+    }
+
+    public static Context getHostContext() {
+        return sApp;
     }
 
     public static String getProcessName(Context context, int pid) {

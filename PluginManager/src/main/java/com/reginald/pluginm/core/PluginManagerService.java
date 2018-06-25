@@ -552,7 +552,7 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public Bundle getPluginProviderUri(String auth) {
-        ProviderInfo providerInfo = PluginManager.getInstance(mContext).resolveProviderInfo(auth);
+        ProviderInfo providerInfo = PluginManager.getInstance().resolveProviderInfo(auth);
         Logger.d(TAG, "getPluginProviderUri() auth = " + auth + ",resolved providerInfo = " + providerInfo);
 
         if (providerInfo == null) {

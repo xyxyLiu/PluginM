@@ -56,11 +56,16 @@ public class HostInstrumentation extends Instrumentation {
         try {
             Field mInstrumentationField = FieldUtils.getField(ActivityThreadClass, "mInstrumentation");
             Instrumentation baseInstrumentation = (Instrumentation) FieldUtils.readField(mInstrumentationField, target);
-            Instrumentation newInstrumentation = new HostInstrumentation(
-                    PluginManager.getInstance(hostContext), baseInstrumentation);
-            FieldUtils.writeField(mInstrumentationField, target, newInstrumentation);
-            Logger.i(TAG, "HostInstrumentation has installed!");
-            return newInstrumentation;
+            if (baseInstrumentation instanceof HostInstrumentation) {
+                Logger.i(TAG, "HostInstrumentation has already installed!");
+                return baseInstrumentation;
+            } else {
+                Instrumentation newInstrumentation = new HostInstrumentation(
+                        PluginManager.getInstance(), baseInstrumentation);
+                FieldUtils.writeField(mInstrumentationField, target, newInstrumentation);
+                Logger.i(TAG, "HostInstrumentation is now installed!");
+                return newInstrumentation;
+            }
         } catch (Exception e) {
             Logger.e(TAG, "install() error!", e);
         }
@@ -398,6 +403,13 @@ public class HostInstrumentation extends Instrumentation {
                     Logger.d(TAG, "callActivityOnCreate() replace context ok! ");
                 } catch (IllegalAccessException e) {
                     Logger.e(TAG, "callActivityOnCreate() replace context error! ", e);
+                }
+
+                try {
+                    FieldUtils.writeField(activity, "mInstrumentation", this);
+                    Logger.d(TAG, "callActivityOnCreate() replace mInstrumentation ok! ");
+                } catch (IllegalAccessException e) {
+                    Logger.e(TAG, "callActivityOnCreate() replace mInstrumentation error! ", e);
                 }
 
                 // orientation:

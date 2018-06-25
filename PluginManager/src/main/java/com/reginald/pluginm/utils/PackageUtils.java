@@ -1,9 +1,11 @@
 package com.reginald.pluginm.utils;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.Signature;
 import android.os.Build;
+import android.text.TextUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -21,8 +23,11 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import com.reginald.pluginm.core.PluginManager;
 
 public class PackageUtils {
 
@@ -36,6 +41,9 @@ public class PackageUtils {
     public static final String PLUGIN_LIB_FOLDER_NAME = "lib";
     public static final String PLUGIN_SIGNATURE_FOLDER_NAME = "signatures";
     public static final String PLUGIN_SIGNATURE_FILE_PREFIX = "sig_";
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static AtomicBoolean sHostSupport64 = null;
 
     public static File getPluginRootDir(Context context) {
         return context.getDir(PLUGIN_ROOT, Context.MODE_PRIVATE);
@@ -190,18 +198,23 @@ public class PackageUtils {
         String soDestPath = dest + File.separator + so;
 
         try {
-
-
-            if (Build.VERSION.SDK_INT >= 21) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                boolean support64 = isHostSo64();
+                Logger.d(TAG, "host support " + (support64 ? "64-bit" : "32-bit"));
                 String[] abis = Build.SUPPORTED_ABIS;
                 if (abis != null) {
                     for (String abi : abis) {
+                        if (support64 ^ is64(abi)) {
+                            Logger.d(TAG, "abi " + abi + " not comply with host!");
+                            continue;
+                        }
                         Logger.d(TAG, "try supported abi: " + abi);
+
                         String name = "lib" + File.separator + abi + File.separator + so;
                         File sourceFile = new File(sourceDir, name);
                         if (sourceFile.exists()) {
                             if (copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
-                                Logger.d(TAG, "use " + name);
+                                Logger.d(TAG, "#apply " + name);
                                 return true;
                             }
                         }
@@ -210,20 +223,22 @@ public class PackageUtils {
             } else {
                 Logger.d(TAG, "supported api: " + Build.CPU_ABI + " , " + Build.CPU_ABI2);
 
-                String name = "lib" + File.separator + Build.CPU_ABI + File.separator + so;
-                File sourceFile = new File(sourceDir, name);
-
-                if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
-                    Logger.d(TAG, "use " + name);
-                    return true;
-                }
-
-                if (Build.CPU_ABI2 != null) {
-                    name = "lib" + File.separator + Build.CPU_ABI2 + File.separator + so;
-                    sourceFile = new File(sourceDir, name);
+                if (!TextUtils.isEmpty(Build.CPU_ABI)) {
+                    String name = "lib" + File.separator + Build.CPU_ABI + File.separator + so;
+                    File sourceFile = new File(sourceDir, name);
 
                     if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
                         Logger.d(TAG, "use " + name);
+                        return true;
+                    }
+                }
+
+                if (!TextUtils.isEmpty(Build.CPU_ABI2)) {
+                    String name = "lib" + File.separator + Build.CPU_ABI2 + File.separator + so;
+                    File sourceFile = new File(sourceDir, name);
+
+                    if (sourceFile.exists() && copyFile(sourceFile.getAbsolutePath(), soDestPath)) {
+                        Logger.d(TAG, "#apply " + name);
                         return true;
                     }
                 }
@@ -249,6 +264,63 @@ public class PackageUtils {
         return false;
     }
 
+    public static boolean is64(String abi) {
+        return abi.contains("64");
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private static boolean isHostSo64() {
+        if (sHostSupport64 != null) {
+            return sHostSupport64.get();
+        }
+
+        boolean result = false;
+        Set<String> supportedAbis = getAbisFromApk(getHostApk());
+        if (Build.SUPPORTED_64_BIT_ABIS.length == 0) {
+            result = false;
+        } else if (supportedAbis == null || supportedAbis.isEmpty()) {
+            result = true;
+        } else {
+            for (String supportedAbi : supportedAbis) {
+                if (is64(supportedAbi)) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+
+        sHostSupport64 = new AtomicBoolean(result);
+        return result;
+    }
+
+    private static Set<String> getAbisFromApk(String apk) {
+        try {
+            ZipFile apkFile = new ZipFile(apk);
+            Enumeration<? extends ZipEntry> entries = apkFile.entries();
+            Set<String> supportedAbis = new HashSet<>();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                String name = entry.getName();
+                if (name.contains("../")) {
+                    continue;
+                }
+                if (name.startsWith("lib/") && !entry.isDirectory() && name.endsWith(".so")) {
+                    String supportedAbi = name.substring(name.indexOf("/") + 1, name.lastIndexOf("/"));
+                    supportedAbis.add(supportedAbi);
+                }
+            }
+            Logger.d(TAG, "supportedAbis : " + supportedAbis);
+            return supportedAbis;
+        } catch (Exception e) {
+            Logger.e(TAG, "get supportedAbis failure", e);
+        }
+
+        return null;
+    }
+
+    private static String getHostApk() {
+        return PluginManager.getInstance().getHostContext().getApplicationInfo().sourceDir;
+    }
 
     public static Set<String> unZipSo(File apkFile, File tempDir) {
 

@@ -43,7 +43,7 @@ public class PluginClientService extends IPluginClient.Stub {
 
     public static boolean attach(Context context) {
         try {
-            PluginManager.getInstance(context).onPluginProcessAttached(PluginClientService.getInstance(context));
+            PluginManager.getInstance().onPluginProcessAttached(PluginClientService.getInstance(context));
             return true;
         } catch (Throwable t) {
             Logger.e(TAG, "attach() error!", t);
@@ -59,7 +59,7 @@ public class PluginClientService extends IPluginClient.Stub {
 
     @Override
     public List<PluginInfo> getAllLoadedPlugins() throws RemoteException {
-        return PluginManager.getInstance(mContext).getLoadedPluginInfos();
+        return PluginManager.getInstance().getLoadedPluginInfos();
     }
 
     @Override
@@ -69,7 +69,7 @@ public class PluginClientService extends IPluginClient.Stub {
         if (pluginInvoker != null) {
             IInvokeCallback iInvokeCallback = InvokeCallbackWrapper.build(callback);
 
-            PluginInfo pluginInfo = PluginManager.getInstance(mContext).getLoadedPluginInfo(packageName);
+            PluginInfo pluginInfo = PluginManager.getInstance().getLoadedPluginInfo(packageName);
             if (pluginInfo != null) {
                 IInvokeResult result = pluginInvoker.onInvoke(pluginInfo.baseContext, methodName, params, iInvokeCallback);
                 return InvokeResult.build(result);
@@ -109,7 +109,7 @@ public class PluginClientService extends IPluginClient.Stub {
                 return null;
             }
 
-            PluginInfo pluginInfo = PluginManager.getInstance(mContext).getLoadedPluginInfo(packageName);
+            PluginInfo pluginInfo = PluginManager.getInstance().getLoadedPluginInfo(packageName);
 
             if (pluginInfo == null) {
                 Logger.w(TAG, String.format("fetchPluginServiceBinder() pluginInfo NOT found for %s @ %s", serviceName, packageName));
@@ -137,7 +137,7 @@ public class PluginClientService extends IPluginClient.Stub {
                 return pluginInvoker;
             }
 
-            PluginInfo pluginInfo = PluginManager.getInstance(mContext).loadPlugin(packageName);
+            PluginInfo pluginInfo = PluginManager.getInstance().loadPlugin(packageName);
 
             if (pluginInfo == null) {
                 Logger.w(TAG, String.format("fetchPluginInvoker() pluginInfo is Null! for %s @ %s", serviceName, packageName));

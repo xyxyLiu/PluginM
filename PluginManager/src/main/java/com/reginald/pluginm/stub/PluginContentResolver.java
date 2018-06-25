@@ -142,7 +142,7 @@ public class PluginContentResolver extends ContentResolver {
     }
 
     private IContentProvider getTargetProvider(String auth) {
-        Pair<Uri, Bundle> uriAndBundle = PluginManager.getInstance(mAppContext).getPluginProviderUri(auth);
+        Pair<Uri, Bundle> uriAndBundle = PluginManager.getInstance().getPluginProviderUri(auth);
         Logger.d(TAG, "getTargetProvider() auth = " + auth + "  ->  uriAndBundle = " + uriAndBundle);
         if (uriAndBundle != null) {
             return getIContentProvider(uriAndBundle);

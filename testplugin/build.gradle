@@ -45,6 +45,6 @@ dependencies {
     provided fileTree(dir: rootProject.ext.targetPluginApiLibDir, include: ['*.jar'])
     provided fileTree(dir: '../pluginsharelib/build/outputs/jar/', include: ['*.jar'])
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:23.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 //    compile project(':pluginlib')
 }

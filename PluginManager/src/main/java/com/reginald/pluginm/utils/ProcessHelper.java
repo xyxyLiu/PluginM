@@ -2,11 +2,15 @@ package com.reginald.pluginm.utils;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.text.TextUtils;
 
+import com.reginald.pluginm.reflect.MethodUtils;
 import com.reginald.pluginm.stub.StubManager;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -21,8 +25,11 @@ public class ProcessHelper {
 
     public static Context sApp;
 
+    private static Handler sHandler;
+
     public static void init(Context context) {
         sApp = context;
+        sHandler = new Handler(Looper.getMainLooper());
         sPid = Process.myPid();
         sProcessName = getProcessName(context, sPid);
         if (TextUtils.isEmpty(sProcessName)) {
@@ -32,6 +39,10 @@ public class ProcessHelper {
 
     public static Context getHostContext() {
         return sApp;
+    }
+
+    public static void post(Runnable runnable) {
+        sHandler.post(runnable);
     }
 
     public static String getProcessName(Context context, int pid) {
@@ -52,5 +63,19 @@ public class ProcessHelper {
         }
 
         return false;
+    }
+
+    public static final void setArgV0(String name) {
+        try {
+            MethodUtils.invokeStaticMethod(Class.forName("android.os.Process"), "setArgV0", name);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

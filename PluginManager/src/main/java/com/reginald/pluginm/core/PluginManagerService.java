@@ -236,6 +236,15 @@ public class PluginManagerService extends IPluginManager.Stub {
         return mRunningPluginProcess.get(processName);
     }
 
+    public String getPluginProcessName(int pid) {
+        for (PluginProcess pluginProcess : mRunningPluginProcess.values()) {
+            if (pid == pluginProcess.getPid()) {
+                return pluginProcess.getPluginProcessName();
+            }
+        }
+        return null;
+    }
+
     @Override
     public PluginInfo install(String pluginPath, boolean isInternal, boolean isLoadDex) {
         try {
@@ -786,6 +795,18 @@ public class PluginManagerService extends IPluginManager.Stub {
             throw new IllegalStateException("unknown process " + pid);
         }
 
+        PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
+        StubManager.ProcessInfo stubProcessInfo = mStubManager.getProcessInfo(processName);
+
+        if (stubProcessInfo == null) {
+            throw new IllegalStateException("no stub processInfo found for process " + processName);
+        }
+
+        if (pluginProcess == null) {
+            pluginProcess = new PluginProcess(pid, stubProcessInfo);
+            mRunningPluginProcess.put(processName, pluginProcess);
+        }
+
         if (client != null) {
             IPluginClient pluginClient = IPluginClient.Stub.asInterface(client);
             onPluginClientStarted(processName, pluginClient);
@@ -795,20 +816,13 @@ public class PluginManagerService extends IPluginManager.Stub {
 
     @Override
     public void onApplicationAttached(ApplicationInfo targetInfo, String processName) throws RemoteException {
+        Logger.d(TAG, String.format("onApplicationAttached() targetInfo = %s, stubProcessInfo = %s",
+                targetInfo, processName));
 
         PluginProcess pluginProcess = mRunningPluginProcess.get(processName);
-        StubManager.ProcessInfo stubProcessInfo = mStubManager.getProcessInfo(processName);
-
-        Logger.d(TAG, String.format("onApplicationAttached() targetInfo = %s, processName = %s, stubProcessInfo = %s",
-                targetInfo, processName, stubProcessInfo));
-
-        if (stubProcessInfo == null) {
-            throw new IllegalStateException("no stub processInfo found for process " + processName);
-        }
 
         if (pluginProcess == null) {
-            pluginProcess = new PluginProcess(stubProcessInfo);
-            mRunningPluginProcess.put(processName, pluginProcess);
+            throw new IllegalStateException("no PluginProcess found for process " + processName);
         }
 
         pluginProcess.onApplicationAttached(targetInfo);

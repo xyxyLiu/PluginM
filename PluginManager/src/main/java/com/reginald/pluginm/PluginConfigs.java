@@ -30,6 +30,11 @@ public class PluginConfigs {
      */
     public static final int PROCESS_TYPE_DUAL = StubManager.PROCESS_TYPE_DUAL;
 
+    /**
+     * 完整进程模式: 所有插件都完全拥有全部的进程，进程名与插件声明的进程名称一致。（适合加载第三方独立apk）
+     */
+    public static final int PROCESS_TYPE_COMPLETE = StubManager.PROCESS_TYPE_COMPLETE;
+
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
     private boolean mUseHostLoader = true;
     private final Set<Signature> mSignatures = new HashSet<>();
@@ -101,6 +106,9 @@ public class PluginConfigs {
                 break;
             case PROCESS_TYPE_DUAL:
                 processType = "DUAL";
+                break;
+            case PROCESS_TYPE_COMPLETE:
+                processType = "COMPLETE";
                 break;
         }
         return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, " +

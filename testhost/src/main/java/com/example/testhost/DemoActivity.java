@@ -1,9 +1,18 @@
 package com.example.testhost;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import com.reginald.pluginm.PluginConfigs;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginM;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -22,16 +31,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.reginald.pluginm.PluginConfigs;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginM;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by lxy on 17-8-24.
@@ -113,13 +112,13 @@ public class DemoActivity extends Activity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(String.format("选择一个apk(%s)", PLUGINS_PATH));
-        final List<String> pkgs = new ArrayList<>();
+        final List<PackageInfo> pkgs = new ArrayList<>();
         Iterator<String> iterator = apks.iterator();
         while (iterator.hasNext()) {
             String apk = iterator.next();
             PackageInfo pkgInfo = getPackageManager().getPackageArchiveInfo(apk, 0);
             if (pkgInfo != null && !TextUtils.isEmpty(pkgInfo.packageName)) {
-                pkgs.add(pkgInfo.packageName);
+                pkgs.add(pkgInfo);
             } else {
                 Toast.makeText(DemoActivity.this, "apk解析错误: " + apk, Toast.LENGTH_SHORT).show();
                 iterator.remove();
@@ -156,11 +155,15 @@ public class DemoActivity extends Activity {
                     itemView = LayoutInflater.from(DemoActivity.this).inflate(R.layout.apk_list_item_layout, null);
                 }
 
+                ImageView icon = (ImageView) itemView.findViewById(R.id.icon);
                 TextView textView = (TextView) itemView.findViewById(R.id.title);
                 Button installBtn = (Button) itemView.findViewById(R.id.install_btn);
                 Button deleteBtn = (Button) itemView.findViewById(R.id.delete_btn);
-                final String pkg = (String)getItem(position);
-                textView.setText(pkg);
+                final PackageInfo pkg = (PackageInfo)getItem(position);
+                Drawable apkIcon = pkg.applicationInfo.loadIcon(getPackageManager());
+                textView.setText(pkg.packageName + (PluginM.getInstalledPlugin(pkg.packageName) != null ?
+                                                            "(已安装)" : ""));
+                icon.setImageDrawable(apkIcon);
                 installBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

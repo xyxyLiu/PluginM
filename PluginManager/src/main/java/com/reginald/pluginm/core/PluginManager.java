@@ -1,5 +1,32 @@
 package com.reginald.pluginm.core;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.android.common.ContextCompat;
+import com.reginald.pluginm.IPluginManager;
+import com.reginald.pluginm.PluginConfigs;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.PluginNotFoundException;
+import com.reginald.pluginm.comm.PluginLocalManager;
+import com.reginald.pluginm.hook.IActivityManagerServiceHook;
+import com.reginald.pluginm.parser.ApkParser;
+import com.reginald.pluginm.pluginapi.IPluginLocalManager;
+import com.reginald.pluginm.pluginapi.PluginHelper;
+import com.reginald.pluginm.stub.PluginServiceConnection;
+import com.reginald.pluginm.stub.PluginStubMainProvider;
+import com.reginald.pluginm.stub.PluginStubMainService;
+import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ProcessHelper;
+import com.reginald.pluginm.utils.ThreadUtils;
+
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
@@ -31,32 +58,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.util.Pair;
-
-import com.android.common.ContextCompat;
-import com.reginald.pluginm.IPluginManager;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginNotFoundException;
-import com.reginald.pluginm.comm.PluginLocalManager;
-import com.reginald.pluginm.hook.IActivityManagerServiceHook;
-import com.reginald.pluginm.parser.ApkParser;
-import com.reginald.pluginm.pluginapi.IPluginLocalManager;
-import com.reginald.pluginm.pluginapi.PluginHelper;
-import com.reginald.pluginm.stub.PluginServiceConnection;
-import com.reginald.pluginm.stub.PluginStubMainProvider;
-import com.reginald.pluginm.stub.PluginStubMainService;
-import com.reginald.pluginm.utils.BinderParcelable;
-import com.reginald.pluginm.utils.Logger;
-import com.reginald.pluginm.utils.ProcessHelper;
-import com.reginald.pluginm.utils.ThreadUtils;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import dalvik.system.DexClassLoader;
 
 /**
@@ -249,8 +250,12 @@ public class PluginManager {
         return mContext;
     }
 
-    public PluginInfo loadPlugin(String packageName) {
-        Logger.d(TAG, "loadPlugin() packageName = " + packageName);
+    public PluginInfo loadPlugin(ComponentInfo componentInfo) {
+        return loadPlugin(componentInfo.packageName, componentInfo.processName);
+    }
+
+    public PluginInfo loadPlugin(String packageName, String pluginProcessName) {
+        Logger.d(TAG, "loadPlugin() packageName = " + packageName + ", pluginProcessName = " + pluginProcessName);
         try {
             String pluginPackageName = packageName;
             PluginInfo pluginInfo = null;
@@ -309,6 +314,10 @@ public class PluginManager {
 
                 mLoadedPluginMap.put(pluginPackageName, pluginInfo);
                 mLoadedClassLoaderMap.put(pluginPackageName, pluginClassLoader);
+
+                if (PluginM.getConfigs().getProcessType() == PluginConfigs.PROCESS_TYPE_COMPLETE) {
+                    ProcessHelper.setArgV0(pluginProcessName);
+                }
             }
 
             if (!initPlugin(pluginInfo, mContext)) {
@@ -1028,5 +1037,17 @@ public class PluginManager {
             }
         }
         return false;
+    }
+
+    public String getPluginProcessName(int pid) {
+        IPluginManager service = ensureService(mService);
+        if (service != null) {
+            try {
+                return service.getPluginProcessName(pid);
+            } catch (RemoteException e) {
+                Logger.e(TAG, "getPluginProcessName() error!", e);
+            }
+        }
+        return null;
     }
 }

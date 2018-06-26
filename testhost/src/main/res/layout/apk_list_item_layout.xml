@@ -6,26 +6,37 @@
     android:paddingTop="5dp"
     android:paddingBottom="5dp">
 
+    <ImageView
+            android:id="@+id/icon"
+            android:layout_marginLeft="5dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:scaleType="fitCenter" />
+
     <TextView
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="10dp"
+        android:gravity="center"
+        android:layout_marginLeft="5dp"
         android:textSize="12dp"
         />
 
     <Button
         android:id="@+id/install_btn"
         android:text="安装"
-        android:layout_width="wrap_content"
+        android:textSize="10dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/delete_btn"
         android:text="删除"
-        android:layout_width="wrap_content"
+        android:textSize="10dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content" />
 
 </LinearLayout>

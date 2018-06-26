@@ -9,7 +9,7 @@ Android插件化框架，支持APK免安装运行
 * 支持 API 14+
 * 低入侵，对插件开发透明，无需任何修改即可直接加载插件apk
 * 支持Android四大组件，Activity, Service, ContentProvider, Broadcast等，支持so加载。
-* 支持多进程，提供3种进程模式可供选择。
+* 支持多进程，提供4种进程模式可供选择。
 * 调试方便，编译生成的插件apk即可以独立运行，也可以在插件框架中运行。
 * 框架原理较为简洁，Hook单一，易于集成。
 * 插件间，插件与宿主间除了可以通过标准的系统api通信，PluginApi中还提供一套**IInvoker框架**，提供支持跨进程的函数调用，Binder服务获取。
@@ -55,10 +55,11 @@ chmod +x install-test
         // 插件配置
         PluginConfigs pluginConfigs = new PluginConfigs();
         
-        // 选择插件进程模式，总共为3种，默认为PROCESS_TYPE_INDEPENDENT
-        // 1. PROCESS_TYPE_INDEPENDENT：独立进程模式, 即为每个插件只分配一个进程。
+        // 选择插件进程模式，总共为4种，默认为PROCESS_TYPE_INDEPENDENT
+        // 1. PROCESS_TYPE_INDEPENDENT：独立进程模式, 即为每个插件独享一个进程。
         // 2. PROCESS_TYPE_SINGLE：单一进程模式, 即所有插件都分配在一个固定的进程。
-        // 3. PROCESS_TYPE_DUAL：双进程模式, 即所有插件都分配在两个固定的进程（一个前台进程，一个后台进程），
+        // 3. PROCESS_TYPE_DUAL：双进程模式, 即所有插件都分配在两个固定的进程（一个前台进程，一个后台进程）。
+        // 4. PROCESS_TYPE_COMPLETE：完整进程模式, 即所有插件都完全拥有自身全部的进程，进程名与插件声明的进程名称一致。
         进程名与插件包名相同的在一个特定进程，否则在另一个特定进程。
         pluginConfigs.setProcessType(pluginConfigs.PROCESS_TYPE_INDEPENDENT)
         

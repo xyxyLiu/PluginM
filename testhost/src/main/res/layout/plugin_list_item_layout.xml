@@ -36,16 +36,18 @@
         <Button
             android:id="@+id/install_btn"
             android:layout_width="wrap_content"
+            android:gravity="center"
             android:layout_height="35dp"
-            android:textSize="14dp"
+            android:textSize="13dp"
             />
 
         <Button
             android:id="@+id/uninstall_btn"
             android:layout_width="wrap_content"
+            android:gravity="center"
             android:layout_height="35dp"
             android:layout_marginTop="10dp"
-            android:textSize="14dp"
+            android:textSize="13dp"
             />
     </LinearLayout>
 

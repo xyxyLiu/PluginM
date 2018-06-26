@@ -13,11 +13,15 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
+import android.util.Pair;
+import android.widget.Toast;
 
+import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.core.PluginManagerService;
 import com.reginald.pluginm.core.PluginProcess;
 import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ProcessHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by lxy on 16-10-31.
@@ -46,6 +51,11 @@ public class StubManager {
      */
     public static final int PROCESS_TYPE_DUAL = 3;
 
+    /**
+     * 双进程模式: 所有插件都完整拥有自己的进程
+     */
+    public static final int PROCESS_TYPE_COMPLETE = 4;
+
 
     private static final String TAG = "StubManager";
     private static final String CATEGORY_ACTIVITY_PROXY_STUB = "com.reginald.pluginm.category.STUB";
@@ -53,7 +63,9 @@ public class StubManager {
     private final Set<String> mStubRequestedPermission = new HashSet<>();
     private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
     // PROCESS_TYPE_INDEPENDENT 模式下的进程分配map: pkgname -> ProcessInfo
-    private final Map<String, ProcessInfo> mPluginSingleProcessMap = new HashMap<>(10);
+    private final Map<String, ProcessInfo> mPluginSingleProcessMap = new ConcurrentHashMap<>(10);
+    // PROCESS_TYPE_ALL 模式下的进程分配map: pkgname#processname -> ProcessInfo
+    private final Map<Pair<String, String>, ProcessInfo> mPluginWholeProcessMap = new ConcurrentHashMap<>(10);
     private Context mContext;
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
     private ApplicationInfo mStubApplicationInfo;
@@ -219,24 +231,50 @@ public class StubManager {
 
     public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
         ProcessInfo processInfo = selectStubProcess(componentInfo.processName, componentInfo.packageName);
-        Logger.d(TAG, "selectStubProcess() componentInfo = " + componentInfo +
-                " -> stub process = " + processInfo.processName);
+        Logger.d(TAG, "selectStubProcess() [%s/%s @ %s] -> stub process = %s",
+                componentInfo.packageName, componentInfo.name, componentInfo.processName, processInfo.processName);
         return processInfo;
+    }
+
+    public String getPluginProcessName(String stubProcessName) {
+        Logger.d(TAG, "getPluginProcessName() stubProcessName = " + stubProcessName);
+        switch (mProcessType) {
+            case PROCESS_TYPE_INDEPENDENT: {
+                return stubProcessName;
+            }
+            case PROCESS_TYPE_SINGLE: {
+                return stubProcessName;
+            }
+            case PROCESS_TYPE_DUAL: {
+                return stubProcessName;
+            }
+            case PROCESS_TYPE_COMPLETE: {
+                for (Map.Entry<Pair<String, String>, ProcessInfo> entry : mPluginWholeProcessMap.entrySet()) {
+                    Pair<String, String> pkgAndProcess = entry.getKey();
+                    ProcessInfo processInfo = entry.getValue();
+                    if (stubProcessName.equals(processInfo.processName)) {
+                        return pkgAndProcess.second;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
      * TODO 考虑插件进程模式的设计
      */
-    public ProcessInfo selectStubProcess(String processName, String pkgName) {
+    public ProcessInfo selectStubProcess(String pluginProcessName, String pkgName) {
         if (mStubProcessInfoMap.isEmpty()) {
-            throw new RuntimeException("no registered stub process found for plugin process " + processName);
+            throw new RuntimeException("no registered stub process found for plugin process " + pluginProcessName);
         }
 
         List<ProcessInfo> stubProcessInfos = new ArrayList<>(mStubProcessInfoMap.values());
 
         switch (mProcessType) {
-            case PROCESS_TYPE_INDEPENDENT:
-                filterPluginProcessMap();
+            case PROCESS_TYPE_INDEPENDENT: {
+                filterPluginProcessMap(mPluginSingleProcessMap);
 
                 ProcessInfo processInfo = mPluginSingleProcessMap.get(pkgName);
                 if (processInfo != null) {
@@ -249,14 +287,14 @@ public class StubManager {
                     }
                 }
 
-                throw new IllegalStateException("No more stub process for plugin " + pkgName);
-
-            case PROCESS_TYPE_SINGLE:
+                onNowMoreProcessError(pluginProcessName, pkgName);
+            }
+            case PROCESS_TYPE_SINGLE: {
                 return stubProcessInfos.get(0);
-
-            case PROCESS_TYPE_DUAL:
+            }
+            case PROCESS_TYPE_DUAL: {
                 if (stubProcessInfos.size() > 1) {
-                    String pluginProcessName = getProcessName(processName, pkgName);
+                    pluginProcessName = getProcessName(pluginProcessName, pkgName);
                     Logger.d(TAG, "selectStubProcess() pluginProcessName = " + pluginProcessName);
                     if (pkgName.equals(pluginProcessName)) {
                         return stubProcessInfos.get(0);
@@ -268,12 +306,43 @@ public class StubManager {
                             "but only one stub process provided! ");
                     return stubProcessInfos.get(0);
                 }
+            }
+            case PROCESS_TYPE_COMPLETE: {
+                filterPluginProcessMap(mPluginWholeProcessMap);
+                Pair<String, String> key = new Pair<>(pkgName, pluginProcessName);
+                ProcessInfo processInfo = mPluginWholeProcessMap.get(key);
+                if (processInfo != null) {
+                    return processInfo;
+                }
+                for (ProcessInfo p : stubProcessInfos) {
+                    if (!mPluginWholeProcessMap.containsValue(p)) {
+                        mPluginWholeProcessMap.put(key, p);
+                        return p;
+                    }
+                }
+
+                onNowMoreProcessError(pluginProcessName, pkgName);
+            }
         }
 
         return null;
     }
 
-    private void filterPluginProcessMap() {
+    private void onNowMoreProcessError(String pluginProcessName, String pkgName) {
+        if (BuildConfig.DEBUG_LOG) {
+            ProcessHelper.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(mContext, String.format("当前预埋桩进程(%d个)已全部被占用，请在Manifest中加入更多插件桩进程！",
+                            mStubProcessInfoMap.size()), Toast.LENGTH_LONG).show();
+                }
+            });
+            Logger.e(TAG, "No more stub process for plugin " + pkgName);
+        }
+        throw new IllegalStateException("No more stub process for plugin " + pkgName);
+    }
+
+    private <T> void filterPluginProcessMap(Map<T, ProcessInfo> processInfoMap) {
         ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
 
@@ -287,10 +356,10 @@ public class StubManager {
 
         Logger.d(TAG, "filterPluginProcessMap() runningStubProcesses = " + runningStubProcesses);
 
-        Set<Map.Entry<String, ProcessInfo>> entries = mPluginSingleProcessMap.entrySet();
-        Iterator<Map.Entry<String, ProcessInfo>> iterator = entries.iterator();
+        Set<Map.Entry<T, ProcessInfo>> entries = processInfoMap.entrySet();
+        Iterator<Map.Entry<T, ProcessInfo>> iterator = entries.iterator();
         while (iterator.hasNext()) {
-            Map.Entry<String, ProcessInfo> entry = iterator.next();
+            Map.Entry<T, ProcessInfo> entry = iterator.next();
             if (!runningStubProcesses.contains(entry.getValue().processName)) {
                 iterator.remove();
             }

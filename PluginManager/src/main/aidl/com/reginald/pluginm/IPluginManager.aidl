@@ -41,4 +41,6 @@ interface IPluginManager {
     void onServiceCreated(in ServiceInfo stubInfo,in ServiceInfo targetInfo);
     void onServiceDestory(in ServiceInfo stubInfo,in ServiceInfo targetInfo);
     void onProviderCreated(in ProviderInfo stubInfo,in ProviderInfo targetInfo);
+
+    String getPluginProcessName(int pid);
 }

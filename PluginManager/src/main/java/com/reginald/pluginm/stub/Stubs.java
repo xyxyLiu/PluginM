@@ -30,6 +30,46 @@ public class Stubs {
             public static class Service0 extends PluginStubMainService {
             }
         }
+
+        public static class P2 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P3 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P4 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P5 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P6 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P7 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P8 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
+
+        public static class P9 {
+            public static class Service0 extends PluginStubMainService {
+            }
+        }
     }
 
     public static class Provider {
@@ -39,6 +79,46 @@ public class Stubs {
         }
 
         public static class P1 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P2 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P3 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P4 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P5 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P6 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P7 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P8 {
+            public static class Provider0 extends PluginStubMainProvider {
+            }
+        }
+
+        public static class P9 {
             public static class Provider0 extends PluginStubMainProvider {
             }
         }

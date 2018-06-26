@@ -14,10 +14,17 @@ import java.io.StringWriter;
 public class Logger {
     public static final String TAG = "PluginM";
     public static boolean LOG_ENABLED = BuildConfig.DEBUG_LOG;
+    public static boolean ALWAYS_SHOW_ERROR = true;
 
     public static void d(String tag, String msg) {
         if (LOG_ENABLED) {
             Log.d(TAG, getLogMsg(tag, msg));
+        }
+    }
+
+    public static void d(String tag, String formatMsg, Object... args) {
+        if (LOG_ENABLED) {
+            d(tag, String.format(formatMsg, args));
         }
     }
 
@@ -27,9 +34,21 @@ public class Logger {
         }
     }
 
+    public static void i(String tag, String formatMsg, Object... args) {
+        if (LOG_ENABLED) {
+            i(tag, String.format(formatMsg, args));
+        }
+    }
+
     public static void w(String tag, String msg) {
         if (LOG_ENABLED) {
             Log.w(TAG, getLogMsg(tag, msg));
+        }
+    }
+
+    public static void w(String tag, String formatMsg, Object... args) {
+        if (LOG_ENABLED) {
+            w(tag, String.format(formatMsg, args));
         }
     }
 
@@ -39,15 +58,33 @@ public class Logger {
         }
     }
 
-    public static void e(String tag, String msg) {
+    public static void w(String tag, Throwable e, String formatMsg, Object... args) {
         if (LOG_ENABLED) {
+            w(tag, String.format(formatMsg, args), e);
+        }
+    }
+
+    public static void e(String tag, String msg) {
+        if (LOG_ENABLED || ALWAYS_SHOW_ERROR) {
             Log.e(TAG, getLogMsg(tag, msg));
         }
     }
 
+    public static void e(String tag, String formatMsg, Object... args) {
+        if (LOG_ENABLED || ALWAYS_SHOW_ERROR) {
+            e(tag, String.format(formatMsg, args));
+        }
+    }
+
     public static void e(String tag, String msg, Throwable e) {
-        if (LOG_ENABLED) {
+        if (LOG_ENABLED || ALWAYS_SHOW_ERROR) {
             Log.e(TAG, getLogMsg(tag, msg + " Exception: " + getExceptionMsg(e)));
+        }
+    }
+
+    public static void e(String tag, Throwable e, String formatMsg, Object... args) {
+        if (LOG_ENABLED || ALWAYS_SHOW_ERROR) {
+            e(tag, String.format(formatMsg, args), e);
         }
     }
 

@@ -145,21 +145,21 @@
     <uses-permission android:name="com.qihoo.appstore.rtservice.ACCESS_RTSERVICE" />
     <uses-permission android:name="android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS" />
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR"/>
 
     <application
         android:name=".HostApplication"
-        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:supportsRtl="true">
 
         <meta-data android:name="pluginm_invoker"
             android:value="[
             {'service':'main', 'class':'com.example.testhost.MyHostInvoker'}
             ]" />
 
-        <activity android:name=".DemoActivity">
+        <activity android:name=".DemoActivity"
+                  android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -171,7 +171,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".HostTestActivity" />
+        <activity android:name=".HostTestActivity"
+                  android:theme="@style/AppTheme"/>
 
         <service
             android:name=".HostService"

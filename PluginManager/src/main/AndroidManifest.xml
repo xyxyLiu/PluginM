@@ -436,6 +436,1688 @@
         </provider>
         <!-- process P1 end -->
 
+        <!-- process P0 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P2$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P2$Service0"
+                android:exported="false"
+                android:process=":p2">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P2$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p2"
+                android:process=":p2">
+        </provider>
+        <!-- process P2 end -->
+
+        <!-- process P3 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P3$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P3$Service0"
+                android:exported="false"
+                android:process=":p3">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P3$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p3"
+                android:process=":p3">
+        </provider>
+        <!-- process P3 end -->
+
+        <!-- process P4 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P4$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P4$Service0"
+                android:exported="false"
+                android:process=":p4">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P4$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p4"
+                android:process=":p4">
+        </provider>
+        <!-- process P4 end -->
+
+        <!-- process P5 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P5$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P5$Service0"
+                android:exported="false"
+                android:process=":p5">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P5$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p5"
+                android:process=":p5">
+        </provider>
+        <!-- process P5 end -->
+
+        <!-- process P6 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P6$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P6$Service0"
+                android:exported="false"
+                android:process=":p6">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P6$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p6"
+                android:process=":p6">
+        </provider>
+        <!-- process P6 end -->
+
+        <!-- process P7 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P7$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P7$Service0"
+                android:exported="false"
+                android:process=":p7">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P7$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p7"
+                android:process=":p7">
+        </provider>
+        <!-- process P7 end -->
+
+        <!-- process P8 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P8$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P8$Service0"
+                android:exported="false"
+                android:process=":p8">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P8$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p8"
+                android:process=":p8">
+        </provider>
+        <!-- process P8 end -->
+
+        <!-- process P9 start -->
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$Standard0"
+                android:launchMode="standard"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTop0"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTop1"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTop2"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTop3"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTop4"
+                android:launchMode="singleTop"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTask0"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTask1"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTask2"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTask3"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleTask4"
+                android:launchMode="singleTask"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleInstance0"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleInstance1"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleInstance2"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleInstance3"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <activity
+                android:name="com.reginald.pluginm.stub.Stubs$Activity$P9$SingleInstance4"
+                android:launchMode="singleInstance"
+                android:theme="@style/PluginMTheme"
+                android:configChanges="screenSize|keyboardHidden|orientation"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name="com.reginald.pluginm.stub.Stubs$Service$P9$Service0"
+                android:exported="false"
+                android:process=":p9">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.reginald.pluginm.category.STUB" />
+            </intent-filter>
+        </service>
+
+        <provider
+                android:name="com.reginald.pluginm.stub.Stubs$Provider$P9$Provider0"
+                android:authorities="com.reginald.pluginm.stub.provider.p9"
+                android:process=":p9">
+        </provider>
+        <!-- process P9 end -->
+
+
+
 
         <!-- end of stub components -->
     </application>

@@ -2,6 +2,7 @@ package com.reginald.pluginm.hook;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.reginald.pluginm.core.PluginManager;
@@ -89,6 +90,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
         addMethodHandler(new stopServiceToken());
         addMethodHandler(new overridePendingTransition());
         addMethodHandler(new setServiceForeground());
+        addMethodHandler(new getRunningAppProcesses());
 
         Logger.d(TAG, "install() install ok!");
         return true;
@@ -249,6 +251,47 @@ public class IActivityManagerServiceHook extends ServiceHook {
             Logger.d(TAG, "overridePendingTransition() onStartInvoke : enterAnim = " +
                     enterAnim + " , exitAnim = " + exitAnim);
             return false;
+        }
+    }
+
+    /**
+     * public List<ActivityManager.RunningAppProcessInfo> getRunningAppProcesses()
+     * throws RemoteException;
+     */
+    private class getRunningAppProcesses extends ServiceHook.MethodHandler {
+
+        @Override
+        public String getName() {
+            return "getRunningAppProcesses";
+        }
+
+        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+            return true;
+        }
+
+        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
+            Logger.d(TAG, "getRunningAppProcesses()");
+            if (invokeResult != null && invokeResult instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> infos = (List<Object>) invokeResult;
+                if (infos.size() > 0) {
+                    for (Object info : infos) {
+                        if (info instanceof ActivityManager.RunningAppProcessInfo) {
+                            ActivityManager.RunningAppProcessInfo myInfo = (ActivityManager.RunningAppProcessInfo) info;
+                            if (myInfo.uid != android.os.Process.myUid()) {
+                                continue;
+                            }
+                            String processname = PluginManager.getInstance().getPluginProcessName(myInfo.pid);
+                            if (processname != null) {
+                                Logger.d(TAG, String.format("getRunningAppProcesses() map processName %s -> %s", myInfo
+                                        .processName, processname));
+                                myInfo.processName = processname;
+                            }
+                        }
+                    }
+                }
+            }
+            return invokeResult;
         }
     }
 

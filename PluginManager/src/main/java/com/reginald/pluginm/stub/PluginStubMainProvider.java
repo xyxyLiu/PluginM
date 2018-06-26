@@ -1,5 +1,17 @@
 package com.reginald.pluginm.stub;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.android.common.ContentProviderCompat;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.core.PluginManager;
+import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.CommonUtils;
+import com.reginald.pluginm.utils.Logger;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.IContentProvider;
@@ -10,18 +22,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-
-import com.android.common.ContentProviderCompat;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.core.PluginManager;
-import com.reginald.pluginm.reflect.MethodUtils;
-import com.reginald.pluginm.utils.BinderParcelable;
-import com.reginald.pluginm.utils.CommonUtils;
-import com.reginald.pluginm.utils.Logger;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by lxy on 16-10-24.
@@ -74,7 +74,7 @@ public class PluginStubMainProvider extends ContentProvider {
             final ProviderInfo providerInfo = extras.getParcelable(PluginManager.EXTRA_INTENT_TARGET_PROVIDERINFO);
             final Bundle resultBundle = new Bundle();
 
-            PluginInfo loadedPluginInfo = PluginManager.getInstance().loadPlugin(providerInfo.packageName);
+            PluginInfo loadedPluginInfo = PluginManager.getInstance().loadPlugin(providerInfo);
 
             if (loadedPluginInfo == null) {
                 return null;

@@ -30,10 +30,25 @@ public class PluginProcess {
     private final Map<String, List<ServiceInfo>> mRunningServiceMap = new HashMap<>();
     private final Map<String, List<ProviderInfo>> mRunningProviderMap = new HashMap<>();
 
+    private final int mPid;
     private final StubManager.ProcessInfo mStubProcess;
 
-    public PluginProcess(StubManager.ProcessInfo stubProcess) {
+    public PluginProcess(int pid, StubManager.ProcessInfo stubProcess) {
+        mPid = pid;
         mStubProcess = stubProcess;
+    }
+
+    public int getPid() {
+        return mPid;
+    }
+
+    public String getProcessName() {
+        return mStubProcess.processName;
+    }
+
+    public String getPluginProcessName() {
+        return StubManager.getInstance(PluginManager.getInstance().getHostContext()).getPluginProcessName
+                (getProcessName());
     }
 
     public List<String> getRunningPlugins() {

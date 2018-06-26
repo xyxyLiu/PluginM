@@ -1,5 +1,19 @@
 package com.reginald.pluginm.core;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import com.android.common.ActivityThreadCompat;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.stub.PluginStubLocalActivityManager;
+import com.reginald.pluginm.stub.Stubs;
+import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ProcessHelper;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityGroup;
@@ -12,22 +26,10 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.UserHandle;
 import android.view.ContextThemeWrapper;
-
-import com.android.common.ActivityThreadCompat;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.reflect.FieldUtils;
-import com.reginald.pluginm.reflect.MethodUtils;
-import com.reginald.pluginm.stub.PluginStubLocalActivityManager;
-import com.reginald.pluginm.stub.Stubs;
-import com.reginald.pluginm.utils.Logger;
-
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * Created by lxy on 17-8-9.
@@ -37,8 +39,9 @@ public class HostInstrumentation extends Instrumentation {
 
     private static Class<?> sIAppTaskClazz;
 
-    private Instrumentation mBase;
+    private static Instrumentation sBase;
 
+    private static Instrumentation mBase;
     private PluginManager mPluginManager;
 
     private Intent mLastNewTargetIntent;
@@ -46,7 +49,10 @@ public class HostInstrumentation extends Instrumentation {
 
     public HostInstrumentation(PluginManager pluginManager, Instrumentation base) {
         this.mPluginManager = pluginManager;
-        this.mBase = base;
+        this.mBase = sBase != null ? sBase : base;
+        if (sBase == null) {
+            sBase = base;
+        }
     }
 
     public static Instrumentation install(Context hostContext) {
@@ -302,7 +308,7 @@ public class HostInstrumentation extends Instrumentation {
             ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
             Logger.d(TAG, "newActivity() target activityInfo = " + activityInfo);
             if (activityInfo != null) {
-                PluginInfo pluginInfo = mPluginManager.loadPlugin(activityInfo.packageName);
+                PluginInfo pluginInfo = mPluginManager.loadPlugin(activityInfo);
 
                 if (pluginInfo != null) {
                     try {
@@ -408,7 +414,7 @@ public class HostInstrumentation extends Instrumentation {
                 try {
                     FieldUtils.writeField(activity, "mInstrumentation", this);
                     Logger.d(TAG, "callActivityOnCreate() replace mInstrumentation ok! ");
-                } catch (IllegalAccessException e) {
+                } catch (Exception e) {
                     Logger.e(TAG, "callActivityOnCreate() replace mInstrumentation error! ", e);
                 }
 
@@ -450,6 +456,14 @@ public class HostInstrumentation extends Instrumentation {
         }
 
         mBase.callActivityOnCreate(activity, icicle);
+
+        // ensure hook install
+        ProcessHelper.post(new Runnable() {
+            @Override
+            public void run() {
+                install(PluginManager.getInstance().getHostContext());
+            }
+        });
     }
 
     @Override

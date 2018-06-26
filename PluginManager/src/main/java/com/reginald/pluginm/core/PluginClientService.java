@@ -1,9 +1,8 @@
 package com.reginald.pluginm.core;
 
-import android.content.Context;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.text.TextUtils;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.reginald.pluginm.IPluginClient;
 import com.reginald.pluginm.PluginInfo;
@@ -16,9 +15,10 @@ import com.reginald.pluginm.pluginapi.IInvoker;
 import com.reginald.pluginm.utils.ConfigUtils;
 import com.reginald.pluginm.utils.Logger;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import android.content.Context;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.text.TextUtils;
 
 /**
  * Created by lxy on 17-9-20.
@@ -30,6 +30,7 @@ public class PluginClientService extends IPluginClient.Stub {
     private static volatile PluginClientService sInstance;
 
     private Context mContext;
+    private PluginManager mPluginManager;
     private final Map<String, IInvoker> mInvokerCacheMap = new HashMap<>();
     private final Map<String, IBinder> mBinderCacheMap = new HashMap<>();
 
@@ -55,6 +56,7 @@ public class PluginClientService extends IPluginClient.Stub {
     private PluginClientService(Context hostContext) {
         Context appContext = hostContext.getApplicationContext();
         mContext = appContext != null ? appContext : hostContext;
+        mPluginManager = PluginManager.getInstance();
     }
 
     @Override
@@ -63,7 +65,8 @@ public class PluginClientService extends IPluginClient.Stub {
     }
 
     @Override
-    public InvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName, String params, final InvokeCallback callback) throws RemoteException {
+    public InvokeResult invokePlugin(final String packageName, final String serviceName, final String methodName,
+                                     String params, final InvokeCallback callback) throws RemoteException {
         IInvoker pluginInvoker = fetchPluginInvoker(packageName, serviceName);
 
         if (pluginInvoker != null) {
@@ -71,12 +74,14 @@ public class PluginClientService extends IPluginClient.Stub {
 
             PluginInfo pluginInfo = PluginManager.getInstance().getLoadedPluginInfo(packageName);
             if (pluginInfo != null) {
-                IInvokeResult result = pluginInvoker.onInvoke(pluginInfo.baseContext, methodName, params, iInvokeCallback);
+                IInvokeResult result =
+                        pluginInvoker.onInvoke(pluginInfo.baseContext, methodName, params, iInvokeCallback);
                 return InvokeResult.build(result);
             }
         }
 
-        Logger.w(TAG, String.format("invokePlugin() pkg = %s, service = %s, method = %s, params = %s, callback = %s, NOT found!",
+        Logger.w(TAG, String.format(
+                "invokePlugin() pkg = %s, service = %s, method = %s, params = %s, callback = %s, NOT found!",
                 packageName, serviceName, methodName, params, callback));
 
         return new InvokeResult(IInvokeResult.RESULT_NOT_FOUND, null);
@@ -90,11 +95,12 @@ public class PluginClientService extends IPluginClient.Stub {
     private IBinder fetchPluginServiceBinder(String packageName, String serviceName) {
         String key = keyForInvokerMap(packageName, serviceName);
         if (key == null) {
-            Logger.w(TAG, String.format("fetchPluginServiceBinder() key is Null! for %s @ %s", serviceName, packageName));
+            Logger.w(TAG,
+                    String.format("fetchPluginServiceBinder() key is Null! for %s @ %s", serviceName, packageName));
             return null;
         }
 
-        synchronized (mBinderCacheMap) {
+        synchronized(mBinderCacheMap) {
             IBinder iBinder = mBinderCacheMap.get(key);
             Logger.w(TAG, String.format("fetchPluginServiceBinder() cached binder = %s", iBinder));
 
@@ -105,14 +111,17 @@ public class PluginClientService extends IPluginClient.Stub {
             IInvoker iPluginInvoker = fetchPluginInvoker(packageName, serviceName);
 
             if (iPluginInvoker == null) {
-                Logger.w(TAG, String.format("fetchPluginServiceBinder() iPluginInvoker NOT found for %s @ %s", serviceName, packageName));
+                Logger.w(TAG,
+                        String.format("fetchPluginServiceBinder() iPluginInvoker NOT found for %s @ %s", serviceName,
+                                packageName));
                 return null;
             }
 
             PluginInfo pluginInfo = PluginManager.getInstance().getLoadedPluginInfo(packageName);
 
             if (pluginInfo == null) {
-                Logger.w(TAG, String.format("fetchPluginServiceBinder() pluginInfo NOT found for %s @ %s", serviceName, packageName));
+                Logger.w(TAG, String.format("fetchPluginServiceBinder() pluginInfo NOT found for %s @ %s", serviceName,
+                        packageName));
                 return null;
             }
 
@@ -129,7 +138,7 @@ public class PluginClientService extends IPluginClient.Stub {
             return null;
         }
 
-        synchronized (mInvokerCacheMap) {
+        synchronized(mInvokerCacheMap) {
             IInvoker pluginInvoker = mInvokerCacheMap.get(key);
             Logger.w(TAG, String.format("fetchPluginInvoker() cached pluginInvoker = %s", pluginInvoker));
 
@@ -137,23 +146,27 @@ public class PluginClientService extends IPluginClient.Stub {
                 return pluginInvoker;
             }
 
-            PluginInfo pluginInfo = PluginManager.getInstance().loadPlugin(packageName);
-
-            if (pluginInfo == null) {
-                Logger.w(TAG, String.format("fetchPluginInvoker() pluginInfo is Null! for %s @ %s", serviceName, packageName));
-                return null;
-            }
-
-            Logger.w(TAG, String.format("fetchPluginInvoker() pluginInfo = %s", pluginInfo));
-
             try {
-                Map<String, String> serviceConfig = pluginInfo.pluginInvokerClassMap.get(serviceName);
+                PluginInfo installedPluginInfo = mPluginManager.getInstalledPluginInfo(packageName);
+                Map<String, String> serviceConfig = installedPluginInfo.pluginInvokerClassMap.get(serviceName);
                 if (serviceConfig == null) {
                     Logger.w(TAG, String.format("fetchPluginInvoker() pluginInvokerClassName NOT config! for %s @ %s",
                             serviceName, packageName));
                     return null;
                 }
                 String className = serviceConfig.get(ConfigUtils.KEY_INVOKER_CLASS);
+                String processName = serviceConfig.get(ConfigUtils.KEY_INVOKER_PROCESS);
+
+                PluginInfo pluginInfo = PluginManager.getInstance().loadPlugin(packageName, processName);
+
+                if (pluginInfo == null) {
+                    Logger.w(TAG, String.format("fetchPluginInvoker() pluginInfo is Null! for %s @ %s", serviceName,
+                            packageName));
+                    return null;
+                }
+
+                Logger.w(TAG, String.format("fetchPluginInvoker() pluginInfo = %s", pluginInfo));
+
                 Class<?> invokerClazz = pluginInfo.classLoader.loadClass(className);
                 pluginInvoker = (IInvoker) invokerClazz.newInstance();
                 mInvokerCacheMap.put(key, pluginInvoker);

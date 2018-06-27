@@ -37,6 +37,7 @@ public class PluginConfigs {
 
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
     private boolean mUseHostLoader = true;
+    private boolean mHostContextHook = true;
     private final Set<Signature> mSignatures = new HashSet<>();
     private boolean mSignatureCheckEnabled = false;
 
@@ -47,6 +48,7 @@ public class PluginConfigs {
     public PluginConfigs(PluginConfigs pluginConfigs) {
         mProcessType = pluginConfigs.getProcessType();
         mUseHostLoader = pluginConfigs.isUseHostLoader();
+        mHostContextHook = pluginConfigs.isHostContextHook();
         mSignatureCheckEnabled = pluginConfigs.isSignatureCheckEnabled();
         mSignatures.addAll(pluginConfigs.getSignatures());
     }
@@ -57,8 +59,11 @@ public class PluginConfigs {
 
     /**
      * 设置进程模式：
-     * {@see }
-     * @param processType
+     * {@see {@link #PROCESS_TYPE_INDEPENDENT},
+     * {@link #PROCESS_TYPE_SINGLE},
+     * {@link #PROCESS_TYPE_DUAL},
+     * {@link #PROCESS_TYPE_COMPLETE}}
+     * @param processType 进程模式
      * @return
      */
     public PluginConfigs setProcessType(int processType) {
@@ -70,8 +75,27 @@ public class PluginConfigs {
         return mUseHostLoader;
     }
 
+    /**
+     * 设置是否插件在无法查找到类时使用宿主的classloader继续查找
+     * @param useHostLoader
+     * @return
+     */
     public PluginConfigs setUseHostLoader(boolean useHostLoader) {
         mUseHostLoader = useHostLoader;
+        return this;
+    }
+
+    public boolean isHostContextHook() {
+        return mHostContextHook;
+    }
+
+    /**
+     * 设置是否对宿主的context进行hook
+     * @param hook
+     * @return
+     */
+    public PluginConfigs setHostContextHook(boolean hook) {
+        mHostContextHook = hook;
         return this;
     }
 
@@ -79,6 +103,11 @@ public class PluginConfigs {
         return mSignatureCheckEnabled;
     }
 
+    /**
+     * 设置是否进行插件签名校验
+     * @param isEnabled
+     * @return
+     */
     public PluginConfigs setSignatureCheckEnabled(boolean isEnabled) {
         mSignatureCheckEnabled = isEnabled;
         return this;
@@ -88,6 +117,11 @@ public class PluginConfigs {
         return Collections.unmodifiableSet(mSignatures);
     }
 
+    /**
+     * 添加插件签名
+     * @param signatures 插件签名
+     * @return
+     */
     public PluginConfigs addSignatures(Signature... signatures) {
         if (signatures != null && signatures.length > 0) {
             Collections.addAll(mSignatures, signatures);
@@ -111,8 +145,8 @@ public class PluginConfigs {
                 processType = "COMPLETE";
                 break;
         }
-        return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, " +
-                        "mSignatureCheckEnabled = %b, mSignatures = %d ]",
-                processType, mUseHostLoader, mSignatureCheckEnabled, mSignatures.size());
+        return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, mHostContextHook = %b" +
+                        "mSignatureCheckEnabled = %b, mSignatures size = %d ]",
+                processType, mUseHostLoader, mHostContextHook, mSignatureCheckEnabled, mSignatures.size());
     }
 }

@@ -48,6 +48,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
@@ -103,14 +104,25 @@ public class PluginManager {
      * must be called in {@link Application#attachBaseContext(Context)}
      * @param app
      */
-    public static void onAttachBaseContext(Application app) {
+    public static void onAttachBaseContext(final Application app) {
         ProcessHelper.init(app);
         boolean isPluginProcess = ProcessHelper.isPluginProcess(app);
-        Logger.d(TAG, String.format("onAttachBaseContext() process = %s(%d) isPluginProcess? %b",
-                ProcessHelper.sProcessName, ProcessHelper.sPid, isPluginProcess));
+        boolean isHostContextHook = PluginM.getConfigs().isHostContextHook();
+        Logger.d(TAG, "onAttachBaseContext() process = %s(%d), isHostContextHook? %b, isPluginProcess? %b",
+                ProcessHelper.sProcessName, ProcessHelper.sPid, isHostContextHook, isPluginProcess);
 
         // 只在插件进程初始化
         if (isPluginProcess) {
+            if (isHostContextHook) {
+                ProcessHelper.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean isSuc = HostContext.install(app);
+                        Logger.d(TAG, "onAttachBaseContext() post: replace host base context, isSuc? " + isSuc);
+                    }
+                });
+            }
+
             Instrumentation newInstrumentation = HostInstrumentation.install(app);
             Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
 
@@ -304,7 +316,8 @@ public class PluginManager {
                 pluginInfo.packageManager = pluginPackageManager;
 
                 // replace resources
-                Resources resources = ResourcesManager.getPluginResources(mContext, pluginInfo.apkPath);
+                AssetManager assetManager = ResourcesManager.createAssetManager(pluginInfo.apkPath);
+                Resources resources = ResourcesManager.createResources(mContext, assetManager);
                 if (resources != null) {
                     pluginInfo.resources = resources;
                 } else {

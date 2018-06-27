@@ -38,6 +38,10 @@
 -dontwarn android.app.**
 
 
+-keep class com.reginald.pluginm.core.HostContext {
+<methods>;
+}
+
 -keep class com.reginald.pluginm.core.HostInstrumentation {
 <methods>;
 }

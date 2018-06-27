@@ -1,9 +1,13 @@
 package com.example.testplugin;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.text.InputFilter;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -22,6 +26,8 @@ public class PluginServiceA extends Service {
         }
     };
 
+    private BroadcastReceiver mReceiver;
+
     public PluginServiceA() {
         Log.d(TAG,"PluginServiceA()");
     }
@@ -30,6 +36,20 @@ public class PluginServiceA extends Service {
         super.onCreate();
         Toast.makeText(this, "service created!", Toast.LENGTH_LONG).show();
         Log.d(TAG,"onCreate()");
+        if (mReceiver == null) {
+            mReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d(TAG,"PluginServiceA.BroadcastReceiver onReceive");
+                }
+            };
+            IntentFilter localIntentFilter = new IntentFilter();
+            localIntentFilter.addAction("android.intent.action.MEDIA_EJECT");
+            localIntentFilter.addAction("android.intent.action.MEDIA_MOUNTED");
+            localIntentFilter.addDataScheme("file");
+            registerReceiver(mReceiver, localIntentFilter);
+        }
+
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -55,6 +75,10 @@ public class PluginServiceA extends Service {
     }
 
     public void onDestroy() {
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
+            mReceiver = null;
+        }
         super.onDestroy();
         Log.d(TAG,"onDestroy()");
     }

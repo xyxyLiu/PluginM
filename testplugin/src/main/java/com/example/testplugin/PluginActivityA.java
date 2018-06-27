@@ -11,7 +11,7 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-
+import android.widget.RemoteViews;
 
 public class PluginActivityA extends Activity {
 
@@ -65,6 +65,10 @@ public class PluginActivityA extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_plugin_activity_a);
+
+        // test RemoteViews
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), 1);
+        remoteViews.getLayoutId();
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();

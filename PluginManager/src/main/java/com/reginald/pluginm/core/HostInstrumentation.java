@@ -456,7 +456,6 @@ public class HostInstrumentation extends Instrumentation {
         }
 
         mBase.callActivityOnCreate(activity, icicle);
-
         // ensure hook install
         ProcessHelper.post(new Runnable() {
             @Override

@@ -26,7 +26,9 @@ import android.text.TextUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -251,6 +253,27 @@ public class FieldUtils {
         }
 
         return true;
+    }
+
+    public static List<Field> getAllFields(Object src) throws IllegalAccessException {
+        List<Field> results = new ArrayList<>();
+        if (src == null) {
+            return results;
+        }
+
+        Class<?> clsType = src.getClass();
+        while (clsType != null) {
+            Field[] fields = clsType.getDeclaredFields();
+            for (Field field : fields) {
+                results.add(field);
+            }
+            clsType = clsType.getSuperclass();
+            if (Object.class.equals(clsType)) {
+                break;
+            }
+        }
+
+        return results;
     }
 
 }

@@ -20,6 +20,7 @@ public abstract class ServiceHook implements InvocationHandler {
 
     protected Object mBase;
     protected final Map<String, MethodHandler> mMethodHandlers = new HashMap<String, MethodHandler>(2);
+    protected MethodHandler mAllMethodHandler;
 
     /**
      * 1. replace the host object(mBase) with the new one(Hook)
@@ -33,6 +34,11 @@ public abstract class ServiceHook implements InvocationHandler {
         mMethodHandlers.put(methodHandler.getName(), methodHandler);
     }
 
+    protected void setAllMethodHandler(MethodHandler methodHandler) {
+        Logger.d(TAG, "setAllMethodHandler " + methodHandler);
+        mAllMethodHandler = methodHandler;
+    }
+
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Logger.d(TAG, String.format("invoke %s.%s(%s)",
                 method.getDeclaringClass().getName(), method.getName(),
@@ -42,6 +48,10 @@ public abstract class ServiceHook implements InvocationHandler {
                 MethodHandler methodHandler = mMethodHandlers.get(method.getName());
                 if (methodHandler != null) {
                     return methodHandler.invoke(mBase, method, args);
+                }
+
+                if (mAllMethodHandler != null) {
+                    return mAllMethodHandler.invoke(mBase, method, args);
                 }
             }
             return method.invoke(mBase, args);
@@ -54,13 +64,13 @@ public abstract class ServiceHook implements InvocationHandler {
 
 
     public static class MethodHandler {
+        public static final Object NONE_RETURN = new Object();
         public Object invoke(Object receiver, Method method, Object[] args) throws Throwable {
             long startTime = SystemClock.elapsedRealtime();
 
             try {
-                Object invokeResult = null;
-                boolean isInvokeBase = onStartInvoke(receiver, method, args);
-                if (isInvokeBase) {
+                Object invokeResult = onStartInvoke(receiver, method, args);
+                if (invokeResult == NONE_RETURN) {
                     invokeResult = method.invoke(receiver, args);
                 }
                 invokeResult = onEndInvoke(receiver, method, args, invokeResult);
@@ -89,8 +99,8 @@ public abstract class ServiceHook implements InvocationHandler {
          * @param args
          * @return 是否需要实际调用IActivityManager的接口
          */
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
-            return true;
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
+            return NONE_RETURN;
         }
 
         /**

@@ -1,6 +1,7 @@
 package com.reginald.pluginm.utils;
 
 import android.app.ActivityManager;
+import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,11 +24,11 @@ public class ProcessHelper {
 
     public static String sProcessName;
 
-    public static Context sApp;
+    public static Application sApp;
 
     private static Handler sHandler;
 
-    public static void init(Context context) {
+    public static void init(Application context) {
         sApp = context;
         sHandler = new Handler(Looper.getMainLooper());
         sPid = Process.myPid();
@@ -43,6 +44,10 @@ public class ProcessHelper {
 
     public static void post(Runnable runnable) {
         sHandler.post(runnable);
+    }
+
+    public static void postDelayed(Runnable runnable, long delayMillis) {
+        sHandler.postDelayed(runnable, delayMillis);
     }
 
     public static String getProcessName(Context context, int pid) {

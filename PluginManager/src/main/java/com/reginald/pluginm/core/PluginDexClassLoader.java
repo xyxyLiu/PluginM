@@ -2,8 +2,10 @@ package com.reginald.pluginm.core;
 
 import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.utils.Logger;
 
+import android.text.TextUtils;
 import dalvik.system.DexClassLoader;
 
 /**
@@ -60,7 +62,15 @@ public class PluginDexClassLoader extends DexClassLoader {
     }
 
     private boolean canUseHostLoader(String className) {
-        return PluginM.getConfigs().isUseHostLoader();
+        boolean configUseHost = PluginM.getConfigs().isUseHostLoader();
+        return configUseHost || isPluginApiClass(className);
+    }
+
+    private boolean isPluginApiClass(String className) {
+        if (!TextUtils.isEmpty(className)) {
+            return className.startsWith(PluginHelper.class.getPackage().getName());
+        }
+        return false;
     }
 
     public String toString() {

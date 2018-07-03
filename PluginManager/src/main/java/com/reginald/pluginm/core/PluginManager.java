@@ -16,6 +16,7 @@ import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.PluginNotFoundException;
 import com.reginald.pluginm.comm.PluginLocalManager;
 import com.reginald.pluginm.hook.IActivityManagerServiceHook;
+import com.reginald.pluginm.hook.SystemServiceHook;
 import com.reginald.pluginm.parser.ApkParser;
 import com.reginald.pluginm.pluginapi.IPluginLocalManager;
 import com.reginald.pluginm.pluginapi.PluginHelper;
@@ -59,6 +60,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.util.Pair;
+import android.view.LayoutInflater;
 import dalvik.system.DexClassLoader;
 
 /**
@@ -105,33 +107,35 @@ public class PluginManager {
      * @param app
      */
     public static void onAttachBaseContext(final Application app) {
+        long startTime = System.nanoTime();
         ProcessHelper.init(app);
         boolean isPluginProcess = ProcessHelper.isPluginProcess(app);
         boolean isHostContextHook = PluginM.getConfigs().isHostContextHook();
-        Logger.d(TAG, "onAttachBaseContext() process = %s(%d), isHostContextHook? %b, isPluginProcess? %b",
-                ProcessHelper.sProcessName, ProcessHelper.sPid, isHostContextHook, isPluginProcess);
+        boolean isSystemServiceHook = PluginM.getConfigs().isSystemServicesHook();
+        Logger.d(TAG, "onAttachBaseContext() process = %s(%d), isHostContextHook? %b, "
+                        + "isSystemServiceHook? %b, isPluginProcess? %b", ProcessHelper.sProcessName,
+                ProcessHelper.sPid, isHostContextHook, isSystemServiceHook, isPluginProcess);
 
         // 只在插件进程初始化
         if (isPluginProcess) {
-            if (isHostContextHook) {
-                ProcessHelper.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        boolean isSuc = HostContext.install(app);
-                        Logger.d(TAG, "onAttachBaseContext() post: replace host base context, isSuc? " + isSuc);
-                    }
-                });
-            }
-
             Instrumentation newInstrumentation = HostInstrumentation.install(app);
             Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
 
             boolean isSuc = IActivityManagerServiceHook.init(app);
             Logger.d(TAG, "onAttachBaseContext() replace host IActivityManager, isSuc? " + isSuc);
 
+            if (isSystemServiceHook) {
+                isSuc = SystemServiceHook.init();
+                Logger.d(TAG, "onAttachBaseContext() replace host ServiceManager, isSuc? " + isSuc);
+            }
+
             isSuc = PluginClientService.attach(app);
             Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
+
         }
+
+        Logger.d(TAG, "onAttachBaseContext() OK! time used = %d ms",
+                (System.nanoTime() - startTime) / (1000 * 1000));
     }
 
     private static boolean initPluginHelper(PluginInfo pluginInfo, Context hostContext) {
@@ -141,7 +145,7 @@ public class PluginManager {
             pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
 
             if (pluginHelperClazz.getClassLoader() != PluginHelper.class.getClassLoader()) {
-                throw new IllegalStateException("PluginHelper is complied in plugin! error!");
+                throw new IllegalStateException("plugin api is complied in plugin! error!");
             }
 
             IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
@@ -160,14 +164,15 @@ public class PluginManager {
 
     public static String getPackageNameCompat(String plugin, String host) {
         String pkg = plugin;
+        long timeStart = System.nanoTime();
         //TODO 通过调用栈判断返回包名，属投机取巧的做法，且可能存在性能问题，后期需要考虑其它处理方法
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        Logger.d(TAG, "getPackageNameCompat(): ");
+        //Logger.d(TAG, "getPackageNameCompat(): ");
 
         int lookupIndex = -1;
         for (int i = 0; i < stackTraceElements.length; i++) {
             StackTraceElement stackTraceElement = stackTraceElements[i];
-//            Logger.d(TAG, "#  " + stackTraceElement.toString());
+            //Logger.d(TAG, "#  " + stackTraceElement.toString());
             String className = stackTraceElement.getClassName();
             String methodName = stackTraceElement.getMethodName();
             if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
@@ -183,26 +188,32 @@ public class PluginManager {
             }
 
             if (i == lookupIndex) {
+                // Logger.d(TAG, "lookup: %s . %s", className, methodName);
                 if (className.startsWith("android.")) {
                     if (className.startsWith("android.support.multidex")) {
                         // support multidex
                         pkg = plugin;
-                    } else if (className.startsWith("android.content.ComponentName") &&
+                    } else if (className.startsWith(ComponentName.class.getName()) &&
                             methodName.equals("<init>")) {
+                        // 需要返回宿主包名的例外情况:
+                        // public int[] android.appwidget.AppWidgetManager.getAppWidgetIds(ComponentName provider)
                         pkg = plugin;
                     } else {
                         pkg = host;
                     }
-                } else if (className.startsWith("com.google.android.gms")) {
-                    pkg = host;
                 }
 
                 break;
             }
         }
 
-        Logger.d(TAG, "getPackageNameCompat(): return pkg = " + pkg);
+        Logger.d(TAG, "getPackageNameCompat(): return pkg = %s, time used = %d ms",
+                pkg, (System.nanoTime() - timeStart) / (1000 * 1000));
         return pkg;
+    }
+
+    public static Object getSystemServiceCompat(Context baseContext, PluginContext pluginContext, String name) {
+        return baseContext.getSystemService(name);
     }
 
     private IPluginManager ensureService(IPluginManager service) {
@@ -351,10 +362,15 @@ public class PluginManager {
         Logger.d(TAG, "initPlugin() pluginInfo = " + pluginInfo);
 
         final AtomicBoolean isSuc = new AtomicBoolean(false);
-
+        final boolean isHostContextHook = PluginM.getConfigs().isHostContextHook();
         ThreadUtils.ensureRunOnMainThread(new Runnable() {
             @Override
             public void run() {
+                if (isHostContextHook) {
+                    boolean isSuc = HostContext.install(hostContext);
+                    Logger.d(TAG, "initPlugin() replace host base context, isSuc? " + isSuc);
+                }
+
                 if (!initPluginHelper(pluginInfo, hostContext)) {
                     Logger.e(TAG, "initPlugin() initPluginHelper error! ");
                     return;
@@ -364,6 +380,9 @@ public class PluginManager {
                     Logger.e(TAG, "initPlugin() initPluginApplication error! ");
                     return;
                 }
+
+                // ensure Intrumentation hook
+                HostInstrumentation.install(hostContext);
 
                 isSuc.set(true);
             }
@@ -377,7 +396,7 @@ public class PluginManager {
         Logger.d(TAG, "loadPluginApplication() pluginInfo = " + pluginInfo + " , hostContext = " + hostContext);
         try {
             Context hostBaseContext = hostContext.createPackageContext(hostContext.getPackageName(), Context.CONTEXT_INCLUDE_CODE);
-            pluginInfo.baseContext = new PluginContext(pluginInfo, hostBaseContext);
+            pluginInfo.baseContext = createPluginContext(pluginInfo.packageName, hostBaseContext);
 
             ApplicationInfo applicationInfo = pluginInfo.pkgParser.getApplicationInfo(0);
             Logger.d(TAG, "loadPluginApplication() applicationInfo.name = " + applicationInfo.name);
@@ -1050,6 +1069,16 @@ public class PluginManager {
             }
         }
         return false;
+    }
+
+    public boolean isPlugin(String pkgName) {
+        if (TextUtils.equals(getHostContext().getPackageName(), pkgName)) {
+            return false;
+        }
+
+        PluginInfo pluginInfo = getInstalledPluginInfo(pkgName);
+
+        return pluginInfo != null;
     }
 
     public String getPluginProcessName(int pid) {

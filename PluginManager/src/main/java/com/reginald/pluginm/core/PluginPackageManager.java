@@ -21,6 +21,7 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.pm.SharedLibraryInfo;
 import android.content.pm.VersionedPackage;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.Rect;
@@ -270,7 +271,7 @@ public class PluginPackageManager extends PackageManager {
 
     @Override
     public int checkPermission(String permName, String pkgName) {
-        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pkgName);
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(pkgName);
         if (pluginInfo != null) {
             pkgName = mPluginManager.getHostContext().getPackageName();
         }
@@ -280,7 +281,7 @@ public class PluginPackageManager extends PackageManager {
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     public boolean isPermissionRevokedByPolicy(@NonNull String permName, @NonNull String pkgName) {
-        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pkgName);
+        PluginInfo pluginInfo = mPluginManager.getInstalledPluginInfo(pkgName);
         if (pluginInfo != null) {
             pkgName = mPluginManager.getHostContext().getPackageName();
         }
@@ -703,13 +704,20 @@ public class PluginPackageManager extends PackageManager {
     }
 
     private Resources getPluginResouces(String pluginPkg) {
-        // 目前只可以加载本进程已经加载的插件资源
-        PluginInfo pluginInfo = mPluginManager.getLoadedPluginInfo(pluginPkg);
-        Logger.d(TAG, "getResourcesForApplication() pluginPkg = " + pluginPkg + " , pluginInfo = " + pluginInfo);
-        if (pluginInfo != null) {
-            return pluginInfo.resources;
+        Resources resources = null;
+        PluginInfo loadedPluginInfo = mPluginManager.getLoadedPluginInfo(pluginPkg);
+        if (loadedPluginInfo != null) {
+            resources = loadedPluginInfo.resources;
+        } else {
+            PluginInfo installedPluginInfo = mPluginManager.getInstalledPluginInfo(pluginPkg);
+            if (installedPluginInfo != null) {
+                AssetManager assetManager = ResourcesManager.createAssetManager(installedPluginInfo.apkPath);
+                resources = ResourcesManager.createResources(mPluginManager.getHostContext(), assetManager);
+            }
         }
-        return null;
+
+        Logger.d(TAG, "getPluginResouces() pluginPkg = " + pluginPkg + " , resources = " + resources);
+        return resources;
     }
 
 

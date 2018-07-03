@@ -38,6 +38,7 @@ public class PluginConfigs {
     private int mProcessType = PROCESS_TYPE_INDEPENDENT;
     private boolean mUseHostLoader = true;
     private boolean mHostContextHook = true;
+    private boolean mSystemServicesHook = false;
     private final Set<Signature> mSignatures = new HashSet<>();
     private boolean mSignatureCheckEnabled = false;
 
@@ -49,6 +50,7 @@ public class PluginConfigs {
         mProcessType = pluginConfigs.getProcessType();
         mUseHostLoader = pluginConfigs.isUseHostLoader();
         mHostContextHook = pluginConfigs.isHostContextHook();
+        mSystemServicesHook = pluginConfigs.isSystemServicesHook();
         mSignatureCheckEnabled = pluginConfigs.isSignatureCheckEnabled();
         mSignatures.addAll(pluginConfigs.getSignatures());
     }
@@ -99,6 +101,20 @@ public class PluginConfigs {
         return this;
     }
 
+    public boolean isSystemServicesHook() {
+        return mSystemServicesHook;
+    }
+
+    /**
+     * 设置是否对除了IActivityManager以外的系统service进行hook, 稳定性可能会降低
+     * @param hook
+     * @return
+     */
+    public PluginConfigs setSystemServicesHook(boolean hook) {
+        mSystemServicesHook = hook;
+        return this;
+    }
+
     public boolean isSignatureCheckEnabled() {
         return mSignatureCheckEnabled;
     }
@@ -145,8 +161,9 @@ public class PluginConfigs {
                 processType = "COMPLETE";
                 break;
         }
-        return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, mHostContextHook = %b" +
-                        "mSignatureCheckEnabled = %b, mSignatures size = %d ]",
-                processType, mUseHostLoader, mHostContextHook, mSignatureCheckEnabled, mSignatures.size());
+        return String.format(" PluginConfig[ mProcessType = %s, mUseHostLoader = %b, mHostContextHook = %b, "
+                        + "mSystemServicesHook = %b, mSignatureCheckEnabled = %b, mSignatures size = %d ]",
+                processType, mUseHostLoader, mHostContextHook, mSystemServicesHook, mSignatureCheckEnabled,
+                mSignatures.size());
     }
 }

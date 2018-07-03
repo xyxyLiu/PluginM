@@ -3,12 +3,14 @@ package com.example.testhost;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import com.reginald.pluginm.PluginConfigs;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.utils.ProcessHelper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -20,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,8 +30,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,13 +44,15 @@ import android.widget.Toast;
 public class DemoActivity extends Activity {
 
     private static final String TAG = "DemoActivity";
-    private static final String PLUGINS_PATH = Environment.getExternalStorageDirectory().getPath() + "/PluginM/";
+    private static final String PLUGINS_PATH = Environment.getExternalStorageDirectory().getAbsolutePath();
 
     private TextView mConfigText;
+    private Button mConfigBtn;
     private ListView mListView;
     private PluginAdapter mAapter;
     private Button mSelectBtn;
     private Button mTestDemoBtn;
+    private Button mKillBtn;
     private ProgressDialog mLoadingDlg = null;
     private File mPluginDir = new File(PLUGINS_PATH);
 
@@ -55,6 +62,14 @@ public class DemoActivity extends Activity {
         setContentView(R.layout.demo_layout);
 
         mConfigText = (TextView) findViewById(R.id.config_text);
+        mConfigBtn = (Button) findViewById(R.id.config_btn);
+        mConfigBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showConfig();
+            }
+        });
+
         mSelectBtn = (Button) findViewById(R.id.select_btn);
         mListView = (ListView) findViewById(R.id.plugin_list);
         mAapter = new PluginAdapter();
@@ -85,7 +100,19 @@ public class DemoActivity extends Activity {
             }
         });
 
+        mKillBtn = (Button) findViewById(R.id.kill_btn);
+        mKillBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reboot();
+            }
+        });
+
         refreshData();
+    }
+
+    private void reboot() {
+        System.exit(0);
     }
 
     private void refreshData() {
@@ -106,12 +133,63 @@ public class DemoActivity extends Activity {
 
     }
 
+    private void showConfig() {
+        PluginConfigs configs = PluginM.getConfigs();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("PluginM框架配置");
+        View configView = LayoutInflater.from(this).inflate(R.layout.config_layout, null);
+        builder.setView(configView);
+
+        final RadioGroup processTypeGroup = (RadioGroup) configView.findViewById(R.id.process_type_group);
+        final CheckBox useHostClassloader = configView.findViewById(R.id.use_host_classloader_checkbox);
+        final CheckBox hookHostContext = configView.findViewById(R.id.hook_host_context_checkbox);
+        final CheckBox hookSystemServices = configView.findViewById(R.id.hook_system_services_checkbox);
+
+        final Integer[] processTypeCheckIds = new Integer[] {
+                R.id.process_type_checkbox_independent,
+                R.id.process_type_checkbox_single,
+                R.id.process_type_checkbox_dual,
+                R.id.process_type_checkbox_complete
+        };
+
+        processTypeGroup.check(processTypeCheckIds[configs.getProcessType()]);
+        useHostClassloader.setChecked(configs.isUseHostLoader());
+        hookHostContext.setChecked(configs.isHostContextHook());
+        hookSystemServices.setChecked(configs.isSystemServicesHook());
+
+        Button updateBtn = configView.findViewById(R.id.update_btn);
+        updateBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<Integer> idList = Arrays.asList(processTypeCheckIds);
+                int processType = idList.indexOf(processTypeGroup.getCheckedRadioButtonId());
+                boolean hostclassloader = useHostClassloader.isChecked();
+                boolean hookhostcontext = hookHostContext.isChecked();
+                boolean hooksystemservices = hookSystemServices.isChecked();
+                Prefs.Config.setProcessType(DemoActivity.this, processType);
+                Prefs.Config.setUseHostClassloader(DemoActivity.this, hostclassloader);
+                Prefs.Config.setHookHostContext(DemoActivity.this, hookhostcontext);
+                Prefs.Config.setHookSystemService(DemoActivity.this, hooksystemservices);
+
+                Toast.makeText(DemoActivity.this, "配置已更新， 重启中...", Toast.LENGTH_LONG).show();
+                ProcessHelper.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        reboot();
+                    }
+                }, 2000);
+            }
+        });
+
+        builder.show();
+    }
 
     private void chooseFile(String targetDir) {
         final List<String> apks = getAllPlugins(targetDir);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(String.format("选择一个apk(%s)", PLUGINS_PATH));
+        builder.setTitle(Html.fromHtml(String.format("<b>选择一个apk</b><br>(sd卡目录： %s)", PLUGINS_PATH)));
         final List<PackageInfo> pkgs = new ArrayList<>();
         Iterator<String> iterator = apks.iterator();
         while (iterator.hasNext()) {
@@ -126,7 +204,8 @@ public class DemoActivity extends Activity {
         }
 
         if (apks.isEmpty()) {
-            Toast.makeText(DemoActivity.this, "未找到合法apk, 请将apk放入" + mPluginDir.getAbsolutePath() + "中", Toast.LENGTH_SHORT).show();
+            Toast.makeText(DemoActivity.this, "未找到合法apk, 请将apk放入" + mPluginDir.getAbsolutePath() + "中",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -159,7 +238,7 @@ public class DemoActivity extends Activity {
                 TextView textView = (TextView) itemView.findViewById(R.id.title);
                 Button installBtn = (Button) itemView.findViewById(R.id.install_btn);
                 Button deleteBtn = (Button) itemView.findViewById(R.id.delete_btn);
-                final PackageInfo pkg = (PackageInfo)getItem(position);
+                final PackageInfo pkg = (PackageInfo) getItem(position);
                 Drawable apkIcon = pkg.applicationInfo.loadIcon(getPackageManager());
                 textView.setText(pkg.packageName + (PluginM.getInstalledPlugin(pkg.packageName) != null ?
                                                             "(已安装)" : ""));
@@ -201,7 +280,8 @@ public class DemoActivity extends Activity {
                         if (pluginInfo != null) {
                             refreshData();
                         }
-                        Toast.makeText(DemoActivity.this, "install " + (pluginInfo != null ? pluginInfo.packageName + " ok!" : "error!"),
+                        Toast.makeText(DemoActivity.this,
+                                "install " + (pluginInfo != null ? pluginInfo.packageName + " ok!" : "error!"),
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -248,7 +328,6 @@ public class DemoActivity extends Activity {
 
         return apkList;
     }
-
 
     private class PluginAdapter extends BaseAdapter {
 
@@ -318,7 +397,8 @@ public class DemoActivity extends Activity {
                 @Override
                 public void onClick(View v) {
                     PluginInfo uninstallInfo = PluginM.uninstall(pluginInfo.packageName);
-                    Toast.makeText(DemoActivity.this, pluginInfo.packageName + " uninstall " + (uninstallInfo != null ? "ok!" : "error!"),
+                    Toast.makeText(DemoActivity.this,
+                            pluginInfo.packageName + " uninstall " + (uninstallInfo != null ? "ok!" : "error!"),
                             Toast.LENGTH_SHORT).show();
                     refreshData();
                 }
@@ -336,7 +416,7 @@ public class DemoActivity extends Activity {
                 e.printStackTrace();
             }
             return String.format("%s\npkg = %s\nversion = %s, %s\nsize = %s",
-                    label,pluginInfo.packageName, pluginInfo.versionName, pluginInfo.versionCode, pluginInfo.fileSize);
+                    label, pluginInfo.packageName, pluginInfo.versionName, pluginInfo.versionCode, pluginInfo.fileSize);
         }
 
         private Drawable getPluginIcon(PluginInfo pluginInfo) {
@@ -349,6 +429,5 @@ public class DemoActivity extends Activity {
             return null;
         }
     }
-
 
 }

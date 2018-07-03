@@ -1,5 +1,11 @@
 package com.reginald.pluginm.core;
 
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginNotFoundException;
+import com.reginald.pluginm.stub.PluginContentResolver;
+import com.reginald.pluginm.stub.StubManager;
+import com.reginald.pluginm.utils.Logger;
+
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -10,12 +16,6 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.view.ContextThemeWrapper;
-
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginNotFoundException;
-import com.reginald.pluginm.stub.PluginContentResolver;
-import com.reginald.pluginm.stub.StubManager;
-import com.reginald.pluginm.utils.Logger;
 
 /**
  * Created by lxy on 16-6-28.
@@ -138,8 +138,16 @@ public class PluginContext extends ContextThemeWrapper {
     }
 
     @Override
+    public Object getSystemService(String name) {
+        return PluginManager.getSystemServiceCompat(mBaseContext, this, name);
+    }
+
+    @Override
     public ContentResolver getContentResolver() {
         return mContentResolver;
     }
 
+    PluginInfo getPluginInfo() {
+        return mPluginInfo;
+    }
 }

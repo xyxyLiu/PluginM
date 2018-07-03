@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:padding="10dp"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="注意： 以下配置项如果有改变都必须要重启后才可生效"
+            android:textSize="10dp"
+    />
+
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="进程模式： "
+                android:textStyle="bold"
+                android:textSize="14dp"/>
+
+        <RadioGroup
+                android:id="@+id/process_type_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <RadioButton
+                    android:id="@+id/process_type_checkbox_independent"
+                    android:text="独立进程模式：  每个插件分配一个进程。"
+                    android:textSize="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            <RadioButton
+                    android:id="@+id/process_type_checkbox_single"
+                    android:text="单一进程模式：  所有插件都分配在一个固定的进程。"
+                    android:textSize="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            <RadioButton
+                    android:id="@+id/process_type_checkbox_dual"
+                    android:text="双进程模式：  所有插件都分配在两个固定的进程，进程名与插件名称相同的在一个特定进程，否则在另一个特定进程。"
+                    android:textSize="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+            <RadioButton
+                    android:id="@+id/process_type_checkbox_complete"
+                    android:text="完整进程模式：  所有插件都完全拥有全部的进程，进程名与插件声明的进程名称一致。（适合加载第三方独立apk）"
+                    android:textSize="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+        </RadioGroup>
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="是否对插件中未找到类使用宿主ClassLoader："
+                android:textStyle="bold"
+                android:textSize="11dp"/>
+
+        <CheckBox
+                android:id="@+id/use_host_classloader_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="是否hook宿主Context： "
+                android:textStyle="bold"
+                android:textSize="14dp"/>
+
+        <CheckBox
+                android:id="@+id/hook_host_context_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="是否hook所有的system services: "
+                android:textStyle="bold"
+                android:textSize="14dp"/>
+
+        <CheckBox
+                android:id="@+id/hook_system_services_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <Button
+            android:id="@+id/update_btn"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold"
+            android:textSize="16dp"
+            android:text="更新配置"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"/>
+
+</LinearLayout>

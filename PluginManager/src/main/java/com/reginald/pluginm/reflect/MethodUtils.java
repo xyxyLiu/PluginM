@@ -292,7 +292,7 @@ public class MethodUtils {
             InstantiationException {
         args = Utils.nullToEmpty(args);
         parameterTypes = Utils.nullToEmpty(parameterTypes);
-        final Constructor<T> ctor = getMatchingAccessibleConstructor(cls, parameterTypes);
+        final Constructor<T> ctor = getMatchingConstructor(true, cls, parameterTypes);
         if (ctor == null) {
             throw new NoSuchMethodException(
                     "No such accessible constructor on object: " + cls.getName());
@@ -300,30 +300,32 @@ public class MethodUtils {
         return ctor.newInstance(args);
     }
 
-    public static <T> Constructor<T> getMatchingAccessibleConstructor(final Class<T> cls,
-            final Class<?>... parameterTypes) {
+    public static <T> Constructor<T> getMatchingConstructor(boolean forceAccess, final Class<T> cls,
+                                                            final Class<?>... parameterTypes) {
         Validate.isTrue(cls != null, "class cannot be null");
         // see if we can find the constructor directly
         // most of the time this works and it's much faster
         try {
-            final Constructor<T> ctor = cls.getConstructor(parameterTypes);
+            final Constructor<T> ctor = forceAccess ? cls.getDeclaredConstructor(parameterTypes) :
+                    cls.getConstructor(parameterTypes);
             MemberUtils.setAccessibleWorkaround(ctor);
             return ctor;
         } catch (final NoSuchMethodException e) { // NOPMD - Swallow
         }
+
         Constructor<T> result = null;
         /*
          * (1) Class.getConstructors() is documented to return Constructor<T> so as
          * long as the array is not subsequently modified, everything's fine.
          */
-        final Constructor<?>[] ctors = cls.getConstructors();
+        final Constructor<?>[] ctors = forceAccess ? cls.getDeclaredConstructors() : cls.getConstructors();
 
         // return best match:
         for (Constructor<?> ctor : ctors) {
             // compare parameters
             if (MemberUtils.isAssignable(parameterTypes, ctor.getParameterTypes(), true)) {
                 // get accessible version of constructor
-                ctor = getAccessibleConstructor(ctor);
+                ctor = getConstructor(forceAccess, ctor);
                 if (ctor != null) {
                     MemberUtils.setAccessibleWorkaround(ctor);
                     if (result == null
@@ -341,10 +343,15 @@ public class MethodUtils {
         return result;
     }
 
-    private static <T> Constructor<T> getAccessibleConstructor(final Constructor<T> ctor) {
+    private static <T> Constructor<T> getConstructor(boolean forceAccess, final Constructor<T> ctor) {
         Validate.isTrue(ctor != null, "constructor cannot be null");
-        return MemberUtils.isAccessible(ctor)
-                && isAccessible(ctor.getDeclaringClass()) ? ctor : null;
+        if (forceAccess) {
+            ctor.setAccessible(true);
+            return ctor;
+        } else {
+            return MemberUtils.isAccessible(ctor)
+                    && isAccessible(ctor.getDeclaringClass()) ? ctor : null;
+        }
     }
 
     private static boolean isAccessible(final Class<?> type) {

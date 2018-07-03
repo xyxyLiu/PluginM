@@ -1,5 +1,16 @@
 package com.reginald.pluginm;
 
+import java.util.List;
+
+import com.reginald.pluginm.comm.PluginCommClient;
+import com.reginald.pluginm.comm.invoker.InvokeCallback;
+import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
+import com.reginald.pluginm.comm.invoker.InvokeResult;
+import com.reginald.pluginm.core.PluginManager;
+import com.reginald.pluginm.pluginapi.IInvokeCallback;
+import com.reginald.pluginm.pluginapi.IInvokeResult;
+import com.reginald.pluginm.stub.PluginContentResolver;
+
 import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentName;
@@ -11,17 +22,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
 
-import com.reginald.pluginm.comm.PluginCommClient;
-import com.reginald.pluginm.comm.invoker.InvokeCallback;
-import com.reginald.pluginm.comm.invoker.InvokeCallbackWrapper;
-import com.reginald.pluginm.comm.invoker.InvokeResult;
-import com.reginald.pluginm.core.PluginManager;
-import com.reginald.pluginm.pluginapi.IInvokeCallback;
-import com.reginald.pluginm.pluginapi.IInvokeResult;
-import com.reginald.pluginm.stub.PluginContentResolver;
-
-import java.util.List;
-
 /**
  * Created by lxy on 17-8-23.
  */
@@ -29,7 +29,6 @@ import java.util.List;
 public class PluginM {
     private static Context sContext;
     private static PluginConfigs sConfigs;
-    private static PluginManager sPluginManager;
 
     public static void onAttachBaseContext(Application app, PluginConfigs configs) {
         if (app == null || configs == null) {

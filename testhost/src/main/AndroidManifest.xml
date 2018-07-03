@@ -159,6 +159,7 @@
             ]" />
 
         <activity android:name=".DemoActivity"
+                  android:screenOrientation="portrait"
                   android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -172,6 +173,7 @@
         </activity>
 
         <activity android:name=".HostTestActivity"
+                  android:screenOrientation="portrait"
                   android:theme="@style/AppTheme"/>
 
         <service

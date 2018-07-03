@@ -2,7 +2,6 @@ package com.reginald.pluginm.hook;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.reginald.pluginm.core.PluginManager;
@@ -138,7 +137,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             return "getIntentSender";
         }
 
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
             int type = (int) args[0];
             Intent pluginIntent = ((Intent[]) args[5])[0];
             Intent newIntent = null;
@@ -152,8 +151,10 @@ public class IActivityManagerServiceHook extends ServiceHook {
                     break;
                 case INTENT_SENDER_SERVICE:
                     newIntent = mPluginManager.getPluginServiceIntent(pluginIntent);
-                    newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY,
-                            PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
+                    if (newIntent != null) {
+                        newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_KEY,
+                                PluginStubMainService.INTENT_EXTRA_START_TYPE_START);
+                    }
                     break;
             }
 
@@ -163,11 +164,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
                 ((Intent[]) args[5])[0] = newIntent;
             }
 
-            return true;
-        }
-
-        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
-            return invokeResult;
+            return super.onStartInvoke(receiver, method, args);
         }
     }
 
@@ -181,7 +178,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             return "stopServiceToken";
         }
 
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
             ComponentName component = (ComponentName) args[0];
             int startId = (int) args[2];
             Logger.d(TAG, "stopServiceToken() onStartInvoke : component = " + component);
@@ -194,14 +191,10 @@ public class IActivityManagerServiceHook extends ServiceHook {
                         PluginStubMainService.INTENT_EXTRA_START_TYPE_STOP);
                 newIntent.putExtra(PluginStubMainService.INTENT_EXTRA_START_TYPE_STARTID, startId);
                 mPluginManager.getHostContext().startService(newIntent);
-                return false;
-            } else {
                 return true;
+            } else {
+                return super.onStartInvoke(receiver, method, args);
             }
-        }
-
-        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
-            return invokeResult == null ? true : invokeResult;
         }
     }
 
@@ -216,7 +209,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
             return "setServiceForeground";
         }
 
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
             ComponentName component = (ComponentName) args[0];
             Logger.d(TAG, "setServiceForeground() component = " + component);
             if (component != null) {
@@ -227,11 +220,7 @@ public class IActivityManagerServiceHook extends ServiceHook {
                     Logger.e(TAG, "setServiceForeground() can not found stub service info!");
                 }
             }
-            return true;
-        }
-
-        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
-            return invokeResult == null ? true : invokeResult;
+            return super.onStartInvoke(receiver, method, args);
         }
     }
 
@@ -245,12 +234,12 @@ public class IActivityManagerServiceHook extends ServiceHook {
             return "overridePendingTransition";
         }
 
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
             int enterAnim = (int) args[2];
             int exitAnim = (int) args[3];
             Logger.d(TAG, "overridePendingTransition() onStartInvoke : enterAnim = " +
                     enterAnim + " , exitAnim = " + exitAnim);
-            return false;
+            return null;
         }
     }
 
@@ -263,10 +252,6 @@ public class IActivityManagerServiceHook extends ServiceHook {
         @Override
         public String getName() {
             return "getRunningAppProcesses";
-        }
-
-        public boolean onStartInvoke(Object receiver, Method method, Object[] args) {
-            return true;
         }
 
         public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {

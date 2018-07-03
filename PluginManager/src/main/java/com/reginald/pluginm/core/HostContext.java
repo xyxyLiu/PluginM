@@ -45,12 +45,17 @@ public class HostContext extends ContextWrapper {
                 Application initApplication = (Application) FieldUtils.readField(initApplicationField, target);
                 Logger.d(TAG, "install() initApplication = " + initApplication);
                 Context baseContext = initApplication.getBaseContext();
-                HostContext hostContext = new HostContext(baseContext);
-                Logger.d(TAG, "install() hostContext = " + hostContext);
-                FieldUtils.writeField(ContextWrapper.class, "mBase", initApplication, hostContext);
-                boolean isSuc = hostContext == initApplication.getBaseContext();
-                Logger.d(TAG, "install() success? %b", isSuc);
-                return isSuc;
+                if (baseContext instanceof HostContext) {
+                    Logger.d(TAG, "install() already installed!");
+                    return true;
+                } else {
+                    HostContext hostContext = new HostContext(baseContext);
+                    Logger.d(TAG, "install() hostContext = " + hostContext);
+                    FieldUtils.writeField(ContextWrapper.class, "mBase", initApplication, hostContext);
+                    boolean isSuc = hostContext == initApplication.getBaseContext();
+                    Logger.d(TAG, "install() success? %b", isSuc);
+                    return isSuc;
+                }
             } catch (Exception e) {
                 Logger.e(TAG, "install() error!", e);
             }

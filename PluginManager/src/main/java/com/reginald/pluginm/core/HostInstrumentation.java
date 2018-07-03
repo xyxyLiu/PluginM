@@ -386,8 +386,8 @@ public class HostInstrumentation extends Instrumentation {
         }
 
         // fetch tartget and stub activity info
-        ActivityInfo activityInfo = lastNewTargetIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
-        ActivityInfo stubInfo = lastNewTargetIntent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
+        ActivityInfo activityInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_TARGET_ACTIVITYINFO);
+        ActivityInfo stubInfo = intent.getParcelableExtra(PluginManager.EXTRA_INTENT_STUB_INFO);
 
         Logger.d(TAG, "callActivityOnCreate() target activityInfo = " + activityInfo);
         if (activityInfo != null && stubInfo != null) {
@@ -427,12 +427,23 @@ public class HostInstrumentation extends Instrumentation {
                 // theme:
                 try {
                     FieldUtils.writeField(activity, "mTheme", null);
+                } catch (Exception e) {
+                    Logger.e(TAG, "modify theme error!", e);
+                }
+
+                try {
+                    FieldUtils.writeField(ContextThemeWrapper.class, "mTheme", activity, null);
+                } catch (Exception e) {
+                    Logger.e(TAG, "modify theme error!", e);
+                }
+
+                try {
                     int themeResId = activityInfo.getThemeResource();
                     if (themeResId != 0) {
                         activity.setTheme(themeResId);
                     }
                 } catch (Exception e) {
-                    Logger.e(TAG, "modify theme error!", e);
+                    Logger.e(TAG, "set activity theme error!", e);
                 }
 
                 // mActivityInfo

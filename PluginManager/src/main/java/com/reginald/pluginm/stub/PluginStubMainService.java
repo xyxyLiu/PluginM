@@ -265,7 +265,8 @@ public class PluginStubMainService extends Service {
                 attachMethod.setAccessible(true);
 
 
-                Context pluginServiceContext = new PluginContext(loadedPluginInfo, getBaseContext());
+                Context pluginServiceContext = mPluginManager.createPluginContext(
+                        loadedPluginInfo.packageName, getBaseContext());
                 ContextCompat.setOuterContext(pluginServiceContext, pluginServiceRecord.service);
 
                 attachMethod.invoke(pluginServiceRecord.service, pluginServiceContext, FieldUtils.readField(this,

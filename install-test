@@ -9,7 +9,7 @@ plugin_pkg1=com.example.testplugin
 plugin_pkg2=com.example.testplugin2
 buildType=assembleDebug
 apk_suffix=debug
-plugin_apk_dir=PluginM
+plugin_apk_dir=/sdcard/
 only_host_build=0
 
 # command checking
@@ -47,13 +47,13 @@ echo "plugin_pkg2 = $plugin_pkg2"
 # 是否需要编译两个插件demo
 if [ $only_host_build -eq 0 ]
 then
-    adb shell mkdir /sdcard/$plugin_apk_dir/
+    adb shell mkdir $plugin_apk_dir
     # 编译testplugin2 demo
     ./gradlew testplugin2:clean testplugin2:$buildType && \
-    adb push testplugin2/build/outputs/apk/testplugin2-$apk_suffix.apk /sdcard/$plugin_apk_dir/ && \
+    adb push testplugin2/build/outputs/apk/testplugin2-$apk_suffix.apk $plugin_apk_dir && \
     # 编译testplugin demo
     ./gradlew testplugin:clean testplugin:$buildType && \
-    adb push testplugin/build/outputs/apk/testplugin-$apk_suffix.apk /sdcard/$plugin_apk_dir/
+    adb push testplugin/build/outputs/apk/testplugin-$apk_suffix.apk $plugin_apk_dir
 fi && \
 
 # 编译宿主demo

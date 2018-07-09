@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.android.common.ActivityThreadCompat;
+import com.android.common.ContextCompat;
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.FieldUtils;
 import com.reginald.pluginm.reflect.MethodUtils;
@@ -26,7 +27,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.UserHandle;
 import android.view.ContextThemeWrapper;
@@ -329,7 +329,7 @@ public class HostInstrumentation extends Instrumentation {
                                     new PluginStubLocalActivityManager(ag.getLocalActivityManager()));
                         }
 
-                        activity.setIntent(intent);
+                        PluginManagerService.setActivityIntent(activity, intent);
                         mLastNewTargetIntent = new Intent(intent);
                         mLastNewTargetActivity = new WeakReference<Activity>(activity);
                         try {
@@ -396,6 +396,7 @@ public class HostInstrumentation extends Instrumentation {
             if (pluginInfo != null) {
                 Context pluginContext = mPluginManager.createPluginContext(
                         activityInfo.packageName, activity.getBaseContext());
+                ContextCompat.setOuterContext(pluginContext, activity);
                 try {
                     Context baseContext = activity.getBaseContext();
                     while (baseContext instanceof ContextWrapper) {
@@ -461,7 +462,9 @@ public class HostInstrumentation extends Instrumentation {
                     Logger.e(TAG, "modify mActivityInfo error!", e);
                 }
 
-                activity.setIntent(PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
+                PluginManagerService.setActivityIntent(activity,
+                        PluginManagerService.recoverOriginalIntent(intent, activity.getClassLoader()));
+
                 mPluginManager.callActivityOnCreate(activity, stubInfo, activityInfo);
             }
         }

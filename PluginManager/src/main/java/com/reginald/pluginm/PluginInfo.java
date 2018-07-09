@@ -28,12 +28,12 @@ public final class PluginInfo implements Parcelable {
     public String dexDir;
     public String nativeLibDir;
     public final Map<String, Map<String, String>> pluginInvokerClassMap = new HashMap<>();
+    public ApplicationInfo applicationInfo;
 
     // loaded info
     public PluginPackageParser pkgParser;
     public ClassLoader classLoader;
     public ClassLoader parentClassLoader;
-    public ApplicationInfo applicationInfo;
     public Application application;
     public Context baseContext;
     public Resources resources;

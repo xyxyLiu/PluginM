@@ -62,10 +62,83 @@ public class SystemServiceHook extends ServiceHook {
         }
     }
 
+    static final ServiceHook.MethodHandler sBinderInterfaceHandler = new ServiceHook.MethodHandler() {
+        PluginManager mPluginManager = PluginManager.getInstance();
+
+
+        /**
+         * receiver 为 实现系统服务接口的本地代理类
+         * 例如 com.android.internal.app.IAppOpsService$Stub$Proxy
+         *
+         * method 为 系统服务的aidl接口方法
+         * 例如 com.android.internal.app.IAppOpsService.checkOp(String op, int uid, String packageName)
+         *
+         * args 为 具体参数列表
+         */
+        @Override
+        public Object onStartInvoke(Object receiver, Method method, Object[] args) {
+            Logger.d(TAG, "BinderInterfaceHandler.invoke %s(%s) ",
+                    method, args != null ? Arrays.asList(args) : "null");
+
+            // 接口屏蔽处理
+            MethodHandler handler = sBinderMethodHandlers.get(MethodBlocker.keyForBlocker(method));
+            if (handler != null) {
+                Object result = handler.onStartInvoke(receiver, method, args);
+                if (result != NONE_RETURN) {
+                    Logger.w(TAG, "BinderInterfaceHandler BLOCK method [ %s ]", method);
+                    return result;
+                }
+            }
+
+            // 修改所有带有plugin包名的参数
+            if (args != null && args.length > 0) {
+                for (int index = 0; index < args.length; index++) {
+                    Object param = args[index];
+                    if (param == null) {
+                        continue;
+                    }
+                    if (param instanceof String) {
+                        String str = ((String) param);
+                        if (mPluginManager.isPlugin(str)) {
+                            args[index] = mPluginManager.getHostContext().getPackageName();
+                            Logger.d(TAG, "BinderInterfaceHandler REPLACE pkgName %s to host in "
+                                    + "method %s (%dth param)", param, method, index + 1);
+                        }
+                    } else if (param instanceof ComponentName) {
+                        ComponentName componentName = (ComponentName) param;
+                        if (mPluginManager.isPlugin(componentName.getPackageName())) {
+                            args[index] = new ComponentName(mPluginManager.getHostContext().getPackageName(),
+                                    componentName.getClassName());
+                            Logger.d(TAG, "BinderInterfaceHandler REPLACE ComponentName %s to host in "
+                                    + "method %s (%dth param)", param, method, index + 1);
+                        }
+                    }
+                }
+            }
+
+            return super.onStartInvoke(receiver, method, args);
+        }
+
+        @Override
+        public Object onEndInvoke(Object receiver, Method method, Object[] args, Object invokeResult) {
+            if (invokeResult instanceof IInterface) {
+                IInterface iInterface = (IInterface) invokeResult;
+                Logger.d(TAG, "BinderInterfaceHandler REPLACE IInterface %s in "
+                        + "method %s (return value)", invokeResult, method);
+                iInterface = StubProxyHook.fetch(iInterface);
+                invokeResult = iInterface != null ? iInterface : invokeResult;
+            } else if (invokeResult instanceof IBinder) {
+                Logger.d(TAG, "BinderInterfaceHandler REPLACE IBinder %s in "
+                        + "method %s (return value)", invokeResult, method);
+            }
+            return super.onEndInvoke(receiver, method, args, invokeResult);
+        }
+    };
+
     static {
         // 不需要进行binder hook的名单
         sServiceUnhookList.add(Context.ACTIVITY_SERVICE);
-        sServiceUnhookList.add(Context.WINDOW_SERVICE);
+        sServiceUnhookList.add("package");
 
         // 需要进行屏蔽的具体方法。
         addMethodBlocker(new MethodBlocker("android.app.job.IJobScheduler", "schedule") {
@@ -81,6 +154,7 @@ public class SystemServiceHook extends ServiceHook {
                 return false;
             }
         });
+
     }
 
     private static void addMethodBlocker(MethodBlocker methodBlocker) {
@@ -92,7 +166,7 @@ public class SystemServiceHook extends ServiceHook {
         return hook.install();
     }
 
-    private static class BinderHook extends ServiceHook {
+    static class BinderHook extends ServiceHook {
         private IBinder mObj;
         private IBinder mProxy;
         private IInterface mHookedService;
@@ -137,34 +211,40 @@ public class SystemServiceHook extends ServiceHook {
                 if (method.getName().equals("queryLocalInterface")) {
                     String descriptor = (String) args[0];
                     try {
+                        if (mHookedService == null) {
+                            synchronized(BinderHook.this) {
+                                if (mHookedService == null) {
+                                    Class<?> interfaceClazz = null;
+                                    String className = String.format("%s$Stub$Proxy", descriptor);
+                                    try {
+                                        interfaceClazz = Class.forName(className);
+                                    } catch (ClassNotFoundException e) {
+                                        Logger.e(TAG, "queryLocalInterface: interfaceClazz not found for %s",
+                                                className);
+                                        e.printStackTrace();
+                                    }
+
+                                    if (interfaceClazz != null) {
+                                        IInterface service =
+                                                (IInterface) MethodUtils.invokeConstructor(interfaceClazz, receiver);
+                                        IInterface newProxy = StubProxyHook.fetch(service);
+                                        if (newProxy != null) {
+                                            Logger.d(TAG, "queryLocalInterface: create proxy for service %s -> %s",
+                                                    descriptor, newProxy);
+                                            mHookedService = newProxy;
+                                        } else {
+                                            Logger.e(TAG, "queryLocalInterface: create proxy for service %s error!",
+                                                    descriptor);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         if (mHookedService != null) {
                             invokeResult = mHookedService;
                             Logger.d(TAG, "queryLocalInterface: found cached proxy for service %s -> %s",
                                     descriptor, mHookedService);
-                        } else {
-                            Class<?> interfaceClazz = null;
-                            String className = String.format("%s$Stub$Proxy", descriptor);
-                            try {
-                                interfaceClazz = Class.forName(className);
-                            } catch (ClassNotFoundException e) {
-                                Logger.e(TAG, "queryLocalInterface: interfaceClazz not found for %s", className);
-                                e.printStackTrace();
-                            }
-
-                            if (interfaceClazz != null) {
-                                IInterface service =
-                                        (IInterface) MethodUtils.invokeConstructor(interfaceClazz, receiver);
-                                IInterface newProxy = StubProxyHook.fetch(service);
-                                if (newProxy != null) {
-                                    Logger.d(TAG, "queryLocalInterface: create proxy for service %s -> %s",
-                                            descriptor, newProxy);
-                                    mHookedService = newProxy;
-                                    invokeResult = newProxy;
-                                } else {
-                                    Logger.e(TAG, "queryLocalInterface: create proxy for service %s error!",
-                                            descriptor);
-                                }
-                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -175,7 +255,7 @@ public class SystemServiceHook extends ServiceHook {
         };
     }
 
-    private static class StubProxyHook extends ServiceHook {
+    static class StubProxyHook extends ServiceHook {
         private IInterface mObj;
         private IInterface mProxy;
 
@@ -209,60 +289,6 @@ public class SystemServiceHook extends ServiceHook {
             Logger.e(TAG, "StubProxyHook.install error for binder %s !", mObj);
             return false;
         }
-
-        private static final ServiceHook.MethodHandler sBinderInterfaceHandler = new ServiceHook.MethodHandler() {
-            PluginManager mPluginManager = PluginManager.getInstance();
-
-
-            /**
-             * receiver 为 实现系统服务接口的本地代理类
-             * 例如 com.android.internal.app.IAppOpsService$Stub$Proxy
-             *
-             * method 为 系统服务的aidl接口方法
-             * 例如 com.android.internal.app.IAppOpsService.checkOp(String op, int uid, String packageName)
-             *
-             * args 为 具体参数列表
-             */
-            @Override
-            public Object onStartInvoke(Object receiver, Method method, Object[] args) {
-                Logger.d(TAG, "BinderInterfaceHandler.invoke %s(%s) ",
-                        method, args != null ? Arrays.asList(args) : "null");
-
-                // 接口屏蔽处理
-                MethodHandler handler = sBinderMethodHandlers.get(MethodBlocker.keyForBlocker(method));
-                if (handler != null) {
-                    Object result = handler.onStartInvoke(receiver, method, args);
-                    if (result != NONE_RETURN) {
-                        Logger.w(TAG, "BinderInterfaceHandler BLOCK method [ %s ]", method);
-                        return result;
-                    }
-                }
-
-                // 修改所有带有plugin包名的参数
-                if (args != null && args.length > 0) {
-                    for (int index = 0; index < args.length; index++) {
-                        Object param = args[index];
-                        if (param == null) {
-                            continue;
-                        }
-                        if (param instanceof String) {
-                            String str = ((String) param);
-                            if (mPluginManager.isPlugin(str)) {
-                                args[index] = mPluginManager.getHostContext().getPackageName();
-                            }
-                        } else if (param instanceof ComponentName) {
-                            ComponentName componentName = (ComponentName) param;
-                            if (mPluginManager.isPlugin(componentName.getPackageName())) {
-                                args[index] = new ComponentName(mPluginManager.getHostContext().getPackageName(),
-                                        componentName.getClassName());
-                            }
-                        }
-                    }
-                }
-
-                return super.onStartInvoke(receiver, method, args);
-            }
-        };
     }
 
     public boolean install() {

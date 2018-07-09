@@ -24,6 +24,8 @@ import com.reginald.pluginm.utils.Logger;
 import com.reginald.pluginm.utils.ProcessHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -62,12 +64,13 @@ public class StubManager {
     private static volatile StubManager sInstance;
     private final Set<String> mStubRequestedPermission = new HashSet<>();
     private final Map<String, ProcessInfo> mStubProcessInfoMap = new HashMap<String, ProcessInfo>(10);
+    private final List<ProcessInfo> mStubProcessInfoList = new ArrayList<>(10);
     // PROCESS_TYPE_INDEPENDENT 模式下的进程分配map: pkgname -> ProcessInfo
     private final Map<String, ProcessInfo> mPluginSingleProcessMap = new ConcurrentHashMap<>(10);
     // PROCESS_TYPE_ALL 模式下的进程分配map: pkgname#processname -> ProcessInfo
     private final Map<Pair<String, String>, ProcessInfo> mPluginWholeProcessMap = new ConcurrentHashMap<>(10);
     private Context mContext;
-    private int mProcessType = PROCESS_TYPE_INDEPENDENT;
+    private int mProcessType;
     private ApplicationInfo mStubApplicationInfo;
 
     private StubManager(Context context) {
@@ -151,6 +154,15 @@ public class StubManager {
             Logger.e(TAG, "init() error!", e);
         }
 
+        List<ProcessInfo> stubProcessInfos = new ArrayList<>(mStubProcessInfoMap.values());
+        Collections.sort(stubProcessInfos, new Comparator<ProcessInfo>() {
+            @Override
+            public int compare(ProcessInfo o1, ProcessInfo o2) {
+                return o1.processName.compareToIgnoreCase(o2.processName);
+            }
+        });
+        mStubProcessInfoList.addAll(stubProcessInfos);
+
         Logger.d(TAG, "init() " + this);
 
     }
@@ -229,13 +241,6 @@ public class StubManager {
         return processInfo;
     }
 
-    public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
-        ProcessInfo processInfo = selectStubProcess(componentInfo.processName, componentInfo.packageName);
-        Logger.d(TAG, "selectStubProcess() [%s/%s @ %s] -> stub process = %s",
-                componentInfo.packageName, componentInfo.name, componentInfo.processName, processInfo.processName);
-        return processInfo;
-    }
-
     public String getPluginProcessName(String stubProcessName) {
         Logger.d(TAG, "getPluginProcessName() stubProcessName = " + stubProcessName);
         switch (mProcessType) {
@@ -262,15 +267,24 @@ public class StubManager {
         return null;
     }
 
-    /**
-     * TODO 考虑插件进程模式的设计
-     */
+    public ProcessInfo selectStubProcess(ComponentInfo componentInfo) {
+        ProcessInfo processInfo = selectStubProcess(componentInfo.processName, componentInfo.packageName);
+        return processInfo;
+    }
+
     public ProcessInfo selectStubProcess(String pluginProcessName, String pkgName) {
-        if (mStubProcessInfoMap.isEmpty()) {
+        ProcessInfo processInfo = selectStubProcessInternal(pluginProcessName, pkgName);
+        Logger.d(TAG, "selectStubProcess() pkg = %s, process = %s -> stub_process = %s",
+                pkgName, pluginProcessName, processInfo != null ? processInfo.processName : "NULL");
+        return processInfo;
+    }
+
+    private ProcessInfo selectStubProcessInternal(String pluginProcessName, String pkgName) {
+        if (mStubProcessInfoList.isEmpty()) {
             throw new RuntimeException("no registered stub process found for plugin process " + pluginProcessName);
         }
 
-        List<ProcessInfo> stubProcessInfos = new ArrayList<>(mStubProcessInfoMap.values());
+        List<ProcessInfo> stubProcessInfos = mStubProcessInfoList;
 
         switch (mProcessType) {
             case PROCESS_TYPE_INDEPENDENT: {
@@ -334,7 +348,7 @@ public class StubManager {
                 @Override
                 public void run() {
                     Toast.makeText(mContext, String.format("当前预埋桩进程(%d个)已全部被占用，请在Manifest中加入更多插件桩进程！",
-                            mStubProcessInfoMap.size()), Toast.LENGTH_LONG).show();
+                            mStubProcessInfoList.size()), Toast.LENGTH_LONG).show();
                 }
             });
             Logger.e(TAG, "No more stub process for plugin " + pkgName);

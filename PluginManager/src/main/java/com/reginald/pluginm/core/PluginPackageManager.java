@@ -36,9 +36,11 @@ import android.support.annotation.XmlRes;
 
 import com.reginald.pluginm.PluginInfo;
 import com.reginald.pluginm.reflect.MethodUtils;
+import com.reginald.pluginm.utils.CommonUtils;
 import com.reginald.pluginm.utils.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -441,10 +443,8 @@ public class PluginPackageManager extends PackageManager {
     @Override
     public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
         List<ResolveInfo> resolveInfos = mPluginManager.queryIntentActivities(intent, flags);
-        if (resolveInfos != null && !resolveInfos.isEmpty()) {
-            return resolveInfos;
-        }
-        return mBase.queryIntentActivities(intent, flags);
+        List<ResolveInfo> baseResolveInfos = mBase.queryIntentActivities(intent, flags);
+        return CommonUtils.combineList(resolveInfos, baseResolveInfos);
     }
 
     @Override
@@ -456,10 +456,8 @@ public class PluginPackageManager extends PackageManager {
     @Override
     public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
         List<ResolveInfo> resolveInfos = mPluginManager.queryBroadcastReceivers(intent, flags);
-        if (resolveInfos != null && !resolveInfos.isEmpty()) {
-            return resolveInfos;
-        }
-        return mBase.queryBroadcastReceivers(intent, flags);
+        List<ResolveInfo> baseResolveInfos = mBase.queryBroadcastReceivers(intent, flags);
+        return CommonUtils.combineList(resolveInfos, baseResolveInfos);
     }
 
     @Override
@@ -476,21 +474,19 @@ public class PluginPackageManager extends PackageManager {
     @Override
     public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
         List<ResolveInfo> resolveInfos = mPluginManager.queryIntentServices(intent, flags);
-        if (resolveInfos != null && !resolveInfos.isEmpty()) {
-            return resolveInfos;
-        }
-        return mBase.queryIntentServices(intent, flags);
+        List<ResolveInfo> baseResolveInfos = mBase.queryIntentServices(intent, flags);
+        return CommonUtils.combineList(resolveInfos, baseResolveInfos);
     }
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     @Override
     public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
         List<ResolveInfo> resolveInfos = mPluginManager.queryIntentContentProviders(intent, flags);
-        if (resolveInfos != null && !resolveInfos.isEmpty()) {
-            return resolveInfos;
-        }
-        return mBase.queryIntentContentProviders(intent, flags);
+        List<ResolveInfo> baseResolveInfos = mBase.queryIntentContentProviders(intent, flags);
+        return CommonUtils.combineList(resolveInfos, baseResolveInfos);
     }
+
+
 
     @Override
     public ProviderInfo resolveContentProvider(String name, int flags) {

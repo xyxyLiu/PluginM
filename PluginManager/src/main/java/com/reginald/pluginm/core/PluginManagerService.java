@@ -1,5 +1,30 @@
 package com.reginald.pluginm.core;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.reginald.pluginm.BuildConfig;
+import com.reginald.pluginm.IPluginClient;
+import com.reginald.pluginm.IPluginManager;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.parser.ApkParser;
+import com.reginald.pluginm.parser.IntentMatcher;
+import com.reginald.pluginm.parser.PluginPackageParser;
+import com.reginald.pluginm.reflect.FieldUtils;
+import com.reginald.pluginm.stub.PluginStubMainProvider;
+import com.reginald.pluginm.stub.StubManager;
+import com.reginald.pluginm.utils.ConfigUtils;
+import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.PackageUtils;
+import com.reginald.pluginm.utils.ProcessHelper;
+
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -19,30 +44,6 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.text.TextUtils;
-
-import com.reginald.pluginm.BuildConfig;
-import com.reginald.pluginm.IPluginClient;
-import com.reginald.pluginm.IPluginManager;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginM;
-import com.reginald.pluginm.parser.ApkParser;
-import com.reginald.pluginm.parser.IntentMatcher;
-import com.reginald.pluginm.parser.PluginPackageParser;
-import com.reginald.pluginm.stub.PluginStubMainProvider;
-import com.reginald.pluginm.stub.StubManager;
-import com.reginald.pluginm.utils.ConfigUtils;
-import com.reginald.pluginm.utils.Logger;
-import com.reginald.pluginm.utils.PackageUtils;
-import com.reginald.pluginm.utils.ProcessHelper;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import dalvik.system.DexClassLoader;
 
 /**
@@ -100,6 +101,15 @@ public class PluginManagerService extends IPluginManager.Stub {
         }
 
         return pluginIntent;
+    }
+
+    public static void setActivityIntent(Activity activity, Intent intent) {
+        try {
+            FieldUtils.writeField(Activity.class, "mIntent", activity, intent);
+        } catch (Exception e) {
+            Logger.e(TAG, "setActivityIntent() error!", e);
+            activity.setIntent(intent);
+        }
     }
 
     public IPluginClient fetchPluginClient(final String processName, boolean isStartProcess) {

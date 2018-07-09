@@ -1,5 +1,7 @@
 package com.reginald.pluginm.hook;
 
+import static com.reginald.pluginm.hook.SystemServiceHook.sBinderInterfaceHandler;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.List;
@@ -90,6 +92,8 @@ public class IActivityManagerServiceHook extends ServiceHook {
         addMethodHandler(new overridePendingTransition());
         addMethodHandler(new setServiceForeground());
         addMethodHandler(new getRunningAppProcesses());
+
+        setAllMethodHandler(sBinderInterfaceHandler);
 
         Logger.d(TAG, "install() install ok!");
         return true;

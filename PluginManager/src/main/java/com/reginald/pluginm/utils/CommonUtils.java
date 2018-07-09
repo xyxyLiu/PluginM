@@ -6,11 +6,14 @@ import android.content.ContentProvider;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
+import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by lxy on 17-8-22.
@@ -73,6 +76,23 @@ public class CommonUtils {
         }
 
         return null;
+    }
+
+    public static <T> List<T> combineList(List<T> a, List<T> b) {
+        if (a == null && b == null) {
+            return null;
+        }
+
+        List<T> results = new ArrayList<>();
+        if (a != null) {
+            results.addAll(a);
+        }
+
+        if (b != null) {
+            results.addAll(b);
+        }
+
+        return results;
     }
 
 }

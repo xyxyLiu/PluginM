@@ -60,7 +60,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.util.Pair;
-import android.view.LayoutInflater;
 import dalvik.system.DexClassLoader;
 
 /**
@@ -118,6 +117,12 @@ public class PluginManager {
 
         // 只在插件进程初始化
         if (isPluginProcess) {
+            Logger.d(TAG, "onAttachBaseContext() ensure core service connection");
+            if (PluginManager.getInstance().ensureService(null) == null) {
+                Logger.e(TAG, "onAttachBaseContext() ensure core service connection error! retry ...");
+                PluginManager.getInstance().ensureService(null);
+            }
+
             Instrumentation newInstrumentation = HostInstrumentation.install(app);
             Logger.d(TAG, "onAttachBaseContext() replace host instrumentation, instrumentation = " + newInstrumentation);
 
@@ -131,7 +136,6 @@ public class PluginManager {
 
             isSuc = PluginClientService.attach(app);
             Logger.d(TAG, "onAttachBaseContext() PluginClientService attach, success? " + isSuc);
-
         }
 
         Logger.d(TAG, "onAttachBaseContext() OK! time used = %d ms",
@@ -164,51 +168,54 @@ public class PluginManager {
 
     public static String getPackageNameCompat(String plugin, String host) {
         String pkg = plugin;
-        long timeStart = System.nanoTime();
-        //TODO 通过调用栈判断返回包名，属投机取巧的做法，且可能存在性能问题，后期需要考虑其它处理方法
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        //Logger.d(TAG, "getPackageNameCompat(): ");
+        // 如果没有对系统服务进行hook，则通过调用栈判断返回包名。
+        if (!PluginM.getConfigs().isSystemServicesHook()) {
+            long timeStart = System.nanoTime();
+            //TODO 通过调用栈判断返回包名，属投机取巧的做法，且可能存在性能问题，后期需要考虑其它处理方法
+            StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+            //Logger.d(TAG, "getPackageNameCompat(): ");
 
-        int lookupIndex = -1;
-        for (int i = 0; i < stackTraceElements.length; i++) {
-            StackTraceElement stackTraceElement = stackTraceElements[i];
-            //Logger.d(TAG, "#  " + stackTraceElement.toString());
-            String className = stackTraceElement.getClassName();
-            String methodName = stackTraceElement.getMethodName();
-            if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
-                    methodName.equals("getPackageName")) {
-                lookupIndex = i + 1;
-                continue;
-            }
-
-            if (i >= lookupIndex && className.equals(ContextWrapper.class.getName()) &&
-                    methodName.equals("getPackageName")) {
-                lookupIndex = i + 1;
-                continue;
-            }
-
-            if (i == lookupIndex) {
-                // Logger.d(TAG, "lookup: %s . %s", className, methodName);
-                if (className.startsWith("android.")) {
-                    if (className.startsWith("android.support.multidex")) {
-                        // support multidex
-                        pkg = plugin;
-                    } else if (className.startsWith(ComponentName.class.getName()) &&
-                            methodName.equals("<init>")) {
-                        // 需要返回宿主包名的例外情况:
-                        // public int[] android.appwidget.AppWidgetManager.getAppWidgetIds(ComponentName provider)
-                        pkg = plugin;
-                    } else {
-                        pkg = host;
-                    }
+            int lookupIndex = -1;
+            for (int i = 0; i < stackTraceElements.length; i++) {
+                StackTraceElement stackTraceElement = stackTraceElements[i];
+                //Logger.d(TAG, "#  " + stackTraceElement.toString());
+                String className = stackTraceElement.getClassName();
+                String methodName = stackTraceElement.getMethodName();
+                if (i >= lookupIndex && className.endsWith(PluginContext.class.getName()) &&
+                        methodName.equals("getPackageName")) {
+                    lookupIndex = i + 1;
+                    continue;
                 }
 
-                break;
-            }
-        }
+                if (i >= lookupIndex && className.equals(ContextWrapper.class.getName()) &&
+                        methodName.equals("getPackageName")) {
+                    lookupIndex = i + 1;
+                    continue;
+                }
 
-        Logger.d(TAG, "getPackageNameCompat(): return pkg = %s, time used = %d ms",
-                pkg, (System.nanoTime() - timeStart) / (1000 * 1000));
+                if (i == lookupIndex) {
+                    // Logger.d(TAG, "lookup: %s . %s", className, methodName);
+                    if (className.startsWith("android.")) {
+                        if (className.startsWith("android.support.multidex")) {
+                            // support multidex
+                            pkg = plugin;
+                        } else if (className.startsWith(ComponentName.class.getName()) &&
+                                methodName.equals("<init>")) {
+                            // 需要返回宿主包名的例外情况:
+                            // public int[] android.appwidget.AppWidgetManager.getAppWidgetIds(ComponentName provider)
+                            pkg = plugin;
+                        } else {
+                            pkg = host;
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            Logger.d(TAG, "getPackageNameCompat(): return pkg = %s, time used = %d ms",
+                    pkg, (System.nanoTime() - timeStart) / (1000 * 1000));
+        }
         return pkg;
     }
 
@@ -339,6 +346,7 @@ public class PluginManager {
                 mLoadedPluginMap.put(pluginPackageName, pluginInfo);
                 mLoadedClassLoaderMap.put(pluginPackageName, pluginClassLoader);
 
+                // 完整进程模式，需要修改进程名称
                 if (PluginM.getConfigs().getProcessType() == PluginConfigs.PROCESS_TYPE_COMPLETE) {
                     ProcessHelper.setArgV0(pluginProcessName);
                 }

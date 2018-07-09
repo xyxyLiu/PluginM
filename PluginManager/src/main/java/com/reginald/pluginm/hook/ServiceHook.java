@@ -1,9 +1,5 @@
 package com.reginald.pluginm.hook;
 
-import android.os.SystemClock;
-
-import com.reginald.pluginm.utils.Logger;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,12 +7,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.reginald.pluginm.utils.Logger;
+
+import android.os.SystemClock;
+
 /**
  * Created by lxy on 17-8-16.
  */
 
 public abstract class ServiceHook implements InvocationHandler {
     private static final String TAG = "ServiceHook";
+    private static final boolean HOOK_LOG = true;
 
     protected Object mBase;
     protected final Map<String, MethodHandler> mMethodHandlers = new HashMap<String, MethodHandler>(2);
@@ -40,9 +41,12 @@ public abstract class ServiceHook implements InvocationHandler {
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Logger.d(TAG, String.format("invoke %s.%s(%s)",
-                method.getDeclaringClass().getName(), method.getName(),
-                args != null ? Arrays.asList(args) : "NULL"));
+        if (HOOK_LOG) {
+            Logger.d(TAG, String.format("invoke %s.%s(%s)",
+                    method.getDeclaringClass().getName(), method.getName(),
+                    args != null ? Arrays.asList(args) : "NULL"));
+        }
+
         try {
             if (method != null) {
                 MethodHandler methodHandler = mMethodHandlers.get(method.getName());
@@ -65,6 +69,7 @@ public abstract class ServiceHook implements InvocationHandler {
 
     public static class MethodHandler {
         public static final Object NONE_RETURN = new Object();
+
         public Object invoke(Object receiver, Method method, Object[] args) throws Throwable {
             long startTime = SystemClock.elapsedRealtime();
 
@@ -78,8 +83,10 @@ public abstract class ServiceHook implements InvocationHandler {
                 return invokeResult;
             } finally {
                 long endTime = SystemClock.elapsedRealtime();
-                Logger.d(TAG, String.format("MethodHandler.invoke method %s.%s costs %d ms",
-                        method.getDeclaringClass().getName(), method.getName(), endTime - startTime));
+                if (HOOK_LOG) {
+                    Logger.d(TAG, String.format("MethodHandler.invoke method %s.%s costs %d ms",
+                            method.getDeclaringClass().getName(), method.getName(), endTime - startTime));
+                }
             }
 
         }

@@ -8,7 +8,9 @@ import com.reginald.pluginm.utils.Logger;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.util.DisplayMetrics;
 
 /**
  * Created by lxy on 16-6-2.
@@ -20,7 +22,7 @@ public class ResourcesManager {
     public static Resources createResources(Context hostContext, AssetManager assetManager) {
         try {
             if (assetManager != null) {
-                return new Resources(assetManager, hostContext.getResources().getDisplayMetrics(), hostContext.getResources().getConfiguration());
+                return new PluginResources(assetManager, hostContext);
             }
         } catch (Exception e) {
             Logger.e(TAG, "createResources() error!", e);
@@ -59,5 +61,27 @@ public class ResourcesManager {
         }
 
         return null;
+    }
+
+    private static class PluginResources extends Resources {
+        private final Context mHostContext;
+        private final AssetManager mAssetManager;
+
+        public PluginResources(AssetManager assets, Context hostContext) {
+            super(assets, hostContext.getResources().getDisplayMetrics(),
+                    hostContext.getResources().getConfiguration());
+            mHostContext = hostContext;
+            mAssetManager = assets;
+        }
+
+        @Override
+        public Configuration getConfiguration() {
+            return mHostContext.getResources().getConfiguration();
+        }
+
+        @Override
+        public DisplayMetrics getDisplayMetrics() {
+            return mHostContext.getResources().getDisplayMetrics();
+        }
     }
 }

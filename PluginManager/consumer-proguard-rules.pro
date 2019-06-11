@@ -15,6 +15,17 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontpreverify
+-ignorewarnings
+-repackageclasses 'pluginm'
+
+#-keep class com.dianxinos.library.dxbase.**;
+-allowaccessmodification
+
+#-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable,Signature
+
 -dontwarn com.reginald.pluginm.**
 
 -keep class android.os.* {

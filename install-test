@@ -50,15 +50,15 @@ then
     adb shell mkdir $plugin_apk_dir
     # 编译testplugin2 demo
     ./gradlew testplugin2:clean testplugin2:$buildType && \
-    adb push testplugin2/build/outputs/apk/testplugin2-$apk_suffix.apk $plugin_apk_dir && \
+    adb push testplugin2/build/outputs/apk/$apk_suffix/testplugin2-$apk_suffix.apk $plugin_apk_dir && \
     # 编译testplugin demo
     ./gradlew testplugin:clean testplugin:$buildType && \
-    adb push testplugin/build/outputs/apk/testplugin-$apk_suffix.apk $plugin_apk_dir
+    adb push testplugin/build/outputs/apk/$apk_suffix/testplugin-$apk_suffix.apk $plugin_apk_dir
 fi && \
 
 # 编译宿主demo
 ./gradlew testhost:clean testhost:$buildType && \
-adb push testhost/build/outputs/apk/testhost-$apk_suffix.apk /data/local/tmp/com.example.testhost && \
+adb push testhost/build/outputs/apk/$apk_suffix/testhost-$apk_suffix.apk /data/local/tmp/com.example.testhost && \
 
 # 启动宿主demo
 adb shell pm install -r "/data/local/tmp/$host_pkg" && \

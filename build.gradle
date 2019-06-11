@@ -3,26 +3,29 @@
 buildscript {
     repositories {
         jcenter()
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.3.0'
+        classpath 'com.android.tools.build:gradle:3.2.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
 ext {
-    compileSdkVersion = 27
-    buildToolsVersion = "27.0.3"
+    compileSdkVersion = 28
+    buildToolsVersion = "28.0.3"
     minSdkVersion = 11
 
     DEBUG_LOG = "true"
     targetPluginApiLibDir = rootDir.path + '/build/plugin_api_lib/'
+    targetSharedLibDir = rootDir.path + '/build/shared_lib/'
 }
 
 allprojects {
     repositories {
         jcenter()
+        google()
     }
 }
 

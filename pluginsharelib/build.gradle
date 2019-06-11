@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -25,17 +25,19 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-task makeJar(type: Jar, dependsOn: ['build']) {
-    destinationDir = file('build/outputs/jar/')
-    baseName = "pluginsharelib"
-    version = "1.0"
-    from('build/intermediates/classes/debug')
-    exclude('**/BuildConfig.class')
-    exclude('**/BuildConfig\$*.class')
-    exclude('**/R.class')
-    exclude('**/R\$*.class')
-    include('**/*.class')
+task clearJar(type: Delete) {
+    delete rootProject.ext.targetSharedLibDir
 }
+
+task makeJar(type: Copy) {
+    from('build/intermediates/intermediate-jars/release/')
+    into(rootProject.ext.targetSharedLibDir)
+    include('classes.jar')
+    rename ('classes.jar', 'pluginsharelib-v' + android.defaultConfig.versionName +
+            '_' + android.defaultConfig.versionCode + '.jar')
+}
+
+makeJar.dependsOn(clearJar, build)

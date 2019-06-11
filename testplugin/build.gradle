@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.example.testplugin"
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion 23
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -42,9 +42,9 @@ android {
 }
 
 dependencies {
-    provided fileTree(dir: rootProject.ext.targetPluginApiLibDir, include: ['*.jar'])
-    provided fileTree(dir: '../pluginsharelib/build/outputs/jar/', include: ['*.jar'])
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compileOnly fileTree(dir: rootProject.ext.targetPluginApiLibDir, include: ['*.jar'])
+    compileOnly fileTree(dir: rootProject.ext.targetSharedLibDir, include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:25.3.1'
 //    compile project(':pluginlib')
 }

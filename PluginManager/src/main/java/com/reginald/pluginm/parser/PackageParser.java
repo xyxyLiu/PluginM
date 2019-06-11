@@ -66,7 +66,10 @@ abstract class PackageParser {
     public final static int PARSE_TRUSTED_OVERLAY = 1 << 9;
 
     public static PackageParser newPluginParser(Context context) throws Exception {
-        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP_MR1) {
+
+        if (VERSION.SDK_INT >= VERSION_CODES.P) {
+            return new PackageParserApi28(context);
+        } else if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP_MR1) {
             if ("1".equals(SystemPropertiesCompat.get("ro.build.version.preview_sdk", ""))) {
                 return new PackageParserApi22Preview1(context);
             } else {

@@ -17,6 +17,7 @@ import com.reginald.pluginm.utils.Logger;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.IInterface;
 
@@ -155,6 +156,22 @@ public class SystemServiceHook extends ServiceHook {
             }
         });
 
+        // TODO compat contentResolver Observer on Android O
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            addMethodBlocker(new MethodBlocker("android.content.IContentService", "registerContentObserver") {
+                @Override
+                public Object blockReturn() {
+                    return false;
+                }
+            });
+
+            addMethodBlocker(new MethodBlocker("android.content.IContentService", "notifyChange") {
+                @Override
+                public Object blockReturn() {
+                    return false;
+                }
+            });
+        }
     }
 
     private static void addMethodBlocker(MethodBlocker methodBlocker) {

@@ -42,7 +42,7 @@ public class PluginCommClient {
     private void initCommService() {
         try {
             final ContentResolver contentResolver = mContext.getContentResolver();
-            final Bundle bundle = contentResolver.call(PluginManagerServiceProvider.URI,
+            final Bundle bundle = contentResolver.call(PluginManagerServiceProvider.getUri(mContext),
                     PluginManagerServiceProvider.METHOD_GET_COMM_SERVICE, null, null);
             if (bundle != null) {
                 bundle.setClassLoader(PluginManager.class.getClassLoader());

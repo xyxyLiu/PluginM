@@ -38,8 +38,6 @@ echo "host pkg = $host_pkg"
 echo "plugin_pkg1 = $plugin_pkg1"
 echo "plugin_pkg2 = $plugin_pkg2"
 
-# 编译PluginApi，生成相应jar包，以provided形式供插件进行依赖，不要编译到最终的插件apk中！
-./gradlew PluginApi:clean PluginApi:makeJar && \
 
 # 编译插件的共享代码库，生成相应jar包，以provided形式供插件进行依赖，不要编译到最终的插件apk中！
 ./gradlew pluginsharelib:clean pluginsharelib:makeJar && \

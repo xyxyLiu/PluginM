@@ -46,7 +46,15 @@ chmod +x install-test
 
 ### 宿主工程：
 
-1. 将PluginM作为library引入到您的主项目中
+1. 将PluginM作为library引入到您的宿主项目中
+
+``` xml
+dependencies {
+    implementation project(':PluginManager')
+    ...
+}
+```
+
 2. 预埋插件中需要使用到的权限
 3. 在您的Application中添加如下代码：
 ``` java
@@ -83,8 +91,14 @@ chmod +x install-test
 
 ### 插件工程：
 * 如果插件不依赖于宿主或其它插件，则**不用做任何处理**，直接编译出APK即可被加载
-* 如果插件依赖与宿主或其它插件，则需要依赖于PluginApi，请以provided形式依赖PluginApi编译生成的Jar.
+* 如果插件依赖与宿主或其它插件，则需要依赖于PluginApi，请在插件工程的build.gradle中加入PluginApi依赖.
 
+``` xml
+dependencies {
+    implementation project(':PluginApi')
+    ...
+}
+```
 
 
 ## 主要接口

@@ -9,7 +9,7 @@
         <!-- 插件服务Provider, 需要放在宿主的常驻进程中 -->
         <provider
             android:name="com.reginald.pluginm.core.PluginManagerServiceProvider"
-            android:authorities="com.reginald.pluginm.provider.core"
+            android:authorities="${applicationId}.pluginm.provider.core"
             android:exported="false"
             />
 
@@ -221,7 +221,7 @@
 
         <provider
             android:name="com.reginald.pluginm.stub.Stubs$Provider$P0$Provider0"
-            android:authorities="com.reginald.pluginm.stub.provider.p0"
+            android:authorities="${applicationId}.pluginm.stub.provider.p0"
             android:process=":p0">
         </provider>
         <!-- process P0 end -->
@@ -431,7 +431,7 @@
 
         <provider
             android:name="com.reginald.pluginm.stub.Stubs$Provider$P1$Provider0"
-            android:authorities="com.reginald.pluginm.stub.provider.p1"
+            android:authorities="${applicationId}.pluginm.stub.provider.p1"
             android:process=":p1">
         </provider>
         <!-- process P1 end -->
@@ -641,7 +641,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P2$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p2"
+                android:authorities="${applicationId}.pluginm.stub.provider.p2"
                 android:process=":p2">
         </provider>
         <!-- process P2 end -->
@@ -851,7 +851,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P3$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p3"
+                android:authorities="${applicationId}.pluginm.stub.provider.p3"
                 android:process=":p3">
         </provider>
         <!-- process P3 end -->
@@ -1061,7 +1061,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P4$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p4"
+                android:authorities="${applicationId}.pluginm.stub.provider.p4"
                 android:process=":p4">
         </provider>
         <!-- process P4 end -->
@@ -1271,7 +1271,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P5$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p5"
+                android:authorities="${applicationId}.pluginm.stub.provider.p5"
                 android:process=":p5">
         </provider>
         <!-- process P5 end -->
@@ -1481,7 +1481,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P6$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p6"
+                android:authorities="${applicationId}.pluginm.stub.provider.p6"
                 android:process=":p6">
         </provider>
         <!-- process P6 end -->
@@ -1691,7 +1691,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P7$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p7"
+                android:authorities="${applicationId}.pluginm.stub.provider.p7"
                 android:process=":p7">
         </provider>
         <!-- process P7 end -->
@@ -1901,7 +1901,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P8$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p8"
+                android:authorities="${applicationId}.pluginm.stub.provider.p8"
                 android:process=":p8">
         </provider>
         <!-- process P8 end -->
@@ -2111,7 +2111,7 @@
 
         <provider
                 android:name="com.reginald.pluginm.stub.Stubs$Provider$P9$Provider0"
-                android:authorities="com.reginald.pluginm.stub.provider.p9"
+                android:authorities="${applicationId}.pluginm.stub.provider.p9"
                 android:process=":p9">
         </provider>
         <!-- process P9 end -->

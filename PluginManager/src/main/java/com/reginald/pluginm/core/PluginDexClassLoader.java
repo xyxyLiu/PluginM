@@ -1,11 +1,12 @@
 package com.reginald.pluginm.core;
 
+import android.text.TextUtils;
+
 import com.reginald.pluginm.BuildConfig;
 import com.reginald.pluginm.PluginM;
 import com.reginald.pluginm.pluginapi.PluginHelper;
 import com.reginald.pluginm.utils.Logger;
 
-import android.text.TextUtils;
 import dalvik.system.DexClassLoader;
 
 /**
@@ -15,6 +16,9 @@ public class PluginDexClassLoader extends DexClassLoader {
 
     private static final String TAG = "PluginDexClassLoader";
     private static final boolean LOADER_DEBUG = BuildConfig.DEBUG_LOG && false;
+    private static final String[] HOST_LOAD_LIST = new String[]{
+            PluginHelper.class.getPackage().getName()
+    };
 
     private final ClassLoader mHost;
 
@@ -27,6 +31,15 @@ public class PluginDexClassLoader extends DexClassLoader {
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
         if (LOADER_DEBUG) {
             Logger.d(TAG, "loadClass() classname = " + className + " , resolve = " + resolve);
+        }
+
+        Class<?> hostClazz = tryLoadFromHostList(className, resolve);
+        if (hostClazz != null) {
+            if (LOADER_DEBUG) {
+                Logger.d(TAG, "loadClass() from host list: classname = %s ok!",
+                        HOST_LOAD_LIST, className);
+            }
+            return hostClazz;
         }
 
         try {
@@ -59,6 +72,26 @@ public class PluginDexClassLoader extends DexClassLoader {
                         + "{%s}", className, this));
             }
         }
+    }
+
+    private Class<?> tryLoadFromHostList(String className, boolean resolve) {
+        for (String prefix : HOST_LOAD_LIST) {
+            if (className.startsWith(prefix)) {
+                try {
+                    Class<?> clazz = mHost.loadClass(className);
+                    if (LOADER_DEBUG) {
+                        Logger.d(TAG, "tryLoadFromHostList() host loader: classname = " + className + " ok!");
+                    }
+                    return clazz;
+                } catch (ClassNotFoundException hostException) {
+                    if (LOADER_DEBUG) {
+                        Logger.e(TAG, "tryLoadFromHostList() host loader: classname = " + className + " host load fail!");
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private boolean canUseHostLoader(String className) {

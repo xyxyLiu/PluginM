@@ -1,33 +1,5 @@
 package com.reginald.pluginm.core;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.android.common.ContextCompat;
-import com.reginald.pluginm.IPluginManager;
-import com.reginald.pluginm.PluginConfigs;
-import com.reginald.pluginm.PluginInfo;
-import com.reginald.pluginm.PluginM;
-import com.reginald.pluginm.PluginNotFoundException;
-import com.reginald.pluginm.comm.PluginLocalManager;
-import com.reginald.pluginm.hook.IActivityManagerServiceHook;
-import com.reginald.pluginm.hook.SystemServiceHook;
-import com.reginald.pluginm.parser.ApkParser;
-import com.reginald.pluginm.pluginapi.IPluginLocalManager;
-import com.reginald.pluginm.pluginapi.PluginHelper;
-import com.reginald.pluginm.stub.PluginServiceConnection;
-import com.reginald.pluginm.stub.PluginStubMainProvider;
-import com.reginald.pluginm.stub.PluginStubMainService;
-import com.reginald.pluginm.utils.BinderParcelable;
-import com.reginald.pluginm.utils.Logger;
-import com.reginald.pluginm.utils.ProcessHelper;
-import com.reginald.pluginm.utils.ThreadUtils;
-
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
@@ -60,6 +32,35 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.LogPrinter;
 import android.util.Pair;
+
+import com.android.common.ContextCompat;
+import com.reginald.pluginm.IPluginManager;
+import com.reginald.pluginm.PluginConfigs;
+import com.reginald.pluginm.PluginInfo;
+import com.reginald.pluginm.PluginM;
+import com.reginald.pluginm.PluginNotFoundException;
+import com.reginald.pluginm.comm.PluginLocalManager;
+import com.reginald.pluginm.hook.IActivityManagerServiceHook;
+import com.reginald.pluginm.hook.SystemServiceHook;
+import com.reginald.pluginm.parser.ApkParser;
+import com.reginald.pluginm.pluginapi.IPluginLocalManager;
+import com.reginald.pluginm.pluginapi.PluginHelper;
+import com.reginald.pluginm.stub.PluginServiceConnection;
+import com.reginald.pluginm.stub.PluginStubMainProvider;
+import com.reginald.pluginm.stub.PluginStubMainService;
+import com.reginald.pluginm.utils.BinderParcelable;
+import com.reginald.pluginm.utils.Logger;
+import com.reginald.pluginm.utils.ProcessHelper;
+import com.reginald.pluginm.utils.ThreadUtils;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import dalvik.system.DexClassLoader;
 
 /**
@@ -147,9 +148,8 @@ public class PluginManager {
         Class<?> pluginHelperClazz = null;
         try {
             pluginHelperClazz = pluginInfo.classLoader.loadClass(PluginHelper.class.getName());
-
             if (pluginHelperClazz.getClassLoader() != PluginHelper.class.getClassLoader()) {
-                throw new IllegalStateException("plugin api is complied in plugin! error!");
+                Logger.i(TAG, "initPluginHelper() plugin api is complied in apk!");
             }
 
             IPluginLocalManager pluginLocalManager = PluginLocalManager.getInstance(hostContext);
@@ -236,7 +236,7 @@ public class PluginManager {
 
         try {
             final ContentResolver contentResolver = mContext.getContentResolver();
-            final Bundle bundle = contentResolver.call(PluginManagerServiceProvider.URI,
+            final Bundle bundle = contentResolver.call(PluginManagerServiceProvider.getUri(mContext),
                     PluginManagerServiceProvider.METHOD_GET_CORE_SERVICE, null, null);
             if (bundle != null) {
                 bundle.setClassLoader(PluginManager.class.getClassLoader());

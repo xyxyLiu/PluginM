@@ -2,6 +2,7 @@ package com.reginald.pluginm.core;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,8 +24,22 @@ public class PluginManagerServiceProvider extends ContentProvider {
     public static final String METHOD_GET_COMM_SERVICE = "method.get_comm_service";
     public static final String KEY_SERVICE = "key.service";
     private static final String TAG = "PluginManagerServiceProvider";
-    private static final String AUTH = "com.reginald.pluginm.provider.core";
-    public static final Uri URI = Uri.parse("content://" + AUTH);
+    private static final String AUTH_SUFFIX = ".pluginm.provider.core";
+
+    private static volatile Uri sUri;
+    private static final Object sUriLock = new Object();
+
+    public static Uri getUri(Context hostContext) {
+        if (sUri == null) {
+            synchronized (sUriLock) {
+                if (sUri == null) {
+                    sUri = Uri.parse("content://" + hostContext.getPackageName() + AUTH_SUFFIX);
+                }
+            }
+        }
+
+        return sUri;
+    }
 
     @Override
     public boolean onCreate() {

@@ -22,18 +22,3 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
-
-
-task clearJar(type: Delete) {
-    delete rootProject.ext.targetPluginApiLibDir
-}
-
-task makeJar(type: Copy) {
-    from('build/intermediates/intermediate-jars/release/')
-    into(rootProject.ext.targetPluginApiLibDir)
-    include('classes.jar')
-    rename ('classes.jar', 'pluginm-api-v' + android.defaultConfig.versionName +
-            '_' + android.defaultConfig.versionCode + '.jar')
-}
-
-makeJar.dependsOn(clearJar, build)
